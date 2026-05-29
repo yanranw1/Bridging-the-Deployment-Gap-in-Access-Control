@@ -101,6 +101,7 @@ def generate_and_verify(dataset, ex_model_name, peft_model_id, enable_verificati
             if len(sanitized) > 0:
                 p = sanitized[0]
                 pred_pol,_ = utils.process_label([p])
+                print(pred_pol)
                 
                 if len(pred_pol) > 0:
                     pp = utils.create_out_string(pred_pol)

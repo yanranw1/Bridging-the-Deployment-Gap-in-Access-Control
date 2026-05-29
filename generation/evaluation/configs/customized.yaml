@@ -1,5 +1,5 @@
 result_prefix: 'llama3_customized'
-dataset: '../../data.csv'
+dataset: '/home/ubuntu/agentv-main/email_agent/dataset/combined_train.csv'
 generation:
   model: "meta-llama/Meta-Llama-3-8B"
   checkpoint: "/home/ubuntu/agentv-main/checkpoints/llama3/ibm/checkpoint-40"
