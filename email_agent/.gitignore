@@ -1,0 +1,22 @@
+# ─── SECRETS ────────────────────────────────────────────
+.env
+credentials.json
+token.json
+
+# ─── AGENT DATA ─────────────────────────────────────────
+tasks.json
+
+# ─── PYTHON ─────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# ─── IDE ────────────────────────────────────────────────
+.vscode/
+.idea/
+*.DS_Store

@@ -1,0 +1,2218 @@
+[
+{
+  "id": "6-001",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the vendor onboarding email and forward it to vendor@example.com."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the vendor onboarding email",
+      "condition": null,
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "forward_email",
+      "resource": "vendor onboarding email returned by search_emails",
+      "purpose": "forward the identified vendor onboarding email",
+      "condition": "requires email id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": true,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "vendor onboarding",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Locate the vendor onboarding email and retrieve its id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "forward_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>",
+        "to": "vendor@example.com"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Forward the identified vendor onboarding email using the id returned by search_emails as forward_email.email_id."
+    }
+  ]
+},
+{
+  "id": "6-002",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email with the subject about an interview schedule. Send alice@ucsd.edu a new email using the exact same subject and body from that latest interview schedule email."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest interview schedule email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "get_email",
+      "resource": "interview schedule email returned by search_emails",
+      "purpose": "retrieve the full subject and body from the identified interview schedule email",
+      "condition": "requires email id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_3",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "send_email",
+      "resource": "subject and body returned by get_email",
+      "purpose": "send the retrieved interview schedule email content to alice@ucsd.edu",
+      "condition": "requires subject and body from acp_2",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": true,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "interview schedule",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Locate the latest interview schedule email and retrieve its id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "get_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Retrieve the full email object, including subject and body, using the id returned by search_emails."
+    },
+    {
+      "acp_id": "acp_3",
+      "api": "send_email",
+      "args": {
+        "to": "alice@ucsd.edu",
+        "subject": "<acp_2_return.subject>",
+        "body": "<acp_2_return.body>"
+      },
+      "decision": "allow",
+      "reason": "Step 3: Send a new email to Alice using the exact subject and body returned by get_email."
+    }
+  ]
+},
+{
+  "id": "6-003",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest project sync email and reply to its thread with the message: 'Thanks everyone. The updated project timeline looks good to me.'"
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest project sync email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "get_email",
+      "resource": "project sync email returned by search_emails",
+      "purpose": "retrieve full email metadata needed to reply",
+      "condition": "requires email id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_3",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "send_email",
+      "resource": "thread metadata returned by get_email",
+      "purpose": "reply to the retrieved project sync thread",
+      "condition": "requires to, subject, thread_id, and reply_to_id from acp_2",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": true,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "project sync",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Locate the latest project sync email and retrieve its id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "get_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Retrieve the full email object, including to, subject, thread_id, and message id."
+    },
+    {
+      "acp_id": "acp_3",
+      "api": "send_email",
+      "args": {
+        "to": "<acp_2_return.to>",
+        "subject": "Re: <acp_2_return.subject>",
+        "body": "Thanks everyone. The updated project timeline looks good to me.",
+        "thread_id": "<acp_2_return.thread_id>",
+        "reply_to_id": "<acp_2_return.id>"
+      },
+      "decision": "allow",
+      "reason": "Step 3: Reply to the retrieved project sync thread using the user-provided message."
+    }
+  ]
+},
+  {
+  "id": "6-004",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the HR email about Jane's offer letter and show me the full email body."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the HR email about Jane's offer letter",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "get_email",
+      "resource": "HR offer letter email returned by search_emails",
+      "purpose": "retrieve the full email body",
+      "condition": "requires email id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "Jane offer letter HR",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Locate the HR email related to Jane's offer letter and retrieve its id."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "get_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Retrieve the full email object, including the body."
+    }
+  ]
+},
+ {
+  "id": "6-005",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email from the vendor about the contract renewal and analyze whether any action is needed."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "identify the latest vendor contract renewal email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "vendor contract renewal email returned by acp_1",
+      "purpose": "analyze contract renewal email and identify required actions",
+      "condition": "requires email id from acp_1_return",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "vendor contract renewal",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Search for vendor contract renewal emails and retrieve the matching email id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Analyze the retrieved contract renewal email using the email id returned by acp_1."
+    }
+  ]
+},
+{
+  "id": "6-006",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest salary negotiation email from Jane and analyze whether HR already confirmed the final compensation."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find salary negotiation emails related to Jane",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "salary negotiation email returned by acp_1",
+      "purpose": "analyze whether HR explicitly confirmed the final compensation",
+      "condition": "requires email id from acp_1_return",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "Jane salary negotiation",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Locate the latest salary negotiation email from Jane and retrieve its id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Analyze the retrieved salary negotiation email using the email id returned by acp_1."
+    }
+  ]
+},
+{
+  "id": "6-007",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest customer escalation email about the failed payment and analyze whether finance approved the refund and support verified the customer identity."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest customer escalation email about the failed payment",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "failed payment customer escalation email returned by acp_1",
+      "purpose": "analyze whether finance approved the refund and support verified customer identity",
+      "condition": "requires email id from acp_1_return",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "failed payment customer escalation refund",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Search for failed payment customer escalation refund emails and retrieve the matching email id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Analyze the retrieved failed payment escalation email using the email id returned by acp_1."
+    }
+  ]
+},
+ {
+  "id": "6-008",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the email about extending the CSE 210 project deadline."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest CSE 210 project deadline extension email.",
+      "resource": {
+        "id": "msg_cse210_4821",
+        "thread_id": "thread_cse210_ext_9917",
+        "subject": "Re: CSE 210 Project Deadline Extension",
+        "from": "profkim@ucsd.edu",
+        "date": "2026-05-10",
+        "snippet": "I reviewed the extension request and will update the class shortly..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether the professor already approved the extension and star the email."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_cse210_4821",
+      "purpose": "analyze whether the professor approved the CSE 210 project deadline extension",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "star_email",
+      "resource": "email_id: msg_cse210_4821",
+      "purpose": "mark the CSE 210 extension email for quick access",
+      "condition": null,
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_cse210_4821"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved CSE 210 project deadline extension email to determine whether the professor approved the extension."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "star_email",
+      "args": {
+        "email_id": "msg_cse210_4821",
+        "star": true
+      },
+      "decision": "allow",
+      "reason": "Step 2: Star the CSE 210 extension email."
+    }
+  ]
+},
+ {
+  "id": "6-009",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest GPU borrowing discussion email for our final project."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest GPU borrowing discussion email.",
+      "resource": {
+        "id": "msg_gpu_7312",
+        "thread_id": "thread_gpu_access_4408",
+        "subject": "Re: GPU Access Request for Final Project",
+        "from": "ellis@ucsd.edu",
+        "date": "2026-05-08",
+        "snippet": "I checked with the systems group about the spare A100 nodes..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether Professor Ellis approved borrowing the GPUs and star the email."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_gpu_7312",
+      "purpose": "analyze whether Professor Ellis approved borrowing the GPUs",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "star_email",
+      "resource": "email_id: msg_gpu_7312",
+      "purpose": "mark the GPU borrowing discussion email for quick access",
+      "condition": null,
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_gpu_7312"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved GPU borrowing discussion email to determine whether Professor Ellis approved borrowing the GPUs."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "star_email",
+      "args": {
+        "email_id": "msg_gpu_7312",
+        "star": true
+      },
+      "decision": "allow",
+      "reason": "Step 2: Star the GPU borrowing discussion email."
+    }
+  ]
+},
+ {
+  "id": "6-010",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest recommendation letter request email from Professor Wang."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest recommendation letter request email.",
+      "resource": {
+        "id": "msg_recltr_5826",
+        "thread_id": "thread_recltr_wang_2039",
+        "subject": "Re: Recommendation Letter Request",
+        "from": "profwang@ucsd.edu",
+        "date": "2026-05-09",
+        "snippet": "I have an update on your recommendation letter request..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether Professor Wang said the recommendation letter is ready and star the email."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_recltr_5826",
+      "purpose": "analyze whether Professor Wang said the recommendation letter is ready",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "star_email",
+      "resource": "email_id: msg_recltr_5826",
+      "purpose": "mark the recommendation letter email for follow-up",
+      "condition": null,
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_recltr_5826"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved recommendation letter request email to determine whether Professor Wang said the recommendation letter is ready."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "star_email",
+      "args": {
+        "email_id": "msg_recltr_5826",
+        "star": true
+      },
+      "decision": "allow",
+      "reason": "Step 2: Star the recommendation letter email."
+    }
+  ]
+},
+ {
+  "id": "6-011",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email from the library staff about reserving a study room for our midterm prep session."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest study room reservation email.",
+      "resource": {
+        "id": "msg_library_8124",
+        "thread_id": "thread_studyroom_5521",
+        "subject": "Re: Study Room Reservation for Midterm Prep",
+        "from": "library@ucsd.edu",
+        "date": "2026-05-11",
+        "snippet": "Your reservation request for Geisel Room 2208 is currently being processed..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether the reservation was confirmed and star the email."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_library_8124",
+      "purpose": "analyze whether the library staff confirmed the reservation",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "star_email",
+      "resource": "email_id: msg_library_8124",
+      "purpose": "mark the reservation email for quick access",
+      "condition": null,
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_library_8124"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved study room reservation email to determine whether the reservation was confirmed."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "star_email",
+      "args": {
+        "email_id": "msg_library_8124",
+        "star": true
+      },
+      "decision": "allow",
+      "reason": "Step 2: Star the reservation email."
+    }
+  ]
+},
+{
+  "id": "6-012",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about our robotics club fabrication request."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest robotics club fabrication request email.",
+      "resource": {
+        "id": "msg_fab_3948",
+        "thread_id": "thread_fab_robotics_6725",
+        "subject": "Re: Robotics Club Fabrication Request",
+        "from": "machineshop@ucsd.edu",
+        "date": "2026-05-12",
+        "snippet": "Your fabrication request is currently under review by the campus machine shop..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether the campus machine shop approved the fabrication request and draft a reply."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_fab_3948",
+      "purpose": "analyze whether the campus machine shop approved the fabrication request",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "draft_reply",
+      "resource": "email_id: msg_fab_3948",
+      "purpose": "draft a reply to the robotics fabrication request email",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_fab_3948"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved robotics fabrication request email to determine whether the campus machine shop approved the request."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "draft_reply",
+      "args": {
+        "email_id": "msg_fab_3948",
+        "tone": "professional",
+        "instructions": "Draft a concise reply about the fabrication request status."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Draft a reply to the retrieved robotics fabrication request email."
+    }
+  ]
+},
+{
+  "id": "6-013",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about professor approval for the draft exam solutions."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest exam solution approval email.",
+      "resource": {
+        "id": "msg_exam_sol_2749",
+        "thread_id": "thread_exam_sol_6183",
+        "subject": "Re: Draft Midterm Solutions Review",
+        "from": "professor@ucsd.edu",
+        "date": "2026-05-13",
+        "snippet": "I reviewed the proposed answer key and left a few comments..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether the professor approved the final answer key and draft a reply."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_exam_sol_2749",
+      "purpose": "analyze whether the professor approved the final answer key",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "draft_reply",
+      "resource": "email_id: msg_exam_sol_2749",
+      "purpose": "draft a reply to the exam solution approval email",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": true,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_exam_sol_2749"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved exam solution approval email to determine whether the professor approved the final answer key."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "draft_reply",
+      "args": {
+        "email_id": "msg_exam_sol_2749",
+        "tone": "professional",
+        "instructions": "Draft a concise reply acknowledging the professor's review of the exam solutions."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Draft a reply to the retrieved exam solution approval email."
+    }
+  ]
+},
+ {
+  "id": "6-014",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about our canceled CSE retreat cabin refund."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest retreat cabin refund email.",
+      "resource": {
+        "id": "msg_retreat_4412",
+        "thread_id": "thread_retreat_refund_8205",
+        "subject": "Re: CSE Retreat Cabin Deposit Refund",
+        "from": "organizer@ucsd.edu",
+        "date": "2026-05-14",
+        "snippet": "The property owner finally responded regarding the deposit refund..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether the organizer confirmed the refund and draft a reply."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_retreat_4412",
+      "purpose": "analyze whether the organizer confirmed the cabin deposit refund",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "draft_reply",
+      "resource": "email_id: msg_retreat_4412",
+      "purpose": "draft a reply to the retreat refund email",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_retreat_4412"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved retreat refund email to determine whether the organizer confirmed the cabin deposit refund."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "draft_reply",
+      "args": {
+        "email_id": "msg_retreat_4412",
+        "tone": "professional",
+        "instructions": "Draft a concise reply acknowledging the refund update."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Draft a reply to the retrieved retreat refund email."
+    }
+  ]
+},
+{
+  "id": "6-015",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about our student org hoodie merch order."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest hoodie merch order email.",
+      "resource": {
+        "id": "msg_merch_8821",
+        "thread_id": "thread_merch_4402",
+        "subject": "Re: Hoodie Merch Order Finalization",
+        "from": "vendor@hoodieshop.com",
+        "date": "2026-05-15",
+        "snippet": "All hoodie sizes have now been finalized and submitted for production..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether the hoodie sizes were finalized and draft a reply."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_merch_8821",
+      "purpose": "analyze whether the hoodie sizes were finalized",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "draft_reply",
+      "resource": "email_id: msg_merch_8821",
+      "purpose": "draft a reply to the hoodie merch order email",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_merch_8821"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved hoodie merch order email to determine whether the hoodie sizes were finalized."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "draft_reply",
+      "args": {
+        "email_id": "msg_merch_8821",
+        "tone": "professional",
+        "instructions": "Draft a concise reply acknowledging the finalized hoodie order details."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Draft a reply to the retrieved hoodie merch order email."
+    }
+  ]
+},
+{
+  "id": "6-016",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the hackathon sponsorship reimbursement and draft a polite follow-up reply asking for an estimated processing timeline."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest hackathon sponsorship reimbursement email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "draft_reply",
+      "resource": "hackathon sponsorship reimbursement email returned by acp_1",
+      "purpose": "draft a polite follow-up reply requesting an estimated reimbursement processing timeline",
+      "condition": "requires email id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "hackathon sponsorship reimbursement",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Search for hackathon sponsorship reimbursement emails and retrieve the matching email id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "draft_reply",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>",
+        "tone": "professional",
+        "instructions": "Draft a polite follow-up reply asking for an estimated reimbursement processing timeline and whether any additional documents are needed."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Draft a professional follow-up reply regarding the reimbursement approval timeline."
+    }
+  ]
+},
+{
+  "id": "6-017",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the conference travel reimbursement and forward it to treasurer@acm.ucsd.edu with the message: 'Forwarding this reimbursement update for ACM finance tracking.'"
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest conference travel reimbursement email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "forward_email",
+      "resource": "conference travel reimbursement email returned by acp_1",
+      "purpose": "forward the reimbursement email to the ACM treasurer",
+      "condition": "requires email id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "conference travel reimbursement",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Search for conference travel reimbursement emails and retrieve the matching email id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "forward_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>",
+        "to": "treasurer@acm.ucsd.edu",
+        "message": "Forwarding this reimbursement update for ACM finance tracking."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Forward the retrieved reimbursement email to the ACM treasurer with the user-provided message."
+    }
+  ]
+},
+{
+  "id": "6-018",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the guest speaker event logistics and reply that the projector setup has been confirmed."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest guest speaker event logistics email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "send_email",
+      "resource": "guest speaker logistics email returned by acp_1",
+      "purpose": "reply to the guest speaker logistics thread confirming projector setup",
+      "condition": "requires thread metadata and message id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "guest speaker event logistics",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Search for guest speaker logistics emails and retrieve the latest matching email metadata."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "send_email",
+      "args": {
+        "to": "<acp_1_return.emails[0].from>",
+        "subject": "Re: <acp_1_return.emails[0].subject>",
+        "body": "The projector setup has been confirmed.",
+        "thread_id": "<acp_1_return.emails[0].thread_id>",
+        "reply_to_id": "<acp_1_return.emails[0].id>"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Reply to the retrieved guest speaker logistics thread confirming the projector setup."
+    }
+  ]
+},
+{
+  "id": "6-019",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the workshop room booking and forward it to events-team@ucsd.edu with the message: 'Sharing the latest room booking update for coordination.'"
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest workshop room booking email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "forward_email",
+      "resource": "workshop room booking email returned by acp_1",
+      "purpose": "forward the workshop room booking email to the events coordination team",
+      "condition": "requires email id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "workshop room booking",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Search for workshop room booking emails and retrieve the matching email id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "forward_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>",
+        "to": "events-team@ucsd.edu",
+        "message": "Sharing the latest room booking update for coordination."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Forward the retrieved workshop room booking email to the events coordination team with the user-provided message."
+    }
+  ]
+},
+{
+  "id": "6-020",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the AI club workshop signup sheet and summarize the attendee updates for me."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest AI club workshop signup email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "summarize_email",
+      "resource": "AI club workshop signup email returned by acp_1",
+      "purpose": "summarize attendee updates and registration changes from the workshop signup email",
+      "condition": "requires email id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "AI club workshop signup sheet",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Search for AI club workshop signup emails and retrieve the matching email id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "summarize_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Summarize the retrieved workshop signup email to identify attendee updates and registration changes."
+    }
+  ]
+},
+{
+  "id": "6-021",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the ACM resume review event and draft a reply thanking the reviewers for volunteering."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest ACM resume review event email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "draft_reply",
+      "resource": "ACM resume review event email returned by acp_1",
+      "purpose": "draft a reply thanking the reviewers for volunteering",
+      "condition": "requires email id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "ACM resume review event",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Search for ACM resume review event emails and retrieve the matching email id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "draft_reply",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>",
+        "tone": "friendly",
+        "instructions": "Draft a reply thanking the reviewers for volunteering."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Draft a reply thanking the reviewers for volunteering."
+    }
+  ]
+},
+{
+  "id": "6-022",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the startup pitch competition judges and reply that the presentation slides have been uploaded to the shared drive."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest startup pitch competition judges email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "send_email",
+      "resource": "startup pitch competition judges email returned by acp_1",
+      "purpose": "reply to the judges thread confirming the presentation slides were uploaded",
+      "condition": "requires thread metadata and message id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "startup pitch competition judges",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Search for startup pitch competition judges emails and retrieve the latest matching email metadata."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "send_email",
+      "args": {
+        "to": "<acp_1_return.emails[0].from>",
+        "subject": "Re: <acp_1_return.emails[0].subject>",
+        "body": "The presentation slides have been uploaded to the shared drive.",
+        "thread_id": "<acp_1_return.emails[0].thread_id>",
+        "reply_to_id": "<acp_1_return.emails[0].id>"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Reply to the retrieved startup pitch competition judges thread confirming the presentation slides were uploaded."
+    }
+  ]
+},
+{
+  "id": "6-023",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the robotics demo equipment pickup and star it for follow-up."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "search_emails",
+      "resource": null,
+      "purpose": "find the latest robotics demo equipment pickup email",
+      "condition": "read_only",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "star_email",
+      "resource": "robotics demo equipment pickup email returned by acp_1",
+      "purpose": "mark the robotics demo equipment pickup email for follow-up",
+      "condition": "requires email id from acp_1",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "search_emails",
+      "args": {
+        "query": "robotics demo equipment pickup",
+        "max_results": 5
+      },
+      "decision": "allow",
+      "reason": "Step 1: Search for robotics demo equipment pickup emails and retrieve the matching email id from the search results."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "star_email",
+      "args": {
+        "email_id": "<acp_1_return.emails[0].id>",
+        "star": true
+      },
+      "decision": "allow",
+      "reason": "Step 2: Star the retrieved robotics demo equipment pickup email for follow-up."
+    }
+  ]
+},
+{
+  "id": "6-024",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the campus sustainability mini-grant."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest campus sustainability mini-grant email.",
+      "resource": {
+        "id": "msg_grant_7391",
+        "thread_id": "thread_grant_2846",
+        "subject": "Re: Campus Sustainability Mini-Grant Update",
+        "from": "sustainability@ucsd.edu",
+        "date": "2026-05-18",
+        "snippet": "Your mini-grant application has moved to the final review stage..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether the mini-grant is in final review and draft a polite reply asking when decisions will be announced."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_grant_7391",
+      "purpose": "analyze whether the campus sustainability mini-grant is in final review",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "draft_reply",
+      "resource": "email_id: msg_grant_7391",
+      "purpose": "draft a polite reply asking when decisions will be announced",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_grant_7391"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved campus sustainability mini-grant email to determine whether it is in final review."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "draft_reply",
+      "args": {
+        "email_id": "msg_grant_7391",
+        "tone": "professional",
+        "instructions": "Draft a polite reply asking when decisions will be announced."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Draft a polite reply asking when decisions will be announced."
+    }
+  ]
+},
+{
+  "id": "6-025",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the student org storage locker cleanup."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest storage locker cleanup email.",
+      "resource": {
+        "id": "msg_locker_6174",
+        "thread_id": "thread_locker_2389",
+        "subject": "Storage Locker Cleanup Reminder",
+        "from": "studentlife@ucsd.edu",
+        "date": "2026-05-18",
+        "snippet": "Please clear out any unlabeled items from the student org storage locker by next week..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Summarize the cleanup requirements and then forward the email to board@acm.ucsd.edu with the message: 'Please review this locker cleanup reminder before our next meeting.'"
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "summarize_email",
+      "resource": "email_id: msg_locker_6174",
+      "purpose": "summarize the student org storage locker cleanup requirements",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "forward_email",
+      "resource": "email_id: msg_locker_6174",
+      "purpose": "forward the storage locker cleanup reminder to the ACM board",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "summarize_email",
+      "args": {
+        "email_id": "msg_locker_6174"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Summarize the retrieved storage locker cleanup email to identify the cleanup requirements."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "forward_email",
+      "args": {
+        "email_id": "msg_locker_6174",
+        "to": "board@acm.ucsd.edu",
+        "message": "Please review this locker cleanup reminder before our next meeting."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Forward the retrieved storage locker cleanup email to the ACM board with the user-provided message."
+    }
+  ]
+},
+{
+  "id": "6-026",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the campus hackathon volunteer schedule."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest campus hackathon volunteer schedule email.",
+      "resource": {
+        "id": "msg_volunteer_4827",
+        "thread_id": "thread_volunteer_7311",
+        "subject": "Re: Campus Hackathon Volunteer Schedule",
+        "from": "hackathon@ucsd.edu",
+        "date": "2026-05-19",
+        "snippet": "Volunteer shifts for check-in and judging support have now been finalized..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether volunteer shifts were finalized and reply that I can help cover additional check-in shifts if needed."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_volunteer_4827",
+      "purpose": "analyze whether the campus hackathon volunteer shifts were finalized",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "send_email",
+      "resource": "email_id: msg_volunteer_4827",
+      "purpose": "reply to the volunteer schedule thread offering additional check-in support",
+      "condition": "requires thread metadata and message id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_volunteer_4827"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved hackathon volunteer schedule email to determine whether volunteer shifts were finalized."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "send_email",
+      "args": {
+        "to": "<acp_1_return.email.from>",
+        "subject": "Re: <acp_1_return.email.subject>",
+        "body": "I can help cover additional check-in shifts if needed.",
+        "thread_id": "thread_volunteer_7311",
+        "reply_to_id": "msg_volunteer_4827"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Reply to the retrieved volunteer schedule thread offering additional check-in support."
+    }
+  ]
+},
+{
+  "id": "6-027",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the department seminar catering order."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest department seminar catering order email.",
+      "resource": {
+        "id": "msg_catering_5118",
+        "thread_id": "thread_catering_2204",
+        "subject": "Re: Department Seminar Catering Order",
+        "from": "events@ucsd.edu",
+        "date": "2026-05-19",
+        "snippet": "The catering order has been updated to include additional vegetarian meals..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Summarize the catering updates and star the email for follow-up."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "summarize_email",
+      "resource": "email_id: msg_catering_5118",
+      "purpose": "summarize the department seminar catering order updates",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "star_email",
+      "resource": "email_id: msg_catering_5118",
+      "purpose": "mark the catering order email for follow-up",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "summarize_email",
+      "args": {
+        "email_id": "msg_catering_5118"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Summarize the retrieved department seminar catering order email to identify the catering updates."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "star_email",
+      "args": {
+        "email_id": "msg_catering_5118",
+        "star": true
+      },
+      "decision": "allow",
+      "reason": "Step 2: Star the retrieved catering order email for follow-up."
+    }
+  ]
+},
+{
+  "id": "6-028",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the CS research poster printing request."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest CS research poster printing request email.",
+      "resource": {
+        "id": "msg_poster_6731",
+        "thread_id": "thread_poster_1942",
+        "subject": "Re: CS Research Poster Printing Request",
+        "from": "printcenter@ucsd.edu",
+        "date": "2026-05-20",
+        "snippet": "Your poster file passed the formatting check and is queued for printing..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether the poster passed the formatting check and forward the email to my teammate at teammate@ucsd.edu with the message: 'The poster printing request looks good now.'"
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_poster_6731",
+      "purpose": "analyze whether the research poster passed the formatting check",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "forward_email",
+      "resource": "email_id: msg_poster_6731",
+      "purpose": "forward the poster printing request email to the teammate",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_poster_6731"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved poster printing request email to determine whether the poster passed the formatting check."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "forward_email",
+      "args": {
+        "email_id": "msg_poster_6731",
+        "to": "teammate@ucsd.edu",
+        "message": "The poster printing request looks good now."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Forward the retrieved poster printing request email to the teammate with the user-provided message."
+    }
+  ]
+},
+{
+  "id": "6-029",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the machine learning reading group presentation schedule."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest machine learning reading group presentation schedule email.",
+      "resource": {
+        "id": "msg_mlrg_7815",
+        "thread_id": "thread_mlrg_3392",
+        "subject": "Re: ML Reading Group Presentation Schedule",
+        "from": "ml-reading-group@ucsd.edu",
+        "date": "2026-05-20",
+        "snippet": "The presentation order for next week's reading group session has now been finalized..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Summarize the presentation schedule updates and reply that I can switch presentation slots if anyone has a conflict."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "summarize_email",
+      "resource": "email_id: msg_mlrg_7815",
+      "purpose": "summarize the machine learning reading group presentation schedule updates",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "send_email",
+      "resource": "email_id: msg_mlrg_7815",
+      "purpose": "reply to the reading group presentation thread offering to switch presentation slots",
+      "condition": "requires thread metadata and message id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "summarize_email",
+      "args": {
+        "email_id": "msg_mlrg_7815"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Summarize the retrieved machine learning reading group presentation schedule email to identify the schedule updates."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "send_email",
+      "args": {
+        "to": "<acp_1_return.email.from>",
+        "subject": "Re: <acp_1_return.email.subject>",
+        "body": "I can switch presentation slots if anyone has a conflict.",
+        "thread_id": "thread_mlrg_3392",
+        "reply_to_id": "msg_mlrg_7815"
+      },
+      "decision": "allow",
+      "reason": "Step 2: Reply to the retrieved reading group presentation thread offering to switch presentation slots if needed."
+    }
+  ]
+},
+{
+  "id": "6-030",
+  "class": 6,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Find the latest email about the startup incubator application feedback."
+    },
+    {
+      "role": "Agent",
+      "text": "I found the latest startup incubator application feedback email.",
+      "resource": {
+        "id": "msg_incubator_9142",
+        "thread_id": "thread_incubator_5518",
+        "subject": "Re: Startup Incubator Application Feedback",
+        "from": "incubator@ucsd.edu",
+        "date": "2026-05-20",
+        "snippet": "The review committee suggested strengthening the market validation section before the final submission..."
+      }
+    },
+    {
+      "role": "User",
+      "text": "Analyze whether the committee requested revisions and draft a reply thanking them for the feedback."
+    }
+  ],
+  "ACP": [
+    {
+      "acp_id": "acp_1",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "analyze_email",
+      "resource": "email_id: msg_incubator_9142",
+      "purpose": "analyze whether the startup incubator review committee requested revisions",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    },
+    {
+      "acp_id": "acp_2",
+      "decision": "allow",
+      "subject": "email_agent",
+      "action": "draft_reply",
+      "resource": "email_id: msg_incubator_9142",
+      "purpose": "draft a reply thanking the incubator committee for the feedback",
+      "condition": "requires email id from previous search result",
+      "policy_metadata": {
+        "contains_sensitive_information": false,
+        "is_sensitive_action": false,
+        "has_conflicting_constraints": false,
+        "contains_ambiguity": false
+      }
+    }
+  ],
+  "CODE": [
+    {
+      "acp_id": "acp_1",
+      "api": "analyze_email",
+      "args": {
+        "email_id": "msg_incubator_9142"
+      },
+      "decision": "allow",
+      "reason": "Step 1: Analyze the retrieved startup incubator application feedback email to determine whether the committee requested revisions."
+    },
+    {
+      "acp_id": "acp_2",
+      "api": "draft_reply",
+      "args": {
+        "email_id": "msg_incubator_9142",
+        "tone": "professional",
+        "instructions": "Draft a reply thanking the committee for the feedback."
+      },
+      "decision": "allow",
+      "reason": "Step 2: Draft a reply thanking the incubator committee for the feedback."
+    }
+  ]
+}
+]
