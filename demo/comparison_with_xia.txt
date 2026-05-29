@@ -1,0 +1,21 @@
+==================== Results (SAR) - AGentV ========================
+
+Ground truth file: demo_sar_true_srl.json
+Predictions file: demo_sar_pred_srl.json
+
+Precision: 0.9855072463768116
+Recall: 0.9444444444444444
+F1: 0.9645390070921985
+
+===========================================================
+
+==================== Results (SAR) - Xia et al. ========================
+
+Ground truth file: demo_sar_true_srl.json
+Predictions file: demo_xia_pred_srl.json
+
+Precision: 0.2702702702702703
+Recall: 0.4166666666666667
+F1: 0.3278688524590164
+
+===========================================================

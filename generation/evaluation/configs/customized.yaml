@@ -1,0 +1,11 @@
+result_prefix: 'llama3_customized'
+dataset: '../../data.csv'
+generation:
+  model: "meta-llama/Meta-Llama-3-8B"
+  checkpoint: "/home/ubuntu/agentv-main/checkpoints/llama3/ibm/checkpoint-40"
+  device: "cuda:0"
+verification:
+  enable: False
+configs:
+  save_detailed_results: True
+  folder: 'results'

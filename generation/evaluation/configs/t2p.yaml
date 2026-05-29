@@ -1,0 +1,11 @@
+result_prefix: 'llama3_t2p'
+dataset: '../../data/document_folds/t2p_acp.csv'
+generation:
+  model: "meta-llama/Meta-Llama-3-8B"
+  checkpoint: "../../checkpoints/generation/t2p/checkpoint/"
+  device: "cuda:0"
+verification:
+  enable: False
+configs:
+  save_detailed_results: True
+  folder: 'results'

@@ -1,0 +1,14 @@
+result_prefix: 'llama3_overall'
+dataset: '../../data/overall/test_acp.csv'
+generation:
+  model: "meta-llama/Meta-Llama-3-8B"
+  checkpoint: "../../checkpoints/generation/overall/checkpoint/"
+  device: "cuda:0"
+verification:
+  enable: True
+  model: "facebook/bart-large"
+  checkpoint: '../../checkpoints/verification/checkpoint/'
+  device: "cuda:0"
+configs:
+  folder: 'results'
+  save_detailed_results: True

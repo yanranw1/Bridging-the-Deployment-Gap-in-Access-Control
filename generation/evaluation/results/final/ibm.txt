@@ -1,0 +1,37 @@
+
+============================================ CONFIGS ============================================
+
+{'configs': {'folder': 'results', 'save_detailed_results': True},
+ 'dataset': '../../data/document_folds/ibm_acp.csv',
+ 'generation': {'checkpoint': '../../checkpoints/llama3/ibm/checkpoint/',
+                'device': 'cuda:0',
+                'model': 'meta-llama/Meta-Llama-3-8B'},
+ 'result_prefix': 'llama3_ibm',
+ 'verification': {'enable': False}}
+
+=================================================================================================
+
+Loading generation model checkpoint :: ../../checkpoints/llama3/ibm/checkpoint/ ...
+Total data points :: 135
+
+
+ ========================= Results (SARCP) ================================= 
+
+Mode: llama3_ibm
+
+Precision: 0.7506849315068493
+Recall: 0.7229551451187335
+F1: 0.7365591397849462
+
+Component-wise results: {'subject': {'tp': 109, 'fp': 29, 'fn': 14, 'p': 0.7898550724637681, 'r': 0.8861788617886179, 'f1': 0.8352490421455938}, 'action': {'tp': 142, 'fp': 21, 'fn': 29, 'p': 0.8711656441717791, 'r': 0.8304093567251462, 'f1': 0.8502994011976047}, 'resource': {'tp': 123, 'fp': 44, 'fn': 58, 'p': 0.7365269461077845, 'r': 0.6795580110497238, 'f1': 0.7068965517241379}, 'purpose': {'tp': 6, 'fp': 9, 'fn': 5, 'p': 0.4, 'r': 0.5454545454545454, 'f1': 0.4615384615384615}, 'condition': {'tp': 36, 'fp': 9, 'fn': 28, 'p': 0.8, 'r': 0.5625, 'f1': 0.6605504587155964}}
+
+
+ ========================= Results (ACR Generation) ========================= 
+
+Precision: 0.6923076923076923
+Recall: 0.6464088397790055
+F1: 0.6685714285714286
+
+ ============================================================================ 
+
+

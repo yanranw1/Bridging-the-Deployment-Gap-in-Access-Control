@@ -1,0 +1,37 @@
+
+============================================ CONFIGS ============================================
+
+{'configs': {'folder': 'results', 'save_detailed_results': True},
+ 'dataset': '../../data/document_folds/acre_acp.csv',
+ 'generation': {'checkpoint': '../../checkpoints/generation/acre/checkpoint-500/',
+                'device': 'cuda:0',
+                'model': 'meta-llama/Meta-Llama-3-8B'},
+ 'result_prefix': 'llama3_acre',
+ 'verification': {'enable': False}}
+
+=================================================================================================
+
+Loading generation model checkpoint :: ../../checkpoints/generation/acre/checkpoint-500/ ...
+Total data points :: 485
+
+
+ ========================= Results (SARCP) ================================= 
+
+Mode: llama3_acre
+
+Precision: 0.7170345217883418
+Recall: 0.7082168809390721
+F1: 0.7125984251968503
+
+Component-wise results: {'subject': {'tp': 597, 'fp': 165, 'fn': 163, 'p': 0.7834645669291339, 'r': 0.7855263157894737, 'f1': 0.7844940867279896}, 'action': {'tp': 545, 'fp': 64, 'fn': 45, 'p': 0.8949096880131363, 'r': 0.923728813559322, 'f1': 0.9090909090909092}, 'resource': {'tp': 605, 'fp': 284, 'fn': 315, 'p': 0.6805399325084365, 'r': 0.657608695652174, 'f1': 0.6688778330569375}, 'purpose': {'tp': 43, 'fp': 32, 'fn': 27, 'p': 0.5733333333333334, 'r': 0.6142857142857143, 'f1': 0.5931034482758621}, 'condition': {'tp': 22, 'fp': 19, 'fn': 17, 'p': 0.5365853658536586, 'r': 0.5641025641025641, 'f1': 0.55}}
+
+
+ ========================= Results (ACR Generation) ========================= 
+
+Precision: 0.6377777777777778
+Recall: 0.6232356134636265
+F1: 0.6304228445908842
+
+ ============================================================================ 
+
+

@@ -1,0 +1,11 @@
+result_prefix: 'llama3_acre'
+dataset: '../../data/document_folds/acre_acp.csv'
+generation:
+  model: "meta-llama/Meta-Llama-3-8B"
+  checkpoint: "../../checkpoints/generation/acre/checkpoint/"
+  device: "cuda:0"
+verification:
+  enable: False
+configs:
+  save_detailed_results: True
+  folder: 'results'

@@ -1,0 +1,30 @@
+              precision    recall  f1-score   support
+
+    negative       0.93      0.88      0.90       186
+    positive       0.98      0.99      0.99      1198
+
+    accuracy                           0.97      1384
+   macro avg       0.96      0.93      0.94      1384
+weighted avg       0.97      0.97      0.97      1384
+
+
+MCC: 0.8890675361587741
+
+              precision    recall  f1-score   support
+
+  allow_deny       0.99      0.98      0.98        98
+        csub       1.00      0.99      1.00       116
+        cact       1.00      0.97      0.99       120
+        cres       1.00      1.00      1.00       109
+       ccond       1.00      1.00      1.00       107
+        cpur       1.00      0.99      0.99       100
+        msub       0.97      1.00      0.99        75
+        mres       1.00      1.00      1.00        98
+       mcond       0.79      0.76      0.78        25
+        mpur       0.65      0.92      0.76        12
+      mrules       0.96      0.99      0.98       338
+     correct       0.93      0.88      0.90       186
+
+    accuracy                           0.97      1384
+   macro avg       0.94      0.96      0.95      1384
+weighted avg       0.97      0.97      0.97      1384

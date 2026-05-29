@@ -1,0 +1,40 @@
+
+============================================ CONFIGS ============================================
+
+{'configs': {'folder': 'results', 'save_detailed_results': True},
+ 'dataset': '../../data/overall/test_acp.csv',
+ 'generation': {'checkpoint': '../../checkpoints/llama3/overall/checkpoint-50/',
+                'device': 'cuda:0',
+                'model': 'meta-llama/Meta-Llama-3-8B'},
+ 'result_prefix': 'llama3_overall',
+ 'verification': {'checkpoint': '../../checkpoints/verification/checkpoint/',
+                  'device': 'cuda:0',
+                  'enable': False,
+                  'model': 'facebook/bart-large'}}
+
+=================================================================================================
+
+Loading generation model checkpoint :: ../../checkpoints/llama3/overall/checkpoint-50/ ...
+Total data points :: 319
+
+
+ ========================= Results (SARCP) ================================= 
+
+Mode: llama3_overall
+
+Precision: 0.8157439446366782
+Recall: 0.7897822445561139
+F1: 0.8025531914893618
+
+Component-wise results: {'subject': {'tp': 412, 'fp': 73, 'fn': 76, 'p': 0.8494845360824742, 'r': 0.8442622950819673, 'f1': 0.8468653648509764}, 'action': {'tp': 354, 'fp': 24, 'fn': 22, 'p': 0.9365079365079365, 'r': 0.9414893617021277, 'f1': 0.9389920424403182}, 'resource': {'tp': 439, 'fp': 102, 'fn': 127, 'p': 0.8114602587800369, 'r': 0.7756183745583038, 'f1': 0.7931345980126467}, 'purpose': {'tp': 53, 'fp': 24, 'fn': 19, 'p': 0.6883116883116883, 'r': 0.7361111111111112, 'f1': 0.7114093959731544}, 'condition': {'tp': 39, 'fp': 14, 'fn': 29, 'p': 0.7358490566037735, 'r': 0.5735294117647058, 'f1': 0.6446280991735537}}
+
+
+ ========================= Results (ACR Generation) ========================= 
+
+Precision: 0.782051282051282
+Recall: 0.7504393673110721
+F1: 0.7659192825112107
+
+ ============================================================================ 
+
+
