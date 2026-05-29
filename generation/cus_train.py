@@ -83,6 +83,7 @@ def load_examples(data_path: str) -> list[dict[str, str]]:
 
         input_text = "translate to ACP: " + format_nl_conversation(nl_turns)
         target_text = format_acp_target(acp)
+        print(     {"input_text": input_text, "target_text": target_text})
         examples.append({"input_text": input_text, "target_text": target_text})
 
     logger.info("Loaded %d examples from %s", len(examples), data_path)

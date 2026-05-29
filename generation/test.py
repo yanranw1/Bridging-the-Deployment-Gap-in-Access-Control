@@ -13,6 +13,7 @@ Usage:
 import argparse
 import json
 import logging
+import re
 
 import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
@@ -20,13 +21,23 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-# ANSI colours for terminal output
+# ANSI colours
 GREEN  = "\033[92m"
 RED    = "\033[91m"
 YELLOW = "\033[93m"
 CYAN   = "\033[96m"
 BOLD   = "\033[1m"
 RESET  = "\033[0m"
+
+# Known ACP top-level fields and policy_metadata sub-fields
+_TOP_LEVEL_FIELDS = {
+    "acp_id", "decision", "subject", "action",
+    "purpose", "condition", "resource",
+}
+_POLICY_META_FIELDS = {
+    "contains_sensitive_information", "is_sensitive_action",
+    "has_conflicting_constraints", "contains_ambiguity",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -43,6 +54,142 @@ def format_nl_conversation(nl_turns: list[dict]) -> str:
             resource_str = json.dumps(turn["resource"], ensure_ascii=False)
             parts.append(f"[resource] {resource_str}")
     return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# JSON repair
+# ---------------------------------------------------------------------------
+
+def _try_parse(s: str) -> "list[dict] | None":
+    try:
+        parsed = json.loads(s)
+        return parsed if isinstance(parsed, list) else [parsed]
+    except json.JSONDecodeError:
+        return None
+
+
+def _fix_nested_dict_fields(s: str) -> str:
+    """
+    Fix dict-valued fields (e.g. policy_metadata) whose {} were dropped:
+        "policy_metadata":"key":true,...  →  "policy_metadata":{"key":true,...}
+    """
+    for field in ["policy_metadata"]:
+        pattern = rf'("{re.escape(field)}"):"'
+        match = re.search(pattern, s)
+        if match:
+            start = match.end() - 1
+            outer_end = s.rfind("]")
+            if outer_end == -1:
+                outer_end = s.rfind("}")
+            if outer_end > start:
+                nested_content = s[start:outer_end]
+                s = s[:match.end() - 1] + "{" + nested_content + "}" + s[outer_end:]
+    return s
+
+
+def _normalize_policy(raw: str) -> "list[dict] | None":
+    """
+    User-proven fallback: string-patch the flat model output into valid JSON
+    then redistribute keys into top-level / resource / policy_metadata buckets.
+
+    Handles output like:
+        ["acp_id":"acp_1","decision":"deny",...,"policy_metadata":"key":true,...]
+    """
+    try:
+        s = raw
+        # Patch resource value: "resource":"..." → "resource":{"..."
+        s = s.replace('"resource":"', '"resource":{"')
+        s = s.replace(',"purpose"', '},"purpose"')
+        # Patch policy_metadata value
+        s = s.replace('"policy_metadata":', '"policy_metadata":{')
+        # Replace outer [] with {} (model wrapped object in array brackets)
+        s = s.replace('[', '{', 1)
+        s = s.replace(']', '}}', 1)
+
+        data = json.loads(s)
+
+        result = {}
+        resource = {}
+        policy_metadata = {}
+
+        for key, value in data.items():
+            if key in _TOP_LEVEL_FIELDS:
+                result[key] = value
+            elif key in _POLICY_META_FIELDS:
+                policy_metadata[key] = value
+            else:
+                resource[key] = value
+
+        # Only override resource/policy_metadata if they weren't already parsed
+        if not isinstance(result.get("resource"), dict):
+            result["resource"] = resource
+        if not isinstance(result.get("policy_metadata"), dict):
+            result["policy_metadata"] = policy_metadata
+
+        return [result]
+
+    except (json.JSONDecodeError, Exception):
+        return None
+
+
+def repair_and_parse(raw: str) -> list[dict]:
+    """
+    Repair ladder for malformed model output:
+      1. Parse as-is.
+      2. Fix dropped {} around nested dict fields (policy_metadata).
+      3. Fix unquoted Python booleans / None.
+      4. Wrap bare array content in {}.
+      5. Add missing outer [].
+      6. normalize_policy() string-patching fallback.
+      7. Store raw string.
+    """
+    # Pass 1 — as-is
+    result = _try_parse(raw)
+    if result is not None:
+        return result
+
+    repaired = raw.strip()
+
+    # Pass 2 — fix nested dict-valued fields first
+    repaired = _fix_nested_dict_fields(repaired)
+
+    # Pass 3 — fix unquoted Python literals
+    repaired = re.sub(r':\s*True\b',  ': true',  repaired)
+    repaired = re.sub(r':\s*False\b', ': false', repaired)
+    repaired = re.sub(r':\s*None\b',  ': null',  repaired)
+
+    # Pass 4 — wrap bare array content in {}
+    if repaired.startswith("[") and repaired.endswith("]"):
+        inner = repaired[1:-1].strip()
+        if inner and not inner.lstrip().startswith("{"):
+            candidate = "[{" + inner + "}]"
+            result = _try_parse(candidate)
+            if result is not None:
+                logger.info("JSON repaired: wrapped bare object in {}.")
+                return result
+
+    result = _try_parse(repaired)
+    if result is not None:
+        logger.info("JSON repaired: fixed nested dicts / booleans.")
+        return result
+
+    # Pass 5 — missing outer []
+    if repaired.startswith("{"):
+        result = _try_parse("[" + repaired + "]")
+        if result is not None:
+            logger.info("JSON repaired: added missing outer [].")
+            return result
+
+    # Pass 6 — normalize_policy string-patch fallback
+    result = _normalize_policy(raw)
+    if result is not None:
+        logger.info("JSON repaired: normalize_policy fallback succeeded.")
+        return result
+
+    # Pass 7 — give up
+    logger.warning("Could not repair JSON output — storing raw string:\n%s", raw)
+    print("$$raw",raw)
+    return [{"raw_output": raw}]
 
 
 # ---------------------------------------------------------------------------
@@ -102,113 +249,10 @@ class ACPPredictor:
 
 
 # ---------------------------------------------------------------------------
-# JSON repair
-# ---------------------------------------------------------------------------
-
-import re as _re
-
-# ACP fields whose values are dicts but the model sometimes emits as bare k:v
-_DICT_VALUED_FIELDS = ["policy_metadata"]
-
-
-def _try_parse(s: str) -> "list[dict] | None":
-    try:
-        parsed = json.loads(s)
-        return parsed if isinstance(parsed, list) else [parsed]
-    except json.JSONDecodeError:
-        return None
-
-
-def _fix_nested_dict_fields(s: str) -> str:
-    """
-    The model sometimes emits dict-valued fields without braces, e.g.:
-        "policy_metadata":"contains_sensitive_information":true,"is_sensitive_action":true,...}
-    This wraps the value in {} so it becomes valid JSON.
-    """
-    for field in _DICT_VALUED_FIELDS:
-        # Match: "field":" — the value starts with a quote (not a brace)
-        pattern = rf'("{_re.escape(field)}"):"'
-        match = _re.search(pattern, s)
-        if match:
-            # Nested dict content runs from the opening quote of its first key
-            # to just before the closing ] or } of the parent object
-            start = match.end() - 1          # position of the opening " of first nested key
-            outer_end = s.rfind("]")         # end of the outer array
-            if outer_end == -1:
-                outer_end = s.rfind("}")
-            if outer_end > start:
-                nested_content = s[start:outer_end]
-                s = s[:match.end() - 1] + "{" + nested_content + "}" + s[outer_end:]
-    return s
-
-
-def repair_and_parse(raw: str) -> list[dict]:
-    """
-    Try progressively more aggressive repairs to turn model output into a
-    valid ACP list.
-
-    The model's two most common failure modes:
-      1. Drops {} around the top-level object inside []:
-             ["key":"val",...]  →  [{"key":"val",...}]
-      2. Drops {} around dict-valued fields like policy_metadata:
-             "policy_metadata":"key":true,...  →  "policy_metadata":{"key":true,...}
-
-    Repair ladder:
-      1. Parse as-is.
-      2. Fix known nested dict fields (policy_metadata etc.).
-      3. Fix unquoted Python booleans / None.
-      4. Wrap bare array content in {}.
-      5. Add missing outer [].
-      6. Store raw string for inspection.
-    """
-    # Pass 1 — as-is
-    result = _try_parse(raw)
-    if result is not None:
-        return result
-
-    repaired = raw.strip()
-
-    # Pass 2 — fix nested dict-valued fields FIRST (before wrapping outer {})
-    repaired = _fix_nested_dict_fields(repaired)
-
-    # Pass 3 — fix unquoted Python literals
-    repaired = _re.sub(r':\s*True\b',  ': true',  repaired)
-    repaired = _re.sub(r':\s*False\b', ': false', repaired)
-    repaired = _re.sub(r':\s*None\b',  ': null',  repaired)
-
-    # Pass 4 — wrap bare array content in {}
-    if repaired.startswith("[") and repaired.endswith("]"):
-        inner = repaired[1:-1].strip()
-        if inner and not inner.lstrip().startswith("{"):
-            candidate = "[{" + inner + "}]"
-            result = _try_parse(candidate)
-            if result is not None:
-                logger.info("JSON repaired: wrapped bare object in {}.")
-                return result
-
-    result = _try_parse(repaired)
-    if result is not None:
-        logger.info("JSON repaired: fixed nested dicts / booleans.")
-        return result
-
-    # Pass 5 — missing outer []
-    if repaired.startswith("{"):
-        result = _try_parse("[" + repaired + "]")
-        if result is not None:
-            logger.info("JSON repaired: added missing outer [].")
-            return result
-
-    # Pass 6 — give up
-    logger.warning("Could not repair JSON output — storing raw string:\n%s", raw)
-    return [{"raw_output": raw}]
-
-
-# ---------------------------------------------------------------------------
 # Comparison helpers
 # ---------------------------------------------------------------------------
 
 def get_field(acp_list: list[dict], field: str, idx: int = 0) -> str:
-    """Safely extract a field from the first (or nth) ACP entry."""
     if not acp_list or idx >= len(acp_list):
         return "—"
     return str(acp_list[idx].get(field, "—"))
@@ -228,10 +272,6 @@ def print_entry_comparison(
     predicted: list[dict],
     has_ground_truth: bool,
 ) -> dict:
-    """
-    Print a formatted side-by-side comparison for one entry.
-    Returns a dict with per-field match results for accuracy tracking.
-    """
     entry_id    = item.get("id", f"entry-{idx+1}")
     entry_class = item.get("class", "?")
     ground      = item.get("ACP", []) if has_ground_truth else []
@@ -240,7 +280,7 @@ def print_entry_comparison(
     print(f"{BOLD}[{idx+1}] ID: {entry_id}  |  Class: {entry_class}{RESET}")
     print_separator()
 
-    # ── Conversation ──────────────────────────────────────────────────────
+    # Conversation
     print(f"{CYAN}Conversation:{RESET}")
     for turn in item.get("NL", []):
         role = turn.get("role", "?")
@@ -248,10 +288,7 @@ def print_entry_comparison(
         print(f"  {BOLD}{role}:{RESET} {text}")
     print()
 
-    # ── ACP side-by-side ──────────────────────────────────────────────────
-    # Determine number of ACP entries to show (max of predicted vs ground)
     n = max(len(predicted), len(ground) if ground else 0)
-
     matches = {"decision": None, "action": None}
 
     for i in range(n):
@@ -261,9 +298,15 @@ def print_entry_comparison(
         pred_entry   = predicted[i] if i < len(predicted) else {}
         ground_entry = ground[i]    if ground and i < len(ground) else {}
 
-        # Fields to display
+        # Flag unparsed entries clearly
+        if "raw_output" in pred_entry:
+            print(f"  {RED}[UNPARSED OUTPUT]{RESET}")
+            print(f"  {pred_entry['raw_output'][:200]}")
+            print()
+            continue
+
         fields = ["acp_id", "decision", "action", "subject", "purpose",
-                  "condition", "resource"]
+                  "condition", "resource", "policy_metadata"]
 
         if has_ground_truth:
             col_w = 34
@@ -271,16 +314,12 @@ def print_entry_comparison(
             print(f"  {'─'*col_w}  {'─'*col_w}")
             for field in fields:
                 pval = str(pred_entry.get(field, "—"))
-                if pval == "-":
-                    print("$$$",predicted[i])
                 gval = str(ground_entry.get(field, "—"))
-                # Truncate long values for display
                 pval_disp = pval[:col_w-1] if len(pval) > col_w else pval
                 gval_disp = gval[:col_w-1] if len(gval) > col_w else gval
                 sym = match_symbol(pval, gval) if field in ("decision", "action") else " "
-                print(f"  {field:<12} {pval_disp:<{col_w-13}}  {gval_disp:<{col_w-13}}  {sym}")
+                print(f"  {field:<14} {pval_disp:<{col_w-15}}  {gval_disp:<{col_w-15}}  {sym}")
 
-            # Track accuracy for first ACP entry only (primary prediction)
             if i == 0:
                 matches["decision"] = (
                     pred_entry.get("decision") == ground_entry.get("decision")
@@ -289,25 +328,21 @@ def print_entry_comparison(
                     pred_entry.get("action") == ground_entry.get("action")
                 )
         else:
-            # No ground truth — just print predicted
             for field in fields:
                 pval = str(pred_entry.get(field, "—"))
-                print(f"  {field:<14} {pval}")
+                print(f"  {field:<16} {pval}")
 
         print()
 
-    # ── Decision / Action quick-compare line ──────────────────────────────
-    if has_ground_truth and predicted and ground:
+    # Quick-compare line
+    if has_ground_truth and predicted and ground and "raw_output" not in predicted[0]:
         pred_dec = get_field(predicted, "decision")
         gt_dec   = get_field(ground,    "decision")
         pred_act = get_field(predicted, "action")
         gt_act   = get_field(ground,    "action")
 
-        dec_sym = match_symbol(pred_dec, gt_dec)
-        act_sym = match_symbol(pred_act, gt_act)
-
-        print(f"  {BOLD}Decision:{RESET} pred={pred_dec!r}  gt={gt_dec!r}  {dec_sym}")
-        print(f"  {BOLD}Action:  {RESET} pred={pred_act!r}  gt={gt_act!r}  {act_sym}")
+        print(f"  {BOLD}Decision:{RESET} pred={pred_dec!r}  gt={gt_dec!r}  {match_symbol(pred_dec, gt_dec)}")
+        print(f"  {BOLD}Action:  {RESET} pred={pred_act!r}  gt={gt_act!r}  {match_symbol(pred_act, gt_act)}")
         print()
 
     return matches
@@ -328,9 +363,9 @@ def print_accuracy_report(
     print_separator("═")
     print(f"{BOLD}ACCURACY REPORT{RESET}")
     print_separator()
-    print(f"  Total entries processed : {total}")
+    print(f"  Total entries processed  : {total}")
     print(f"  Entries with ground truth: {n}")
-    print(f"  Invalid JSON outputs     : {invalid_json}")
+    print(f"  Unparseable outputs      : {invalid_json}")
     print()
 
     if n == 0:
@@ -338,11 +373,9 @@ def print_accuracy_report(
         print_separator("═")
         return
 
-    dec_correct = sum(1 for m in has_gt if m["decision"] is True)
-    act_correct = sum(1 for m in has_gt if m["action"]   is True)
-    both_correct = sum(
-        1 for m in has_gt if m["decision"] is True and m["action"] is True
-    )
+    dec_correct  = sum(1 for m in has_gt if m["decision"] is True)
+    act_correct  = sum(1 for m in has_gt if m["action"]   is True)
+    both_correct = sum(1 for m in has_gt if m["decision"] is True and m["action"] is True)
 
     dec_acc  = dec_correct  / n * 100
     act_acc  = act_correct  / n * 100
@@ -359,15 +392,21 @@ def print_accuracy_report(
     print()
 
     # Per-decision-value breakdown
-    decision_values = {}
+    decision_buckets: dict[str, dict] = {}
     for m in has_gt:
-        for item in [m]:
-            key = m.get("gt_decision", "unknown")
-            if key not in decision_values:
-                decision_values[key] = {"correct": 0, "total": 0}
-            decision_values[key]["total"] += 1
-            if m["decision"]:
-                decision_values[key]["correct"] += 1
+        key = m.get("gt_decision", "unknown")
+        decision_buckets.setdefault(key, {"correct": 0, "total": 0})
+        decision_buckets[key]["total"] += 1
+        if m["decision"]:
+            decision_buckets[key]["correct"] += 1
+
+    if decision_buckets:
+        print(f"  {BOLD}Decision breakdown by ground-truth value:{RESET}")
+        for val, counts in sorted(decision_buckets.items()):
+            c, t = counts["correct"], counts["total"]
+            pct  = c / t * 100
+            print(f"    {val:<10} {c:>4}/{t}  {bar(pct, 20)}  {pct:6.1f}%")
+        print()
 
     print_separator("═")
 
@@ -377,7 +416,6 @@ def print_accuracy_report(
 # ---------------------------------------------------------------------------
 
 def main(args: argparse.Namespace) -> None:
-    # ── Load ─────────────────────────────────────────────────────────────────
     logger.info("Reading: %s", args.input_json)
     with open(args.input_json, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -387,7 +425,6 @@ def main(args: argparse.Namespace) -> None:
 
     has_ground_truth = any("ACP" in item for item in valid)
 
-    # ── Model ─────────────────────────────────────────────────────────────────
     predictor = ACPPredictor(
         model_dir=args.model_dir,
         device=args.device,
@@ -396,7 +433,6 @@ def main(args: argparse.Namespace) -> None:
         num_beams=args.num_beams,
     )
 
-    # ── Batch inference ───────────────────────────────────────────────────────
     all_predictions: list[list[dict]] = []
     for start in range(0, len(valid), args.batch_size):
         batch = valid[start : start + args.batch_size]
@@ -404,7 +440,6 @@ def main(args: argparse.Namespace) -> None:
         all_predictions.extend(preds)
         logger.info("Processed %d / %d", min(start + args.batch_size, len(valid)), len(valid))
 
-    # ── Print comparisons + collect accuracy stats ────────────────────────────
     match_log: list[dict] = []
     invalid_json = 0
     results = []
@@ -416,8 +451,7 @@ def main(args: argparse.Namespace) -> None:
 
         matches = print_entry_comparison(idx, item, predicted, has_ground_truth)
 
-        # Attach ground-truth decision for breakdown (best effort)
-        if item.get("ACP") and item["ACP"]:
+        if item.get("ACP"):
             matches["gt_decision"] = item["ACP"][0].get("decision", "unknown")
         match_log.append(matches)
 
@@ -427,13 +461,11 @@ def main(args: argparse.Namespace) -> None:
             "NL":            item["NL"],
             "ACP_predicted": predicted,
             **({"ACP_ground_truth": item["ACP"]} if "ACP" in item else {}),
-            "match": matches,
+            "match":         matches,
         })
 
-    # ── Accuracy report ───────────────────────────────────────────────────────
     print_accuracy_report(match_log, len(valid), invalid_json)
 
-    # ── Save output JSON ──────────────────────────────────────────────────────
     if args.output_json:
         with open(args.output_json, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
