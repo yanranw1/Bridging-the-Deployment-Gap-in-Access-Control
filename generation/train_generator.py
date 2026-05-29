@@ -35,7 +35,7 @@ def split_train_test(dataset, test_size=0.2):
 def preprocess(dataset, eos):
     combined = []
     for ex in dataset:
-        combined.append(f"Policy: {ex['input']}\nEntities: {ex['output']}{eos}")
+        combined.append(f"Policy: {ex['input']}\nEntities: {ex['output']}###END###{eos}")
 
     dataset = dataset.add_column('text', combined)
 
@@ -77,6 +77,7 @@ def train_generator(dataset_path, num_steps=500, learning_rate=2e-4, batch_size=
             "k_proj",
             "v_proj",
             "o_proj",
+            "gate_proj", "up_proj", "down_proj" #added
         ]
     )
 

@@ -5,7 +5,7 @@ from peft import PeftModel
 
 BASE_MODEL = "meta-llama/Meta-Llama-3-8B"
 LORA_PATH = "../checkpoints/llama3/ibm/checkpoint-40"
-CSV_PATH = "../data.csv"
+CSV_PATH = "/home/ubuntu/agentv-main/email_agent/dataset/combined_test.csv"
 
 device = "cuda"
 

@@ -29,6 +29,23 @@ RANDOM_SEED = 42
 TEST_RATIO = 0.2
 
 
+def serialize_resource(val) -> str:
+    """
+    Serialize the resource field cleanly:
+      - None        → "none"
+      - str         → the string as-is
+      - dict        → "key=value, key=value" (None values omitted)
+    """
+    if val is None:
+        return "none"
+    if isinstance(val, str):
+        return val.strip()
+    if isinstance(val, dict):
+        parts = [f"{k}={v}" for k, v in val.items() if v is not None]
+        return ", ".join(parts) if parts else "none"
+    return str(val).strip()
+
+
 def format_acp(acp_entry: dict) -> str:
     """Format a single ACP dict into the target string representation."""
     def fmt(val):
@@ -47,7 +64,7 @@ def format_acp(acp_entry: dict) -> str:
         decision=fmt(acp_entry.get("decision")),
         subject=fmt(acp_entry.get("subject")),
         action=fmt(acp_entry.get("action")),
-        resource=fmt(acp_entry.get("resource")),
+        resource=serialize_resource(acp_entry.get("resource")),
         purpose=fmt(acp_entry.get("purpose")),
         condition=fmt(acp_entry.get("condition")),
     )
@@ -77,7 +94,7 @@ def write_csv(path: str, rows: list) -> None:
         writer = csv.writer(f)
         writer.writerow(["", "input", "acp", "output"])
         for i, row in enumerate(rows):
-            writer.writerow([i, row["input"], row["acp"], row["output"]])
+            writer.writerow([i, row["input"], 1, row["output"]])
 
 
 def stratified_split(rows: list, test_ratio: float, seed: int):

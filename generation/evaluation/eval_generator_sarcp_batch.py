@@ -92,6 +92,8 @@ def generate_and_verify(dataset, ex_model_name, peft_model_id, enable_verificati
         results = gen_tokenizer.batch_decode(translated, skip_special_tokens=True)
         print(results)
         for k,result in enumerate(results):
+            print(result)
+            result = result.split("###END###")[0]
             policies = []
             pattern = r'\{.*?\}'
             
