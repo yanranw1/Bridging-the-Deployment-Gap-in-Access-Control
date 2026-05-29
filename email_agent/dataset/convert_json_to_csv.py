@@ -4,11 +4,16 @@ convert_json_to_csv.py
 Converts class1.json through class7.json to CSVs matching the format of collected.csv:
   columns: (index), input, acp, output
 
-- input : the NL user text
-- acp   : the class field (1 or 0)
+- input : all NL turns serialized, preserving role, text, and resource
+- acp   : always 1
 - output: ACP entries formatted as
           {decision: X; subject: X; action: X; resource: X; purpose: X; condition: X}
-          multiple ACPs joined by " | "
+          multiple ACP entries joined by " | "
+
+NL serialization format (no curly braces, no pipe):
+  Single turn:  "Role: text"
+  Agent turn with resource: "Role: text (key=value, key=value)"
+  Multiple turns joined by " -> "
 
 Place this script in the same folder as class1.json ... class7.json and run:
     python3 convert_json_to_csv.py
@@ -16,8 +21,8 @@ Place this script in the same folder as class1.json ... class7.json and run:
 Output files:
   class1_converted.csv ... class7_converted.csv
   combined_converted.csv
-  combined_train.csv  (80% stratified per class)
-  combined_test.csv   (20% stratified per class)
+  combined_train.csv  (80% stratified per source class)
+  combined_test.csv   (20% stratified per source class)
 """
 
 import json
@@ -31,10 +36,10 @@ TEST_RATIO = 0.2
 
 def serialize_resource(val) -> str:
     """
-    Serialize the resource field cleanly:
-      - None        → "none"
-      - str         → the string as-is
-      - dict        → "key=value, key=value" (None values omitted)
+    Serialize a resource value cleanly — no curly braces.
+      - None  → "none"
+      - str   → as-is
+      - dict  → "key=value, key=value"  (None values omitted)
     """
     if val is None:
         return "none"
@@ -46,12 +51,41 @@ def serialize_resource(val) -> str:
     return str(val).strip()
 
 
+def serialize_nl(turns: list) -> str:
+    """
+    Serialize all NL turns preserving role, text, and resource.
+    No curly braces, no pipe characters used.
+
+    Per turn format:
+      - No resource : "Role: text"
+      - With resource: "Role: text (key=value, key=value)"
+
+    Multiple turns are joined with " -> " to show conversation flow.
+    """
+    parts = []
+    for turn in turns:
+        role = turn.get("role", "").strip()
+        text = turn.get("text", "").strip()
+        resource = turn.get("resource")
+
+        turn_str = f"{role}: {text}"
+
+        if resource and isinstance(resource, dict):
+            kv = ", ".join(
+                f"{k}={v}" for k, v in resource.items() if v is not None
+            )
+            if kv:
+                turn_str += f" ({kv})"
+
+        parts.append(turn_str)
+
+    return " -> ".join(parts)
+
+
 def format_acp(acp_entry: dict) -> str:
-    """Format a single ACP dict into the target string representation."""
+    """Format a single ACP dict. No curly braces in resource."""
     def fmt(val):
-        if val is None:
-            return "none"
-        return str(val).strip()
+        return "none" if val is None else str(val).strip()
 
     return (
         "{{decision: {decision}; "
@@ -76,12 +110,9 @@ def convert(input_path: str, output_path: str) -> list:
 
     rows = []
     for record in data:
-        nl_text = " ".join(
-            turn["text"] for turn in record.get("NL", []) if turn.get("text")
-        )
-        acp_flag = record.get("class", "")
-        acp_entries = record.get("ACP", [])
-        output_str = " | ".join(format_acp(a) for a in acp_entries)
+        nl_text   = serialize_nl(record.get("NL", []))
+        acp_flag  = 1
+        output_str = " | ".join(format_acp(a) for a in record.get("ACP", []))
         rows.append({"input": nl_text, "acp": acp_flag, "output": output_str})
 
     write_csv(output_path, rows)
@@ -94,32 +125,30 @@ def write_csv(path: str, rows: list) -> None:
         writer = csv.writer(f)
         writer.writerow(["", "input", "acp", "output"])
         for i, row in enumerate(rows):
-            writer.writerow([i, row["input"], 1, row["output"]])
+            writer.writerow([i, row["input"], row["acp"], row["output"]])
 
 
-def stratified_split(rows: list, test_ratio: float, seed: int):
+def stratified_split(all_rows_with_class: list, test_ratio: float, seed: int):
     """
-    Split rows into train/test with equal per-class representation.
-    Each class contributes exactly ceil/floor(test_ratio * class_size) rows to test.
+    Stratified split keeping equal per-source-class ratio.
+    all_rows_with_class: list of (source_class_int, row_dict)
+    acp in row_dict stays 1 throughout.
     """
     rng = random.Random(seed)
 
-    # Group rows by their source class (acp field = class number 1-7)
     by_class = {}
-    for row in rows:
-        key = row["acp"]
-        by_class.setdefault(key, []).append(row)
+    for cls, row in all_rows_with_class:
+        by_class.setdefault(cls, []).append(row)
 
     train, test = [], []
-    for cls, cls_rows in sorted(by_class.items()):
-        shuffled = cls_rows[:]
-        rng.shuffle(shuffled)
-        n_test = max(1, round(len(shuffled) * test_ratio))
-        test.extend(shuffled[:n_test])
-        train.extend(shuffled[n_test:])
-        print(f"  class {cls}: {len(cls_rows)} total → {len(shuffled) - n_test} train, {n_test} test")
+    for cls in sorted(by_class):
+        cls_rows = by_class[cls][:]
+        rng.shuffle(cls_rows)
+        n_test = max(1, round(len(cls_rows) * test_ratio))
+        test.extend(cls_rows[:n_test])
+        train.extend(cls_rows[n_test:])
+        print(f"  class {cls}: {len(cls_rows)} total → {len(cls_rows) - n_test} train, {n_test} test")
 
-    # Shuffle final sets so classes are interleaved
     rng.shuffle(train)
     rng.shuffle(test)
     return train, test
@@ -127,11 +156,13 @@ def stratified_split(rows: list, test_ratio: float, seed: int):
 
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    combined_rows = []
+
+    combined_rows = []          # plain row dicts (acp=1)
+    tagged_rows   = []          # (source_class, row_dict) for stratification
 
     # --- Convert each file individually ---
     for n in range(1, 8):
-        input_path = os.path.join(script_dir, f"class{n}.json")
+        input_path  = os.path.join(script_dir, f"class{n}.json")
         output_path = os.path.join(script_dir, f"class{n}_converted.csv")
 
         if not os.path.exists(input_path):
@@ -140,24 +171,20 @@ if __name__ == "__main__":
 
         print(f"[{n}/7] Converting class{n}.json ...")
         rows = convert(input_path, output_path)
-        # Tag each row with its source class for stratification
-        for row in rows:
-            row["acp"] = n  # overwrite with integer class label
         combined_rows.extend(rows)
+        tagged_rows.extend((n, row) for row in rows)
 
-    # --- Write combined CSV ---
+    # --- Combined CSV (acp always 1) ---
     combined_path = os.path.join(script_dir, "combined_converted.csv")
     write_csv(combined_path, combined_rows)
     print(f"\nCombined: {len(combined_rows)} total rows → 'combined_converted.csv'")
 
     # --- Stratified train / test split ---
     print(f"\nSplitting with test_ratio={TEST_RATIO}, seed={RANDOM_SEED}:")
-    train_rows, test_rows = stratified_split(combined_rows, TEST_RATIO, RANDOM_SEED)
+    train_rows, test_rows = stratified_split(tagged_rows, TEST_RATIO, RANDOM_SEED)
 
-    train_path = os.path.join(script_dir, "combined_train.csv")
-    test_path  = os.path.join(script_dir, "combined_test.csv")
-    write_csv(train_path, train_rows)
-    write_csv(test_path,  test_rows)
+    write_csv(os.path.join(script_dir, "combined_train.csv"), train_rows)
+    write_csv(os.path.join(script_dir, "combined_test.csv"),  test_rows)
 
     print(f"\nTrain: {len(train_rows)} rows → 'combined_train.csv'")
     print(f"Test:  {len(test_rows)} rows → 'combined_test.csv'")

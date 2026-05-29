@@ -12,7 +12,7 @@ from transformers import (
     TrainingArguments,
     set_seed
 )
-from peft import LoraConfig
+from peft import LoraConfig,PeftModel
 import torch
 from trl import SFTTrainer
 import click
@@ -35,14 +35,14 @@ def split_train_test(dataset, test_size=0.2):
 def preprocess(dataset, eos):
     combined = []
     for ex in dataset:
-        combined.append(f"Policy: {ex['input']}\nEntities: {ex['output']}###END###{eos}")
+        combined.append(f"Policy: {ex['input']}\nEntities: {ex['output']}{eos}")
 
     dataset = dataset.add_column('text', combined)
 
     return dataset
 
 
-def train_generator(dataset_path, num_steps=500, learning_rate=2e-4, batch_size=8, lora_alpha=32, lora_dropout=0.05,
+def train_generator(dataset_path, num_epochs=3, learning_rate=2e-4, batch_size=8, lora_alpha=32, lora_dropout=0.05,
                     lora_r=16, out_dir="checkpoints/acp_phi_2_t2p", val=True):
     path = Path(out_dir)
     path.mkdir(parents=True, exist_ok=True)
@@ -57,6 +57,9 @@ def train_generator(dataset_path, num_steps=500, learning_rate=2e-4, batch_size=
         offload_folder="offload",
         low_cpu_mem_usage=True
     )
+    # model = PeftModel.from_pretrained(model, "/home/ubuntu/agentv-main/checkpoints/generation/collected/checkpoint")
+    # model = model.merge_and_unload()  # merge before Stage 2 LoRA
+
 
     model.config.pretraining_tp = 1
     model.config.use_cache = False
@@ -77,7 +80,7 @@ def train_generator(dataset_path, num_steps=500, learning_rate=2e-4, batch_size=
             "k_proj",
             "v_proj",
             "o_proj",
-            "gate_proj", "up_proj", "down_proj" #added
+            # "gate_proj", "up_proj", "down_proj" #added
         ]
     )
 
@@ -98,7 +101,7 @@ def train_generator(dataset_path, num_steps=500, learning_rate=2e-4, batch_size=
             gradient_checkpointing_kwargs={'use_reentrant':True},
             output_dir=out_dir,
             per_device_train_batch_size=1,#changed from batch_size to 1
-            gradient_accumulation_steps=4, #changed from batch_size to 4
+            gradient_accumulation_steps=8, #changed from batch_size to 4
             evaluation_strategy='steps',
             optim="paged_adamw_32bit",
             save_steps=10,
@@ -107,11 +110,12 @@ def train_generator(dataset_path, num_steps=500, learning_rate=2e-4, batch_size=
             do_eval=True,  # Change
             learning_rate=learning_rate,
             max_grad_norm=0.3,
-            max_steps=num_steps,
-            warmup_ratio=0.03,
+            num_train_epochs=num_epochs,
+            warmup_ratio=0.1,
             group_by_length=False,
             lr_scheduler_type='constant',
-            report_to='none'
+            report_to='none',
+            weight_decay=0.01
         )
         trainer = SFTTrainer(
             model=model,
@@ -129,8 +133,8 @@ def train_generator(dataset_path, num_steps=500, learning_rate=2e-4, batch_size=
 
         training_arguments = TrainingArguments(
             output_dir=out_dir,
-            per_device_train_batch_size=batch_size,
-            gradient_accumulation_steps=batch_size,
+            per_device_train_batch_size=1,
+            gradient_accumulation_steps=8,
             optim="paged_adamw_32bit",
             save_steps=10,
 	        gradient_checkpointing = True,
@@ -140,11 +144,12 @@ def train_generator(dataset_path, num_steps=500, learning_rate=2e-4, batch_size=
             learning_rate=learning_rate,
             bf16=True,
             max_grad_norm=0.3,
-            max_steps=num_steps,
-            warmup_ratio=0.03,
+            num_train_epochs=num_epochs,
+            warmup_ratio=0.1,
             group_by_length=True,
             lr_scheduler_type='constant',
-            report_to='none'
+            report_to='none',
+            weight_decay=0.01
         )
         trainer = SFTTrainer(
             model=model,
@@ -166,7 +171,7 @@ def train_generator(dataset_path, num_steps=500, learning_rate=2e-4, batch_size=
               show_default=True,
               default="combined_verification_acps_missing_rules_phi_errorids_train_250.csv",
               required=True)
-@click.option('--num_steps', default=500, help='Number of steps to train', show_default=True)
+@click.option('--num_epochs', default=3, help='Number of epoch to train', show_default=True)
 @click.option('--learning_rate', default=2e-4, help='Learning rate', show_default=True)
 @click.option('--batch_size', default=1, help='Batch size', show_default=True) #changed from 4 to 1
 @click.option('--lora_alpha', default=32, help='LoRA alpha', show_default=True)
@@ -176,14 +181,14 @@ def train_generator(dataset_path, num_steps=500, learning_rate=2e-4, batch_size=
 @click.option('--val', default=True, help='Validate',
               show_default=True)
 @click.option('--out_dir', default='../checkpoints/llama3/ibm', help='Output directory', show_default=True)
-def main(dataset_path='../data/overall/train.csv', num_steps=500, learning_rate=2e-4, batch_size=8, lora_alpha=32,
+def main(dataset_path='../data/overall/train.csv', num_epochs=500, learning_rate=2e-4, batch_size=8, lora_alpha=32,
          lora_dropout=0.05, lora_r=16, val=True, out_dir='../checkpoints/generation/train'):
     """Trains the access control policy generation model"""
     print('\n =========================== Trining details =========================== \n')
     print(
-        f'Dataset: {dataset_path}\nNum. of steps: {num_steps}\nLearning rate: {learning_rate}\nValidate: {val}\nBatch size: {batch_size}\nCheckpoint dir.: {out_dir}\n')
+        f'Dataset: {dataset_path}\nNum. of steps: {num_epochs}\nLearning rate: {learning_rate}\nValidate: {val}\nBatch size: {batch_size}\nCheckpoint dir.: {out_dir}\n')
     print(' ======================================================================= \n')
-    train_generator(dataset_path=dataset_path, num_steps=num_steps, learning_rate=learning_rate, batch_size=batch_size, lora_alpha=lora_alpha,
+    train_generator(dataset_path=dataset_path, num_epochs=num_epochs, learning_rate=learning_rate, batch_size=batch_size, lora_alpha=lora_alpha,
                     lora_dropout=lora_dropout, lora_r=lora_r, out_dir=out_dir, val=val)
 
 

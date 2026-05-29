@@ -85,6 +85,8 @@ def generate_and_verify(dataset, ex_model_name, peft_model_id, enable_verificati
         translated = gen_model.generate(**batch,
                                     pad_token_id=gen_tokenizer.eos_token_id,
                                     do_sample=False, 
+                                    repetition_penalty=1.3,    # add this — breaks Ex5 loop
+                                    no_repeat_ngram_size=4,    # add this — prevents exact repetition
                                     max_new_tokens=512,
                                     num_return_sequences=1, 
                                     early_stopping = False,)
@@ -92,8 +94,6 @@ def generate_and_verify(dataset, ex_model_name, peft_model_id, enable_verificati
         results = gen_tokenizer.batch_decode(translated, skip_special_tokens=True)
         print(results)
         for k,result in enumerate(results):
-            print(result)
-            result = result.split("###END###")[0]
             policies = []
             pattern = r'\{.*?\}'
             
