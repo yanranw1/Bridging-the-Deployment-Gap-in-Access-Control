@@ -1,219 +1,53 @@
 """
-NL → ACP Translation — Evaluation Script
-==========================================
-Evaluates a fine-tuned T5 model on a held-out test set (or any JSON file
-with the same schema as train.json).
-
-Metrics reported
-----------------
-- Exact match     : ACP JSON is identical after normalisation
-- Key-field match : decision / action / subject / acp_id all correct
-- Valid JSON rate  : fraction of outputs that parse as valid JSON
-- BLEU            : token-level sequence similarity (sacrebleu)
-
-Requirements:
-    pip install transformers torch sacrebleu tqdm
+NL → ACP Inference Script
+==========================
+Reads a JSON file in the same format as train.json, runs the model on every
+entry, prints a side-by-side comparison of predicted vs. ground-truth ACP,
+compares decision & action fields, and reports accuracy at the end.
 
 Usage:
-    # Basic — point at your saved model and test file
-    python test_nl_to_acp.py --model_dir ./nl_acp_model --data_path test.json
-
-    # Use a subset of train.json as a quick sanity check
-    python test_nl_to_acp.py --model_dir ./nl_acp_model --data_path train.json --max_samples 50
-
-    # Save per-example predictions to a JSON file for further inspection
-    python test_nl_to_acp.py --model_dir ./nl_acp_model --data_path test.json --output_file results.json
+    python inference_nl_to_acp.py --input_json test.json
+    python inference_nl_to_acp.py --input_json test.json --output_json predictions.json
 """
 
 import argparse
 import json
 import logging
-import sys
-from typing import Any
+import re
 
 import torch
-from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-try:
-    import sacrebleu
-    HAS_SACREBLEU = True
-except ImportError:
-    HAS_SACREBLEU = False
-    print("Warning: sacrebleu not installed — BLEU score will be skipped. "
-          "Run: pip install sacrebleu")
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-# Key ACP fields used for partial / field-level matching
-KEY_FIELDS = ["acp_id", "decision", "action", "subject"]
+# ANSI colours
+GREEN  = "\033[92m"
+RED    = "\033[91m"
+YELLOW = "\033[93m"
+CYAN   = "\033[96m"
+BOLD   = "\033[1m"
+RESET  = "\033[0m"
 
-import re
-import json
-
-def fix_malformed_acp_string(raw_output: str) -> str:
-    """
-    Parses the flat, text-flattened T5 output sequence and reconstructs 
-    the proper nested JSON structure containing lists of policy dictionaries.
-    """
-    # 1. Strip whitespace and outer raw brackets if present
-    text = raw_output.strip()
-    if text.startswith("["):
-        text = text[1:]
-    if text.endswith("]"):
-        text = text[:-1]
-    
-
-    lst = re.split(r"[,:]", text)
-    result = {}
-    policy_metadata = {}
-    def find_match(keyword,dictionary):
-        for i, ele in enumerate(lst):
-            if keyword in ele:
-                val = lst[i+1]
-                val = val.replace('"', '').replace("'", "")
-                val = val.lower()
-
-                if val == "null":
-                    val = None
-                elif val == "true":
-                    val = True
-                elif val == "false":
-                    val = False
-                dictionary[keyword] = val
-                lst[i]=""
-                lst[i+1]=""
-                break
+# Known ACP top-level fields and policy_metadata sub-fields
+_TOP_LEVEL_FIELDS = {
+    "acp_id", "decision", "subject", "action",
+    "purpose", "condition", "resource",
+}
+_POLICY_META_FIELDS = {
+    "contains_sensitive_information", "is_sensitive_action",
+    "has_conflicting_constraints", "contains_ambiguity",
+}
 
 
-    regular_key =  [
-                "acp_id",
-                "decision",
-                "subject",
-                "action",
-                "purpose",
-                "condition",
-    ]
-
-    policy_metadata_key = ["contains_sensitive_information","is_sensitive_action","has_conflicting_constraints","contains_ambiguity"]
-    special_key = {"resource"}
-    for key in regular_key:
-        find_match(key,result)
-    
-    for key in policy_metadata_key:
-        find_match(key,policy_metadata)
-    result["policy_metadata"] = policy_metadata
-    resource = {}
-    for i, ele in enumerate(lst):
-        if "policy_metadata" in ele:
-            lst[i] = ""
-        elif "resource" in ele:
-            lst[i] = ""
-    lst = [x for x in lst if x != ""]
-    if len(lst)%2: #n
-        if len(lst) == 1 and "null" in lst[0].lower():
-            resource =None
-            return result.copy()
-        else:
-            print(lst)
-            print("$$error",raw_output)
-            return{}
-    for i in range(0,len(lst),2):
-        resource[lst[i]] = lst[i+1]
-    
-    result["resource"]=resource
-    # print(raw_output,result)
-    return result.copy()
-
-    # # 2. Tokenize into individual key-value expressions.
-    # # This splits by commas, but ignores commas that live inside quoted strings.
-    # pattern = r'(?:"[^"]*"|[^,]+)'
-    # pairs = re.findall(pattern, text)
-    
-    # policies = []
-    # current_policy = None
-    # in_metadata = False
-
-    # for pair in pairs:
-    #     pair = pair.strip()
-    #     if not pair:
-    #         continue
-            
-    #     # Split on the first colon to isolate the key and the value
-    #     if ":" not in pair:
-    #         continue
-    #     key, val = pair.split(":", 1)
-        
-    #     # Clean quotes and whitespace from the extracted keys/values
-    #     key = key.strip().strip('"')
-    #     val = val.strip()
-        
-    #     # Parse standard scalar types (null, booleans) safely
-    #     if val.lower() == "null":
-    #         parsed_val = None
-    #     elif val.lower() == "true":
-    #         parsed_val = True
-    #     elif val.lower() == "false":
-    #         parsed_val = False
-    #     else:
-    #         parsed_val = val.strip('"')
-
-    #     # Whenever we encounter an 'acp_id', a brand new object block has started
-    #     if key == "acp_id":
-    #         if current_policy is not None:
-    #             policies.append(current_policy)
-    #         current_policy = {
-    #             "acp_id": parsed_val,
-    #             "decision": None,
-    #             "subject": None,
-    #             "action": None,
-    #             "resource": None,
-    #             "purpose": None,
-    #             "condition": None,
-    #             "policy_metadata": {}
-    #         }
-    #         in_metadata = False
-    #         continue
-
-    #     if current_policy is not None:
-    #         if key == "policy_metadata":
-    #             # The model outputted "policy_metadata": "contains_sensitive_information": true
-    #             # We skip setting it directly, and route the next keys into the metadata sub-object
-    #             in_metadata = True
-                
-    #             # Double-check if the value itself contains the first nested key due to splitting flaws
-    #             if ":" in val:
-    #                 sub_key, sub_val = val.split(":", 1)
-    #                 sub_key = sub_key.strip().strip('"')
-    #                 sub_val = sub_val.strip()
-    #                 if sub_val.lower() == "true": sub_parsed = True
-    #                 elif sub_val.lower() == "false": sub_parsed = False
-    #                 else: sub_parsed = sub_val.strip('"')
-    #                 current_policy["policy_metadata"][sub_key] = sub_parsed
-    #         elif in_metadata:
-    #             # Assign metadata keys to our nested dictionary structure
-    #             current_policy["policy_metadata"][key] = parsed_val
-    #         else:
-    #             # Assign standard global policy attributes
-    #             current_policy[key] = parsed_val
-
-    # # Append the last active object parsed from the sequence
-    # if current_policy is not None:
-    #     policies.append(current_policy)
-
-    # # Return clean, beautifully formatted JSON
-    # print("policies",policies)
-    return json.dumps(result, indent=2, ensure_ascii=False)
-    
 # ---------------------------------------------------------------------------
-# Data helpers (mirrors train_nl_to_acp.py)
+# Formatting  (must match train_nl_to_acp.py exactly)
 # ---------------------------------------------------------------------------
 
 def format_nl_conversation(nl_turns: list[dict]) -> str:
     parts = []
     for turn in nl_turns:
-        role = turn["role"]
+        role = turn.get("role", "User")
         text = turn.get("text", "")
         parts.append(f"{role}: {text}")
         if "resource" in turn and turn["resource"]:
@@ -222,157 +56,359 @@ def format_nl_conversation(nl_turns: list[dict]) -> str:
     return "\n".join(parts)
 
 
-def load_test_data(data_path: str, max_samples: int | None = None) -> list[dict]:
-    with open(data_path, "r", encoding="utf-8") as f:
-        raw = json.load(f)
+# ---------------------------------------------------------------------------
+# JSON repair
+# ---------------------------------------------------------------------------
 
-    if max_samples:
-        raw = raw[:max_samples]
+def _try_parse(s: str) -> "list[dict] | None":
+    try:
+        parsed = json.loads(s)
+        return parsed if isinstance(parsed, list) else [parsed]
+    except json.JSONDecodeError:
+        return None
 
-    examples = []
-    for item in raw:
-        nl_turns = item.get("NL", [])
-        acp = item.get("ACP", [])
-        if not nl_turns or not acp:
-            continue
-        examples.append({
-            "id": item.get("id", "unknown"),
-            "class": item.get("class"),
-            "input_text": "translate to ACP: " + format_nl_conversation(nl_turns),
-            "target": acp,
-            "target_str": json.dumps(acp, ensure_ascii=False, separators=(",", ":")),
-        })
 
-    logger.info("Loaded %d test examples", len(examples))
-    return examples
+def _fix_nested_dict_fields(s: str) -> str:
+    """
+    Fix dict-valued fields (e.g. policy_metadata) whose {} were dropped:
+        "policy_metadata":"key":true,...  →  "policy_metadata":{"key":true,...}
+    """
+    for field in ["policy_metadata"]:
+        pattern = rf'("{re.escape(field)}"):"'
+        match = re.search(pattern, s)
+        if match:
+            start = match.end() - 1
+            outer_end = s.rfind("]")
+            if outer_end == -1:
+                outer_end = s.rfind("}")
+            if outer_end > start:
+                nested_content = s[start:outer_end]
+                s = s[:match.end() - 1] + "{" + nested_content + "}" + s[outer_end:]
+    return s
+
+
+def _normalize_policy(raw: str) -> "list[dict] | None":
+    """
+    User-proven fallback: string-patch the flat model output into valid JSON
+    then redistribute keys into top-level / resource / policy_metadata buckets.
+
+    Handles output like:
+        ["acp_id":"acp_1","decision":"deny",...,"policy_metadata":"key":true,...]
+    """
+    try:
+        s = raw
+        # Patch resource value: "resource":"..." → "resource":{"..."
+        s = s.replace('"resource":"', '"resource":{"')
+        s = s.replace(',"purpose"', '},"purpose"')
+        # Patch policy_metadata value
+        s = s.replace('"policy_metadata":', '"policy_metadata":{')
+        # Replace outer [] with {} (model wrapped object in array brackets)
+        s = s.replace('[', '{', 1)
+        s = s.replace(']', '}}', 1)
+
+        data = json.loads(s)
+
+        result = {}
+        resource = {}
+        policy_metadata = {}
+
+        for key, value in data.items():
+            if key in _TOP_LEVEL_FIELDS:
+                result[key] = value
+            elif key in _POLICY_META_FIELDS:
+                policy_metadata[key] = value
+            else:
+                resource[key] = value
+
+        # Only override resource/policy_metadata if they weren't already parsed
+        if not isinstance(result.get("resource"), dict):
+            result["resource"] = resource
+        if not isinstance(result.get("policy_metadata"), dict):
+            result["policy_metadata"] = policy_metadata
+
+        return [result]
+
+    except (json.JSONDecodeError, Exception):
+        return None
+
+
+def repair_and_parse(raw: str) -> list[dict]:
+    """
+    Repair ladder for malformed model output:
+      1. Parse as-is.
+      2. Fix dropped {} around nested dict fields (policy_metadata).
+      3. Fix unquoted Python booleans / None.
+      4. Wrap bare array content in {}.
+      5. Add missing outer [].
+      6. normalize_policy() string-patching fallback.
+      7. Store raw string.
+    """
+    # Pass 1 — as-is
+    result = _try_parse(raw)
+    if result is not None:
+        return result
+
+    repaired = raw.strip()
+
+    # Pass 2 — fix nested dict-valued fields first
+    repaired = _fix_nested_dict_fields(repaired)
+
+    # Pass 3 — fix unquoted Python literals
+    repaired = re.sub(r':\s*True\b',  ': true',  repaired)
+    repaired = re.sub(r':\s*False\b', ': false', repaired)
+    repaired = re.sub(r':\s*None\b',  ': null',  repaired)
+
+    # Pass 4 — wrap bare array content in {}
+    if repaired.startswith("[") and repaired.endswith("]"):
+        inner = repaired[1:-1].strip()
+        if inner and not inner.lstrip().startswith("{"):
+            candidate = "[{" + inner + "}]"
+            result = _try_parse(candidate)
+            if result is not None:
+                logger.info("JSON repaired: wrapped bare object in {}.")
+                return result
+
+    result = _try_parse(repaired)
+    if result is not None:
+        logger.info("JSON repaired: fixed nested dicts / booleans.")
+        return result
+
+    # Pass 5 — missing outer []
+    if repaired.startswith("{"):
+        result = _try_parse("[" + repaired + "]")
+        if result is not None:
+            logger.info("JSON repaired: added missing outer [].")
+            return result
+
+    # Pass 6 — normalize_policy string-patch fallback
+    result = _normalize_policy(raw)
+    if result is not None:
+        logger.info("JSON repaired: normalize_policy fallback succeeded.")
+        return result
+
+    # Pass 7 — give up
+    logger.warning("Could not repair JSON output — storing raw string:\n%s", raw)
+    print("$$raw",raw)
+    return [{"raw_output": raw}]
 
 
 # ---------------------------------------------------------------------------
-# Normalisation & matching
+# Predictor
 # ---------------------------------------------------------------------------
 
-def normalise_acp(acp: list[dict]) -> list[dict]:
-    """
-    Sort ACP list by acp_id and sort dict keys so that two semantically
-    identical ACPs always compare equal regardless of ordering.
-    """
-    normalised = []
-    for entry in acp:
-        normalised.append(dict(sorted(entry.items())))
-    return sorted(normalised, key=lambda x: x.get("acp_id", ""))
+class ACPPredictor:
+    def __init__(
+        self,
+        model_dir: str = "./nl_acp_model",
+        device: str | None = None,
+        max_input_len: int = 512,
+        max_new_tokens: int = 512,
+        num_beams: int = 4,
+    ):
+        if device is None:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        else:
+            self.device = device
 
+        self.max_input_len  = max_input_len
+        self.max_new_tokens = max_new_tokens
+        self.num_beams      = num_beams
 
-def is_exact_match(pred: list[dict], target: list[dict]) -> bool:
-    return normalise_acp(pred) == normalise_acp(target)
+        logger.info("Loading model from '%s' on %s …", model_dir, self.device)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_dir)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_dir).to(self.device)
+        self.model.eval()
+        logger.info("Model ready.\n")
 
-
-def key_field_match(pred: list[dict], target: list[dict]) -> bool:
-    """
-    True if every ACP entry in the prediction has all KEY_FIELDS matching
-    the corresponding target entry (same length required).
-    """
-    if len(pred) != len(target):
-        return False
-    pred_s  = sorted(pred,   key=lambda x: x.get("acp_id", ""))
-    tgt_s   = sorted(target, key=lambda x: x.get("acp_id", ""))
-    for p, t in zip(pred_s, tgt_s):
-        for field in KEY_FIELDS:
-            if p.get(field) != t.get(field):
-                return False
-    return True
-
-
-def per_field_accuracy(predictions: list[list[dict]], targets: list[list[dict]]) -> dict[str, float]:
-    """Per-field accuracy across the dataset (only where both pred and target have the field)."""
-    counts: dict[str, int] = {f: 0 for f in KEY_FIELDS}
-    totals: dict[str, int] = {f: 0 for f in KEY_FIELDS}
-
-    for pred_list, tgt_list in zip(predictions, targets):
-        if len(pred_list) != len(tgt_list):
-            continue
-        pred_s = sorted(pred_list, key=lambda x: x.get("acp_id", ""))
-        tgt_s  = sorted(tgt_list,  key=lambda x: x.get("acp_id", ""))
-        for p, t in zip(pred_s, tgt_s):
-            for field in KEY_FIELDS:
-                if field in t:
-                    totals[field] += 1
-                    if p.get(field) == t.get(field):
-                        counts[field] += 1
-
-    return {
-        f: (counts[f] / totals[f] * 100 if totals[f] else 0.0)
-        for f in KEY_FIELDS
-    }
-
-
-# ---------------------------------------------------------------------------
-# Inference
-# ---------------------------------------------------------------------------
-
-def batch_predict(
-    model: AutoModelForSeq2SeqLM,
-    tokenizer: AutoTokenizer,
-    input_texts: list[str],
-    batch_size: int,
-    max_new_tokens: int,
-    device: torch.device,
-    num_beams: int,
-) -> list[str]:
-    """Run batched generation and return raw string outputs."""
-    all_outputs = []
-    for i in tqdm(range(0, len(input_texts), batch_size), desc="Generating"):
-        batch = input_texts[i : i + batch_size]
-        enc = tokenizer(
-            batch,
+    def predict_batch(self, conversations: list[list[dict]]) -> list[list[dict]]:
+        prompts = [
+            "translate to ACP: " + format_nl_conversation(turns)
+            for turns in conversations
+        ]
+        inputs = self.tokenizer(
+            prompts,
             return_tensors="pt",
-            padding=True,
+            max_length=self.max_input_len,
             truncation=True,
-            max_length=512,
-        ).to(device)
+            padding=True,
+        ).to(self.device)
 
         with torch.no_grad():
-            generated = model.generate(
-                **enc,
-                max_new_tokens=max_new_tokens,
-                num_beams=num_beams,
+            output_ids = self.model.generate(
+                **inputs,
+                max_new_tokens=self.max_new_tokens,
+                num_beams=self.num_beams,
                 early_stopping=True,
             )
 
-        decoded = tokenizer.batch_decode(generated, skip_special_tokens=True)
-        all_outputs.extend(decoded)
-    return all_outputs
-
-
-def try_parse_json(text: str) -> tuple[bool, Any]:
-    try:
-        parsed = json.loads(text)
-        if not isinstance(parsed, list):
-            parsed = [parsed]
-        return True, parsed
-    except json.JSONDecodeError:
-        return False, None
+        results = []
+        for ids in output_ids:
+            raw = self.tokenizer.decode(ids, skip_special_tokens=True)
+            results.append(repair_and_parse(raw))
+        return results
 
 
 # ---------------------------------------------------------------------------
-# Reporting
+# Comparison helpers
 # ---------------------------------------------------------------------------
 
-def print_results(metrics: dict, per_field: dict[str, float]) -> None:
-    width = 50
-    print("\n" + "=" * width)
-    print("  NL → ACP Evaluation Results")
-    print("=" * width)
-    print(f"  Samples evaluated  : {metrics['n_samples']}")
-    print(f"  Valid JSON rate     : {metrics['valid_json_pct']:.1f}%")
-    print(f"  Exact match        : {metrics['exact_match_pct']:.1f}%")
-    print(f"  Key-field match    : {metrics['key_field_match_pct']:.1f}%")
-    if "bleu" in metrics:
-        print(f"  BLEU               : {metrics['bleu']:.2f}")
-    print("-" * width)
-    print("  Per-field accuracy (on length-matched pairs):")
-    for field, acc in per_field.items():
-        print(f"    {field:<20}: {acc:.1f}%")
-    print("=" * width + "\n")
+def get_field(acp_list: list[dict], field: str, idx: int = 0) -> str:
+    if not acp_list or idx >= len(acp_list):
+        return "—"
+    return str(acp_list[idx].get(field, "—"))
+
+
+def match_symbol(a: str, b: str) -> str:
+    return f"{GREEN}✓{RESET}" if a == b else f"{RED}✗{RESET}"
+
+
+def print_separator(char: str = "─", width: int = 72) -> None:
+    print(char * width)
+
+
+def print_entry_comparison(
+    idx: int,
+    item: dict,
+    predicted: list[dict],
+    has_ground_truth: bool,
+) -> dict:
+    entry_id    = item.get("id", f"entry-{idx+1}")
+    entry_class = item.get("class", "?")
+    ground      = item.get("ACP", []) if has_ground_truth else []
+
+    print_separator("═")
+    print(f"{BOLD}[{idx+1}] ID: {entry_id}  |  Class: {entry_class}{RESET}")
+    print_separator()
+
+    # Conversation
+    print(f"{CYAN}Conversation:{RESET}")
+    for turn in item.get("NL", []):
+        role = turn.get("role", "?")
+        text = turn.get("text", "")
+        print(f"  {BOLD}{role}:{RESET} {text}")
+    print()
+
+    n = max(len(predicted), len(ground) if ground else 0)
+    matches = {"decision": None, "action": None}
+
+    for i in range(n):
+        if n > 1:
+            print(f"  {YELLOW}── ACP entry {i+1} ──{RESET}")
+
+        pred_entry   = predicted[i] if i < len(predicted) else {}
+        ground_entry = ground[i]    if ground and i < len(ground) else {}
+
+        # Flag unparsed entries clearly
+        if "raw_output" in pred_entry:
+            print(f"  {RED}[UNPARSED OUTPUT]{RESET}")
+            print(f"  {pred_entry['raw_output'][:200]}")
+            print()
+            continue
+
+        fields = ["acp_id", "decision", "action", "subject", "purpose",
+                  "condition", "resource", "policy_metadata"]
+
+        if has_ground_truth:
+            col_w = 34
+            print(f"  {'PREDICTED':<{col_w}}  {'GROUND TRUTH':<{col_w}}")
+            print(f"  {'─'*col_w}  {'─'*col_w}")
+            for field in fields:
+                pval = str(pred_entry.get(field, "—"))
+                gval = str(ground_entry.get(field, "—"))
+                pval_disp = pval[:col_w-1] if len(pval) > col_w else pval
+                gval_disp = gval[:col_w-1] if len(gval) > col_w else gval
+                sym = match_symbol(pval, gval) if field in ("decision", "action") else " "
+                print(f"  {field:<14} {pval_disp:<{col_w-15}}  {gval_disp:<{col_w-15}}  {sym}")
+
+            if i == 0:
+                matches["decision"] = (
+                    pred_entry.get("decision") == ground_entry.get("decision")
+                )
+                matches["action"] = (
+                    pred_entry.get("action") == ground_entry.get("action")
+                )
+        else:
+            for field in fields:
+                pval = str(pred_entry.get(field, "—"))
+                print(f"  {field:<16} {pval}")
+
+        print()
+
+    # Quick-compare line
+    if has_ground_truth and predicted and ground and "raw_output" not in predicted[0]:
+        pred_dec = get_field(predicted, "decision")
+        gt_dec   = get_field(ground,    "decision")
+        pred_act = get_field(predicted, "action")
+        gt_act   = get_field(ground,    "action")
+
+        print(f"  {BOLD}Decision:{RESET} pred={pred_dec!r}  gt={gt_dec!r}  {match_symbol(pred_dec, gt_dec)}")
+        print(f"  {BOLD}Action:  {RESET} pred={pred_act!r}  gt={gt_act!r}  {match_symbol(pred_act, gt_act)}")
+        print()
+
+    return matches
+
+
+# ---------------------------------------------------------------------------
+# Accuracy report
+# ---------------------------------------------------------------------------
+
+def print_accuracy_report(
+    match_log: list[dict],
+    total: int,
+    invalid_json: int,
+) -> None:
+    has_gt = [m for m in match_log if m["decision"] is not None]
+    n = len(has_gt)
+
+    print_separator("═")
+    print(f"{BOLD}ACCURACY REPORT{RESET}")
+    print_separator()
+    print(f"  Total entries processed  : {total}")
+    print(f"  Entries with ground truth: {n}")
+    print(f"  Unparseable outputs      : {invalid_json}")
+    print()
+
+    if n == 0:
+        print("  No ground-truth labels found — accuracy cannot be computed.")
+        print_separator("═")
+        return
+
+    dec_correct  = sum(1 for m in has_gt if m["decision"] is True)
+    act_correct  = sum(1 for m in has_gt if m["action"]   is True)
+    both_correct = sum(1 for m in has_gt if m["decision"] is True and m["action"] is True)
+
+    dec_acc  = dec_correct  / n * 100
+    act_acc  = act_correct  / n * 100
+    both_acc = both_correct / n * 100
+
+    def bar(pct: float, width: int = 30) -> str:
+        filled = int(pct / 100 * width)
+        colour = GREEN if pct >= 80 else (YELLOW if pct >= 50 else RED)
+        return colour + "█" * filled + RESET + "░" * (width - filled)
+
+    print(f"  Decision accuracy : {dec_correct:>4}/{n}  {bar(dec_acc)}  {dec_acc:6.1f}%")
+    print(f"  Action   accuracy : {act_correct:>4}/{n}  {bar(act_acc)}  {act_acc:6.1f}%")
+    print(f"  Both correct      : {both_correct:>4}/{n}  {bar(both_acc)}  {both_acc:6.1f}%")
+    print()
+
+    # Per-decision-value breakdown
+    decision_buckets: dict[str, dict] = {}
+    for m in has_gt:
+        key = m.get("gt_decision", "unknown")
+        decision_buckets.setdefault(key, {"correct": 0, "total": 0})
+        decision_buckets[key]["total"] += 1
+        if m["decision"]:
+            decision_buckets[key]["correct"] += 1
+
+    if decision_buckets:
+        print(f"  {BOLD}Decision breakdown by ground-truth value:{RESET}")
+        for val, counts in sorted(decision_buckets.items()):
+            c, t = counts["correct"], counts["total"]
+            pct  = c / t * 100
+            print(f"    {val:<10} {c:>4}/{t}  {bar(pct, 20)}  {pct:6.1f}%")
+        print()
+
+    print_separator("═")
 
 
 # ---------------------------------------------------------------------------
@@ -380,133 +416,60 @@ def print_results(metrics: dict, per_field: dict[str, float]) -> None:
 # ---------------------------------------------------------------------------
 
 def main(args: argparse.Namespace) -> None:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logger.info("Using device: %s", device)
+    logger.info("Reading: %s", args.input_json)
+    with open(args.input_json, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-    # Load model
-    logger.info("Loading model from %s", args.model_dir)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_dir)
-    model = AutoModelForSeq2SeqLM.from_pretrained(args.model_dir).to(device)
-    model.eval()
+    valid = [item for item in data if item.get("NL")]
+    logger.info("Loaded %d entries.\n", len(valid))
 
-    # Load data
-    examples = load_test_data(args.data_path, args.max_samples)
-    if not examples:
-        logger.error("No valid examples found. Exiting.")
-        sys.exit(1)
+    has_ground_truth = any("ACP" in item for item in valid)
 
-    input_texts  = [e["input_text"]  for e in examples]
-    targets      = [e["target"]      for e in examples]
-    target_strs  = [e["target_str"]  for e in examples]
-
-    # Generate predictions
-    raw_preds = batch_predict(
-        model, tokenizer, input_texts,
-        batch_size=args.batch_size,
+    predictor = ACPPredictor(
+        model_dir=args.model_dir,
+        device=args.device,
+        max_input_len=args.max_input_len,
         max_new_tokens=args.max_new_tokens,
-        device=device,
         num_beams=args.num_beams,
     )
-    for raw_pred in raw_preds:
-        count = raw_pred.count("acp_i")
-        res = []
-        if count > 1:
-            # print("111",count)
-            prev = 0
-            for i in range(2,1+count):
-                # print("here",f'"acp_id":"acp_{i}"')
-                end = raw_pred.find(f'"acp_id":"acp_{i}"')
-                # print(prev,end)
-                res.append(fix_malformed_acp_string(raw_pred[prev:end]))
-                prev = end
-            res.append(fix_malformed_acp_string(raw_pred[prev:end]))
-            
-        else:
-            res.append(fix_malformed_acp_string(raw_pred))
-        print(res)
 
-    # Parse & evaluate
-    # valid_json_count  = 0
-    # exact_match_count = 0
-    # key_field_count   = 0
-    # parsed_preds      = []
-    # records           = []
+    all_predictions: list[list[dict]] = []
+    for start in range(0, len(valid), args.batch_size):
+        batch = valid[start : start + args.batch_size]
+        preds = predictor.predict_batch([item["NL"] for item in batch])
+        all_predictions.extend(preds)
+        logger.info("Processed %d / %d", min(start + args.batch_size, len(valid)), len(valid))
 
-    # for ex, raw, tgt, tgt_str in zip(examples, raw_preds, targets, target_strs):
-    #     ok, pred_acp = try_parse_json(raw)
-    #     valid_json_count  += int(ok)
-    #     exact = key_f = False
+    match_log: list[dict] = []
+    invalid_json = 0
+    results = []
 
-    #     if ok:
-    #         exact = is_exact_match(pred_acp, tgt)
-    #         key_f = key_field_match(pred_acp, tgt)
-    #     else:
-    #         pred_acp = []
+    print("\n")
+    for idx, (item, predicted) in enumerate(zip(valid, all_predictions)):
+        if predicted and "raw_output" in predicted[0]:
+            invalid_json += 1
 
-    #     exact_match_count += int(exact)
-    #     key_field_count   += int(key_f)
-    #     parsed_preds.append(pred_acp)
+        matches = print_entry_comparison(idx, item, predicted, has_ground_truth)
 
-    #     records.append({
-    #         "id":              ex["id"],
-    #         "class":           ex["class"],
-    #         "input":           ex["input_text"],
-    #         "target":          tgt,
-    #         "prediction_raw":  raw,
-    #         "prediction":      pred_acp,
-    #         "valid_json":      ok,
-    #         "exact_match":     exact,
-    #         "key_field_match": key_f,
-    #     })
+        if item.get("ACP"):
+            matches["gt_decision"] = item["ACP"][0].get("decision", "unknown")
+        match_log.append(matches)
 
-    # n = len(examples)
-    # metrics: dict[str, Any] = {
-    #     "n_samples":           n,
-    #     "valid_json_pct":      valid_json_count  / n * 100,
-    #     "exact_match_pct":     exact_match_count / n * 100,
-    #     "key_field_match_pct": key_field_count   / n * 100,
-    # }
+        results.append({
+            "id":            item.get("id"),
+            "class":         item.get("class"),
+            "NL":            item["NL"],
+            "ACP_predicted": predicted,
+            **({"ACP_ground_truth": item["ACP"]} if "ACP" in item else {}),
+            "match":         matches,
+        })
 
-    # # BLEU (token-level, treating JSON strings as sentences)
-    # if HAS_SACREBLEU:
-    #     bleu = sacrebleu.corpus_bleu(raw_preds, [target_strs])
-    #     metrics["bleu"] = bleu.score
+    print_accuracy_report(match_log, len(valid), invalid_json)
 
-    # per_field = per_field_accuracy(parsed_preds, targets)
-    # print_results(metrics, per_field)
-
-    # # Optional: break down exact match by class
-    # class_stats: dict[int, dict] = {}
-    # for rec in records:
-    #     cls = rec["class"]
-    #     if cls not in class_stats:
-    #         class_stats[cls] = {"total": 0, "exact": 0, "key_field": 0}
-    #     class_stats[cls]["total"]     += 1
-    #     class_stats[cls]["exact"]     += int(rec["exact_match"])
-    #     class_stats[cls]["key_field"] += int(rec["key_field_match"])
-
-    # print("  Breakdown by class:")
-    # for cls in sorted(class_stats):
-    #     s = class_stats[cls]
-    #     em  = s["exact"]     / s["total"] * 100
-    #     kfm = s["key_field"] / s["total"] * 100
-    #     print(f"    class {cls}: {s['total']:>4} samples | exact {em:5.1f}% | key-field {kfm:5.1f}%")
-    # print()
-
-    # # Save detailed results
-    # if args.output_file:
-    #     with open(args.output_file, "w", encoding="utf-8") as f:
-    #         json.dump({"metrics": metrics, "per_field": per_field, "records": records}, f, indent=2)
-    #     logger.info("Detailed results saved to %s", args.output_file)
-
-    # # Print a few failure examples for quick inspection
-    # if args.show_failures > 0:
-    #     failures = [r for r in records if not r["exact_match"]][:args.show_failures]
-    #     print(f"--- First {len(failures)} failure(s) ---")
-    #     for r in failures:
-    #         print(f"\nID: {r['id']}  class: {r['class']}")
-    #         print(f"  TARGET : {json.dumps(r['target'], separators=(',', ':'))}")
-    #         print(f"  PRED   : {r['prediction_raw']}")
+    if args.output_json:
+        with open(args.output_json, "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=2, ensure_ascii=False)
+        logger.info("Predictions saved to: %s", args.output_json)
 
 
 # ---------------------------------------------------------------------------
@@ -514,24 +477,20 @@ def main(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Evaluate fine-tuned NL → ACP model.")
-
-    parser.add_argument("--model_dir",    type=str, default="/home/ubuntu/agentv-main/generation/nl_acp_model",
-                        help="Path to the fine-tuned model directory")
-    parser.add_argument("--data_path",    type=str, default="/home/ubuntu/agentv-main/email_agent/dataset/val.json",
-                        help="Path to the test JSON file (same schema as train.json)")
-    parser.add_argument("--max_samples",  type=int, default=None,
-                        help="Limit evaluation to first N examples (useful for quick checks)")
-    parser.add_argument("--batch_size",   type=int, default=8,
-                        help="Inference batch size (default: 8)")
-    parser.add_argument("--max_new_tokens", type=int, default=256,
-                        help="Max tokens to generate per prediction (default: 256)")
-    parser.add_argument("--num_beams",    type=int, default=4,
-                        help="Beam search width (default: 4; use 1 for greedy)")
-    parser.add_argument("--output_file",  type=str, default=None,
-                        help="Optional path to save full per-example results as JSON")
-    parser.add_argument("--show_failures", type=int, default=5,
-                        help="Print this many failure examples to stdout (default: 5)")
+    parser = argparse.ArgumentParser(
+        description="NL → ACP inference with side-by-side comparison and accuracy report"
+    )
+    parser.add_argument("--input_json",     type=str, default="/home/ubuntu/agentv-main/email_agent/dataset/val.json",
+                        help="Input JSON file (train.json format)")
+    parser.add_argument("--output_json",    type=str, default=None,
+                        help="Optional: save predictions + matches to this file")
+    parser.add_argument("--model_dir",      type=str, default="./nl_acp_model")
+    parser.add_argument("--device",         type=str, default=None,
+                        help="'cuda' or 'cpu' (default: auto-detect)")
+    parser.add_argument("--batch_size",     type=int, default=16)
+    parser.add_argument("--max_input_len",  type=int, default=512)
+    parser.add_argument("--max_new_tokens", type=int, default=512)
+    parser.add_argument("--num_beams",      type=int, default=4)
 
     args = parser.parse_args()
     main(args)

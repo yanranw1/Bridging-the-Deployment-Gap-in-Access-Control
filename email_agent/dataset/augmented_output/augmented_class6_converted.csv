@@ -1,0 +1,301 @@
+,input,acp,output
+0,"<|start_header_id|>User<|end_header_id|>
+
+Find the vendor onboarding email and forward it to vendor@example.com.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the vendor onboarding email; condition: none} | {decision: allow; subject: email_agent; action: forward_email; resource: [vendor onboarding email returned by search_emails]; purpose: forward the identified vendor onboarding email; condition: requires email id from acp_1}
+1,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email with the subject about an interview schedule. Send alice@ucsd.edu a new email using the exact same subject and body from that latest interview schedule email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest interview schedule email; condition: read_only} | {decision: allow; subject: email_agent; action: get_email; resource: [interview schedule email returned by search_emails]; purpose: retrieve the full subject and body from the identified interview schedule email; condition: requires email id from acp_1} | {decision: allow; subject: email_agent; action: send_email; resource: [subject and body returned by get_email]; purpose: send the retrieved interview schedule email content to alice@ucsd.edu; condition: requires subject and body from acp_2}
+2,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest project sync email and reply to its thread with the message: 'Thanks everyone. The updated project timeline looks good to me.'<|eot_id|>",1,"{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest project sync email; condition: read_only} | {decision: allow; subject: email_agent; action: get_email; resource: [project sync email returned by search_emails]; purpose: retrieve full email metadata needed to reply; condition: requires email id from acp_1} | {decision: allow; subject: email_agent; action: send_email; resource: [thread metadata returned by get_email]; purpose: reply to the retrieved project sync thread; condition: requires to, subject, thread_id, and reply_to_id from acp_2}"
+3,"<|start_header_id|>User<|end_header_id|>
+
+Find the HR email about Jane's offer letter and show me the full email body.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the HR email about Jane's offer letter; condition: read_only} | {decision: allow; subject: email_agent; action: get_email; resource: [HR offer letter email returned by search_emails]; purpose: retrieve the full email body; condition: requires email id from acp_1}
+4,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email from the vendor about the contract renewal and analyze whether any action is needed.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: identify the latest vendor contract renewal email; condition: read_only} | {decision: allow; subject: email_agent; action: analyze_email; resource: [vendor contract renewal email returned by acp_1]; purpose: analyze contract renewal email and identify required actions; condition: requires email id from acp_1_return}
+5,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest salary negotiation email from Jane and analyze whether HR already confirmed the final compensation.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find salary negotiation emails related to Jane; condition: read_only} | {decision: allow; subject: email_agent; action: analyze_email; resource: [salary negotiation email returned by acp_1]; purpose: analyze whether HR explicitly confirmed the final compensation; condition: requires email id from acp_1_return}
+6,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest customer escalation email about the failed payment and analyze whether finance approved the refund and support verified the customer identity.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest customer escalation email about the failed payment; condition: read_only} | {decision: allow; subject: email_agent; action: analyze_email; resource: [failed payment customer escalation email returned by acp_1]; purpose: analyze whether finance approved the refund and support verified customer identity; condition: requires email id from acp_1_return}
+7,"<|start_header_id|>User<|end_header_id|>
+
+Find the email about extending the CSE 210 project deadline.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest CSE 210 project deadline extension email. (id=msg_cse210_4821, thread_id=thread_cse210_ext_9917, subject=Re: CSE 210 Project Deadline Extension, from=profkim@ucsd.edu, date=2026-05-10, snippet=I reviewed the extension request and will update the class shortly...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether the professor already approved the extension and star the email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_cse210_4821]; purpose: analyze whether the professor approved the CSE 210 project deadline extension; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: star_email; resource: [email_id=msg_cse210_4821]; purpose: mark the CSE 210 extension email for quick access; condition: none}
+8,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest GPU borrowing discussion email for our final project.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest GPU borrowing discussion email. (id=msg_gpu_7312, thread_id=thread_gpu_access_4408, subject=Re: GPU Access Request for Final Project, from=ellis@ucsd.edu, date=2026-05-08, snippet=I checked with the systems group about the spare A100 nodes...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether Professor Ellis approved borrowing the GPUs and star the email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_gpu_7312]; purpose: analyze whether Professor Ellis approved borrowing the GPUs; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: star_email; resource: [email_id=msg_gpu_7312]; purpose: mark the GPU borrowing discussion email for quick access; condition: none}
+9,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest recommendation letter request email from Professor Wang.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest recommendation letter request email. (id=msg_recltr_5826, thread_id=thread_recltr_wang_2039, subject=Re: Recommendation Letter Request, from=profwang@ucsd.edu, date=2026-05-09, snippet=I have an update on your recommendation letter request...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether Professor Wang said the recommendation letter is ready and star the email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_recltr_5826]; purpose: analyze whether Professor Wang said the recommendation letter is ready; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: star_email; resource: [email_id=msg_recltr_5826]; purpose: mark the recommendation letter email for follow-up; condition: none}
+10,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email from the library staff about reserving a study room for our midterm prep session.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest study room reservation email. (id=msg_library_8124, thread_id=thread_studyroom_5521, subject=Re: Study Room Reservation for Midterm Prep, from=library@ucsd.edu, date=2026-05-11, snippet=Your reservation request for Geisel Room 2208 is currently being processed...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether the reservation was confirmed and star the email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_library_8124]; purpose: analyze whether the library staff confirmed the reservation; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: star_email; resource: [email_id=msg_library_8124]; purpose: mark the reservation email for quick access; condition: none}
+11,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about our robotics club fabrication request.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest robotics club fabrication request email. (id=msg_fab_3948, thread_id=thread_fab_robotics_6725, subject=Re: Robotics Club Fabrication Request, from=machineshop@ucsd.edu, date=2026-05-12, snippet=Your fabrication request is currently under review by the campus machine shop...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether the campus machine shop approved the fabrication request and draft a reply.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_fab_3948]; purpose: analyze whether the campus machine shop approved the fabrication request; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_fab_3948]; purpose: draft a reply to the robotics fabrication request email; condition: requires email id from previous search result}
+12,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about professor approval for the draft exam solutions.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest exam solution approval email. (id=msg_exam_sol_2749, thread_id=thread_exam_sol_6183, subject=Re: Draft Midterm Solutions Review, from=professor@ucsd.edu, date=2026-05-13, snippet=I reviewed the proposed answer key and left a few comments...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether the professor approved the final answer key and draft a reply.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_exam_sol_2749]; purpose: analyze whether the professor approved the final answer key; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_exam_sol_2749]; purpose: draft a reply to the exam solution approval email; condition: requires email id from previous search result}
+13,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about our canceled CSE retreat cabin refund.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest retreat cabin refund email. (id=msg_retreat_4412, thread_id=thread_retreat_refund_8205, subject=Re: CSE Retreat Cabin Deposit Refund, from=organizer@ucsd.edu, date=2026-05-14, snippet=The property owner finally responded regarding the deposit refund...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether the organizer confirmed the refund and draft a reply.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_retreat_4412]; purpose: analyze whether the organizer confirmed the cabin deposit refund; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_retreat_4412]; purpose: draft a reply to the retreat refund email; condition: requires email id from previous search result}
+14,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about our student org hoodie merch order.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest hoodie merch order email. (id=msg_merch_8821, thread_id=thread_merch_4402, subject=Re: Hoodie Merch Order Finalization, from=vendor@hoodieshop.com, date=2026-05-15, snippet=All hoodie sizes have now been finalized and submitted for production...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether the hoodie sizes were finalized and draft a reply.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_merch_8821]; purpose: analyze whether the hoodie sizes were finalized; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_merch_8821]; purpose: draft a reply to the hoodie merch order email; condition: requires email id from previous search result}
+15,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the hackathon sponsorship reimbursement and draft a polite follow-up reply asking for an estimated processing timeline.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest hackathon sponsorship reimbursement email; condition: read_only} | {decision: allow; subject: email_agent; action: draft_reply; resource: [hackathon sponsorship reimbursement email returned by acp_1]; purpose: draft a polite follow-up reply requesting an estimated reimbursement processing timeline; condition: requires email id from acp_1}
+16,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the conference travel reimbursement and forward it to treasurer@acm.ucsd.edu with the message: 'Forwarding this reimbursement update for ACM finance tracking.'<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest conference travel reimbursement email; condition: read_only} | {decision: allow; subject: email_agent; action: forward_email; resource: [conference travel reimbursement email returned by acp_1]; purpose: forward the reimbursement email to the ACM treasurer; condition: requires email id from acp_1}
+17,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the guest speaker event logistics and reply that the projector setup has been confirmed.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest guest speaker event logistics email; condition: read_only} | {decision: allow; subject: email_agent; action: send_email; resource: [guest speaker logistics email returned by acp_1]; purpose: reply to the guest speaker logistics thread confirming projector setup; condition: requires thread metadata and message id from acp_1}
+18,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the workshop room booking and forward it to events-team@ucsd.edu with the message: 'Sharing the latest room booking update for coordination.'<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest workshop room booking email; condition: read_only} | {decision: allow; subject: email_agent; action: forward_email; resource: [workshop room booking email returned by acp_1]; purpose: forward the workshop room booking email to the events coordination team; condition: requires email id from acp_1}
+19,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the AI club workshop signup sheet and summarize the attendee updates for me.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest AI club workshop signup email; condition: read_only} | {decision: allow; subject: email_agent; action: summarize_email; resource: [AI club workshop signup email returned by acp_1]; purpose: summarize attendee updates and registration changes from the workshop signup email; condition: requires email id from acp_1}
+20,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the ACM resume review event and draft a reply thanking the reviewers for volunteering.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest ACM resume review event email; condition: read_only} | {decision: allow; subject: email_agent; action: draft_reply; resource: [ACM resume review event email returned by acp_1]; purpose: draft a reply thanking the reviewers for volunteering; condition: requires email id from acp_1}
+21,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the startup pitch competition judges and reply that the presentation slides have been uploaded to the shared drive.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest startup pitch competition judges email; condition: read_only} | {decision: allow; subject: email_agent; action: send_email; resource: [startup pitch competition judges email returned by acp_1]; purpose: reply to the judges thread confirming the presentation slides were uploaded; condition: requires thread metadata and message id from acp_1}
+22,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the robotics demo equipment pickup and star it for follow-up.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest robotics demo equipment pickup email; condition: read_only} | {decision: allow; subject: email_agent; action: star_email; resource: [robotics demo equipment pickup email returned by acp_1]; purpose: mark the robotics demo equipment pickup email for follow-up; condition: requires email id from acp_1}
+23,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the campus sustainability mini-grant.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest campus sustainability mini-grant email. (id=msg_grant_7391, thread_id=thread_grant_2846, subject=Re: Campus Sustainability Mini-Grant Update, from=sustainability@ucsd.edu, date=2026-05-18, snippet=Your mini-grant application has moved to the final review stage...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether the mini-grant is in final review and draft a polite reply asking when decisions will be announced.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_grant_7391]; purpose: analyze whether the campus sustainability mini-grant is in final review; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_grant_7391]; purpose: draft a polite reply asking when decisions will be announced; condition: requires email id from previous search result}
+24,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the student org storage locker cleanup.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest storage locker cleanup email. (id=msg_locker_6174, thread_id=thread_locker_2389, subject=Storage Locker Cleanup Reminder, from=studentlife@ucsd.edu, date=2026-05-18, snippet=Please clear out any unlabeled items from the student org storage locker by next week...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Summarize the cleanup requirements and then forward the email to board@acm.ucsd.edu with the message: 'Please review this locker cleanup reminder before our next meeting.'<|eot_id|>",1,{decision: allow; subject: email_agent; action: summarize_email; resource: [email_id=msg_locker_6174]; purpose: summarize the student org storage locker cleanup requirements; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: forward_email; resource: [email_id=msg_locker_6174]; purpose: forward the storage locker cleanup reminder to the ACM board; condition: requires email id from previous search result}
+25,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the campus hackathon volunteer schedule.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest campus hackathon volunteer schedule email. (id=msg_volunteer_4827, thread_id=thread_volunteer_7311, subject=Re: Campus Hackathon Volunteer Schedule, from=hackathon@ucsd.edu, date=2026-05-19, snippet=Volunteer shifts for check-in and judging support have now been finalized...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether volunteer shifts were finalized and reply that I can help cover additional check-in shifts if needed.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_volunteer_4827]; purpose: analyze whether the campus hackathon volunteer shifts were finalized; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: send_email; resource: [email_id=msg_volunteer_4827]; purpose: reply to the volunteer schedule thread offering additional check-in support; condition: requires thread metadata and message id from previous search result}
+26,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the department seminar catering order.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest department seminar catering order email. (id=msg_catering_5118, thread_id=thread_catering_2204, subject=Re: Department Seminar Catering Order, from=events@ucsd.edu, date=2026-05-19, snippet=The catering order has been updated to include additional vegetarian meals...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Summarize the catering updates and star the email for follow-up.<|eot_id|>",1,{decision: allow; subject: email_agent; action: summarize_email; resource: [email_id=msg_catering_5118]; purpose: summarize the department seminar catering order updates; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: star_email; resource: [email_id=msg_catering_5118]; purpose: mark the catering order email for follow-up; condition: requires email id from previous search result}
+27,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the CS research poster printing request.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest CS research poster printing request email. (id=msg_poster_6731, thread_id=thread_poster_1942, subject=Re: CS Research Poster Printing Request, from=printcenter@ucsd.edu, date=2026-05-20, snippet=Your poster file passed the formatting check and is queued for printing...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether the poster passed the formatting check and forward the email to my teammate at teammate@ucsd.edu with the message: 'The poster printing request looks good now.'<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_poster_6731]; purpose: analyze whether the research poster passed the formatting check; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: forward_email; resource: [email_id=msg_poster_6731]; purpose: forward the poster printing request email to the teammate; condition: requires email id from previous search result}
+28,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the machine learning reading group presentation schedule.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest machine learning reading group presentation schedule email. (id=msg_mlrg_7815, thread_id=thread_mlrg_3392, subject=Re: ML Reading Group Presentation Schedule, from=ml-reading-group@ucsd.edu, date=2026-05-20, snippet=The presentation order for next week's reading group session has now been finalized...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Summarize the presentation schedule updates and reply that I can switch presentation slots if anyone has a conflict.<|eot_id|>",1,{decision: allow; subject: email_agent; action: summarize_email; resource: [email_id=msg_mlrg_7815]; purpose: summarize the machine learning reading group presentation schedule updates; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: send_email; resource: [email_id=msg_mlrg_7815]; purpose: reply to the reading group presentation thread offering to switch presentation slots; condition: requires thread metadata and message id from previous search result}
+29,"<|start_header_id|>User<|end_header_id|>
+
+Find the latest email about the startup incubator application feedback.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest startup incubator application feedback email. (id=msg_incubator_9142, thread_id=thread_incubator_5518, subject=Re: Startup Incubator Application Feedback, from=incubator@ucsd.edu, date=2026-05-20, snippet=The review committee suggested strengthening the market validation section before the final submission...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Analyze whether the committee requested revisions and draft a reply thanking them for the feedback.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_incubator_9142]; purpose: analyze whether the startup incubator review committee requested revisions; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_incubator_9142]; purpose: draft a reply thanking the incubator committee for the feedback; condition: requires email id from previous search result}
+30,"<|start_header_id|>User<|end_header_id|>
+
+Locate the client contract email and send it to client@business.com.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: locate the client contract email; condition: none} | {decision: allow; subject: email_agent; action: forward_email; resource: [client contract email found by search_emails]; purpose: send the located client contract email; condition: requires email id from acp_1}
+31,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email concerning the contract negotiation and forward it to legal-department@lawfirm.com with the note: 'Here is the latest update on the contract negotiation for your review.'<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest contract negotiation email; condition: read_only} | {decision: allow; subject: email_agent; action: forward_email; resource: [contract negotiation email returned by acp_1]; purpose: forward the contract negotiation email to the legal department; condition: requires email id from acp_1}
+32,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email concerning the client meeting agenda.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest email regarding the client meeting agenda. (id=msg_meeting_8392, thread_id=thread_meeting_5623, subject=Fwd: Client Meeting Agenda, from=meetings@corporate.com, date=2024-11-03, snippet=The agenda for the upcoming client meeting is attached...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Check if the meeting agenda has been attached and confirm my attendance.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_meeting_8392]; purpose: verify if the client meeting agenda email contains an attachment; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: send_email; resource: [email_id=msg_meeting_8392]; purpose: reply to the meeting agenda thread confirming attendance; condition: requires thread metadata and message id from previous search result}
+33,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email from the consultant regarding the project update and determine if any follow-up is necessary.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest consultant project update email; condition: read_only} | {decision: allow; subject: email_agent; action: analyze_email; resource: [consultant project update email returned by acp_1]; purpose: examine project update email and identify necessary actions; condition: requires email id from acp_1_return}
+34,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email concerning the contract amendments and forward it to manager@corp.co with the note: 'Sharing this update for contract record-keeping.'<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest contract amendments email; condition: read_only} | {decision: allow; subject: email_agent; action: forward_email; resource: [contract amendments email returned by acp_1]; purpose: forward the contract email to the manager; condition: requires email id from acp_1}
+35,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email concerning the project contract agreement and compose a respectful follow-up to inquire about the expected completion timeframe.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the recent project contract agreement email; condition: read_only} | {decision: allow; subject: email_agent; action: draft_reply; resource: [project contract agreement email returned by acp_1]; purpose: draft a respectful follow-up reply asking for the estimated completion timeframe; condition: requires email id from acp_1}
+36,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email regarding the marketing strategy proposal and provide a summary of any feedback or suggestions.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: identify the latest marketing strategy proposal email; condition: read_only} | {decision: allow; subject: email_agent; action: summarize_email; resource: [marketing strategy proposal email obtained from acp_1]; purpose: summarize feedback and ideas from the proposal email; condition: requires email id from acp_1}
+37,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent message concerning the termination of our consultancy agreement.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest email about the consultancy contract termination. (id=email_contract_end_9823, thread_id=thread_contract_termination_5637, subject=Re: Termination of Consultancy Agreement, from=manager@consultingfirm.com, date=2027-07-20, snippet=This is to confirm the termination of your consultancy agreement...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Examine whether the manager has confirmed the contract termination and prepare a reply draft.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=email_contract_end_9823]; purpose: examine if the manager has confirmed the consultancy agreement termination; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=email_contract_end_9823]; purpose: compose a reply to the consultancy agreement termination email; condition: requires email id from previous search result}
+38,"<|start_header_id|>User<|end_header_id|>
+
+Search for the most recent sales inquiry email concerning the delayed shipment and examine if logistics confirmed the delivery and customer service updated the client.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the most recent sales inquiry email about the delayed shipment; condition: read_only} | {decision: allow; subject: email_agent; action: analyze_email; resource: [delayed shipment sales inquiry email returned by acp_1]; purpose: analyze if logistics confirmed the delivery and customer service updated the client; condition: requires email id from acp_1_return}
+39,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email regarding the contract review meeting.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I've found the most recent email about the contract review meeting. (id=msg_contract_3498, thread_id=thread_contract_7921, subject=Re: Contract Review Meeting Update, from=legalteam@lawfirm.com, date=2026-08-15, snippet=The contract draft has been approved by all stakeholders and is set for review...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Examine if the contract draft received approval and relay the email to my colleague at colleague@lawfirm.com with the note: 'The contract is ready for review.'<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_contract_3498]; purpose: check if the contract draft was approved; condition: needs email id from recent search result} | {decision: allow; subject: email_agent; action: forward_email; resource: [email_id=msg_contract_3498]; purpose: send the contract review email to the colleague; condition: needs email id from recent search result}
+40,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email concerning our client contract revision.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I've located the latest email about the contract revision. (id=msg_contract_2395, thread_id=thread_contract_3501, subject=Re: Contract Revision Updates, from=consultant@legalfirm.com, date=2026-08-20, snippet=The requested changes to the contract have been reviewed and incorporated...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Examine if the contract changes are included and prepare a reply.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_contract_2395]; purpose: check if the contract changes are included; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_contract_2395]; purpose: compose a reply to the contract revision email; condition: requires email id from previous search result}
+41,"<|start_header_id|>User<|end_header_id|>
+
+Locate the latest client contract email from Alex and evaluate if legal has approved the final agreement terms.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find client contract emails related to Alex; condition: read_only} | {decision: allow; subject: email_agent; action: analyze_email; resource: [client contract email returned by acp_1]; purpose: evaluate if legal has given the final approval on the agreement terms; condition: requires email id from acp_1_return}
+42,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email regarding the sales report for our team.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest email about the team's sales report. (id=msg_sales_4782, thread_id=thread_sales_team_1234, subject=Re: Team Sales Report Analysis, from=analytics@company.com, date=2026-10-24, snippet=The sales report for your team is currently being reviewed by the analytics department...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Evaluate if the analytics department completed the sales report analysis and prepare a response.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_sales_4782]; purpose: evaluate if the analytics department completed the sales report analysis; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_sales_4782]; purpose: draft a reply to the team sales report email; condition: requires email id from previous search result}
+43,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email regarding the contract proposal from Manager Lee.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I have found the latest email about the contract proposal. (id=msg_contract_8123, thread_id=thread_contract_lee_9076, subject=Re: Contract Proposal, from=managerlee@corporate.com, date=2027-08-12, snippet=Here is the latest update on the contract proposal...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Evaluate whether Manager Lee confirmed the contract details are finalized and flag the email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_contract_8123]; purpose: evaluate whether Manager Lee confirmed the contract details are finalized; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: star_email; resource: [email_id=msg_contract_8123]; purpose: flag the contract proposal email for follow-up; condition: none}
+44,"<|start_header_id|>User<|end_header_id|>
+
+Locate the finance team's email about Roger's contract and display the entire message.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the finance team's email about Roger's contract; condition: read_only} | {decision: allow; subject: email_agent; action: get_email; resource: [Finance contract email returned by search_emails]; purpose: retrieve the entire message body; condition: requires email id from acp_1}
+45,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent contract negotiation email and respond in the thread with this note: 'Thank you all. The revised terms appear satisfactory to me.'<|eot_id|>",1,"{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest contract negotiation email; condition: read_only} | {decision: allow; subject: email_agent; action: get_email; resource: [contract negotiation email returned by search_emails]; purpose: retrieve full email metadata needed to reply; condition: requires email id from acp_1} | {decision: allow; subject: email_agent; action: send_email; resource: [thread metadata returned by get_email]; purpose: reply to the retrieved contract negotiation thread; condition: requires to, subject, thread_id, and reply_to_id from acp_2}"
+46,"<|start_header_id|>User<|end_header_id|>
+
+Look for the most recent email detailing the software development team's sprint review agenda.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I've located the most recent email about the software development team's sprint review agenda. (id=msg_dev_4890, thread_id=thread_dev_7621, subject=Re: Dev Team Sprint Review Agenda, from=dev-team@company.com, date=2027-08-15, snippet=The agenda for the upcoming sprint review is finalized, including the demo order...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Please summarize the updates on the sprint review agenda and respond that I'm available to change demo times if necessary.<|eot_id|>",1,{decision: allow; subject: email_agent; action: summarize_email; resource: [email_id=msg_dev_4890]; purpose: summarize the software development team sprint review agenda updates; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: send_email; resource: [email_id=msg_dev_4890]; purpose: reply to the sprint review agenda thread offering to change demo times; condition: requires thread metadata and message id from previous search result}
+47,"<|start_header_id|>User<|end_header_id|>
+
+Locate the newest communication regarding partnership agreement details.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I located the latest email about the partnership agreement details. (id=msg_partnership_6427, thread_id=thread_partnership_3784, subject=Re: Partnership Agreement Details, from=partners@newventures.com, date=2026-09-14, snippet=Please review the proposed changes to the delivery timeline before signing the agreement...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Determine if they proposed any adjustments and draft a response expressing appreciation for their suggestions.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_partnership_6427]; purpose: analyze whether the partners proposed any adjustments in the agreement details; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_partnership_6427]; purpose: draft a response appreciating their suggestions on the agreement; condition: requires email id from previous search result}
+48,"<|start_header_id|>User<|end_header_id|>
+
+Look for the most recent email discussing the client meeting agenda.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I located the latest email about the client meeting agenda. (id=msg_meeting_8234, thread_id=thread_meeting_1589, subject=Re: Client Meeting Agenda, from=manager@bizcorp.com, date=2026-08-01, snippet=The meeting agenda has been revised to cover additional discussion points...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Summarize the changes to the agenda and flag the email for future reference.<|eot_id|>",1,{decision: allow; subject: email_agent; action: summarize_email; resource: [email_id=msg_meeting_8234]; purpose: summarize the new client meeting agenda changes; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: star_email; resource: [email_id=msg_meeting_8234]; purpose: mark the client meeting agenda email for future reference; condition: requires email id from previous search result}
+49,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email concerning the new client contract.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I have identified the latest email regarding the new client contract. (id=msg_contract_8432, thread_id=thread_contract_9275, subject=Re: Update on Client Contract Negotiations, from=legalteam@firm.com, date=2027-02-15, snippet=The contract negotiations with the client are approaching the final approval stage...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Examine if the contract is nearing final approval and compose a courteous message inquiring about the announcement of the decision.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_contract_8432]; purpose: analyze whether the client contract is nearing final approval; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_contract_8432]; purpose: compose a courteous message inquiring about when decisions will be announced; condition: requires email id from previous search result}
+50,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email regarding the contract renewal discussion.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I've found the latest email on the contract renewal topic. (id=msg_contract_8934, thread_id=thread_contract_5647, subject=Contract Renewal Discussion, from=contracts@financecorp.com, date=2023-10-11, snippet=The contract is due for renewal soon. Please review the latest updates and confirm any changes...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Summarize the renewal details and forward this email to legal@financecorp.com with the message: 'Kindly go through this contract renewal discussion before our subsequent review session.'<|eot_id|>",1,{decision: allow; subject: email_agent; action: summarize_email; resource: [email_id=msg_contract_8934]; purpose: summarize the contract renewal discussion details; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: forward_email; resource: [email_id=msg_contract_8934]; purpose: forward the contract renewal discussion email to the legal team; condition: requires email id from previous search result}
+51,"<|start_header_id|>User<|end_header_id|>
+
+Find the most recent email discussing a contract proposal. Forward john@company.com an email containing the exact subject and message content from that latest contract proposal email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest contract proposal email; condition: read_only} | {decision: allow; subject: email_agent; action: get_email; resource: [contract proposal email returned by search_emails]; purpose: retrieve the complete subject and content of the identified contract proposal email; condition: requires email id from acp_1} | {decision: allow; subject: email_agent; action: send_email; resource: [subject and body returned by get_email]; purpose: send the retrieved contract proposal email content to john@company.com; condition: requires subject and body from acp_2}
+52,"<|start_header_id|>User<|end_header_id|>
+
+Look for the most recent email from the project coordinator regarding signing the new contract.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I located the latest email about the contract signing. (id=msg_project_3457, thread_id=thread_contract_8976, subject=Re: Contract Signing Instructions, from=coordinator@bizcorp.com, date=2026-03-27, snippet=Please find attached the final instructions for signing the new project contract...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Check if the contract signing details are confirmed and star this email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_project_3457]; purpose: verify if the contract signing details are confirmed; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: star_email; resource: [email_id=msg_project_3457]; purpose: highlight the contract email for reference; condition: none}
+53,"<|start_header_id|>User<|end_header_id|>
+
+Look up the latest email about the corporate client meeting agenda and reply that the itinerary has been shared on the cloud.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest corporate client meeting agenda email; condition: read_only} | {decision: allow; subject: email_agent; action: send_email; resource: [corporate client meeting agenda email returned by acp_1]; purpose: reply to the meeting agenda email confirming the itinerary was shared; condition: requires thread metadata and message id from acp_1}
+54,"<|start_header_id|>User<|end_header_id|>
+
+Locate the email regarding the negotiation of the new sales contract.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the most recent email about the new sales contract negotiation. (id=msg_sales_23ba, thread_id=thread_sales_neg_4572, subject=Re: Sales Contract Negotiation Update, from=manager.jones@bizcorp.com, date=2027-03-15, snippet=I've reviewed the terms and will draft the updated contract soon...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Determine if the manager has already approved the contract terms and flag the email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_sales_23ba]; purpose: examine if the manager approved the sales contract terms; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: star_email; resource: [email_id=msg_sales_23ba]; purpose: mark the sales contract email for quick reference; condition: none}
+55,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email about the contract negotiation details and respond that the budget proposal is agreed upon.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: find the latest contract negotiation details email; condition: read_only} | {decision: allow; subject: email_agent; action: send_email; resource: [contract negotiation details email returned by acp_1]; purpose: reply to the contract negotiation thread confirming budget proposal agreement; condition: requires thread metadata and message id from acp_1}
+56,"<|start_header_id|>User<|end_header_id|>
+
+Search for the most recent email concerning the marketing strategy meeting and flag it for future reference.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: locate the latest marketing strategy meeting email; condition: read_only} | {decision: allow; subject: email_agent; action: star_email; resource: [marketing strategy meeting email returned by acp_1]; purpose: highlight the marketing strategy meeting email for future reference; condition: requires email id from acp_1}
+57,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email regarding the client feedback meeting and create a reply expressing gratitude for their insights.<|eot_id|>",1,{decision: allow; subject: email_agent; action: search_emails; resource: [none]; purpose: identify the latest client feedback meeting email; condition: read_only} | {decision: allow; subject: email_agent; action: draft_reply; resource: [Client feedback meeting email returned by acp_1]; purpose: compose a reply expressing gratitude for their insights; condition: requires email id from acp_1}
+58,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email discussing our contract negotiation with the new client.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I found the latest contract negotiation email. (id=msg_cntrct_8456, thread_id=thread_cntrct_discuss_6539, subject=Re: Contract Negotiation with New Client, from=alex.jones@consultancy.com, date=2023-09-15, snippet=Following up on our previous meeting, I've included the draft contract...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Assess if Manager Jones gave the go-ahead for this contract and mark this email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_cntrct_8456]; purpose: assess if Manager Jones approved the contract; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: star_email; resource: [email_id=msg_cntrct_8456]; purpose: mark the contract negotiation email for easy retrieval; condition: none}
+59,"<|start_header_id|>User<|end_header_id|>
+
+Locate the most recent email regarding manager feedback on the contract proposal.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
+
+I located the latest email with feedback on the contract proposal. (id=msg_contract_feedback_7890, thread_id=thread_contract_feedback_9123, subject=Re: Contract Proposal Feedback, from=manager@company.com, date=2023-11-19, snippet=I've gone over the contract proposal and shared my comments...)<|eot_id|><|start_header_id|>User<|end_header_id|>
+
+Evaluate if the manager has approved the proposal and prepare a reply.<|eot_id|>",1,{decision: allow; subject: email_agent; action: analyze_email; resource: [email_id=msg_contract_feedback_7890]; purpose: evaluate if the manager has approved the proposal; condition: requires email id from previous search result} | {decision: allow; subject: email_agent; action: draft_reply; resource: [email_id=msg_contract_feedback_7890]; purpose: prepare a reply to the feedback email; condition: requires email id from previous search result}

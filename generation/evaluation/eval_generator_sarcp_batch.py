@@ -92,18 +92,16 @@ def generate_and_verify(dataset, ex_model_name, peft_model_id, enable_verificati
                                     early_stopping = False,)
         
         results = gen_tokenizer.batch_decode(translated, skip_special_tokens=True)
-        print(results)
+        print("predeactied", results)
         for k,result in enumerate(results):
             policies = []
             pattern = r'\{.*?\}'
             
             sanitized = re.findall(pattern, result)
-            print(sanitized)
 
             if len(sanitized) > 0:
                 p = sanitized[0]
                 pred_pol,_ = utils.process_label([p])
-                print(pred_pol)
                 
                 if len(pred_pol) > 0:
                     pp = utils.create_out_string(pred_pol)
@@ -173,12 +171,12 @@ def generate_and_verify(dataset, ex_model_name, peft_model_id, enable_verificati
     e = AccessEvaluator(true_pols, pred_pols, true_srls, pred_srls, inputs, confs, true_confs, cats=cats)
     print(f"Non-empty predictions: {sum(1 for p in pred_pols if p)}")
     print(f"Sample result (raw): {results[0]}")  # first raw model output 
-    results,incorrect_preds = e.evaluate()
+    # results,incorrect_preds = e.evaluate()
     
     return results,incorrect_preds,truesrls, predsrls
 
 @click.command()
-@click.option('--mode', default='t2p', 
+@click.option('--mode', default='customized', 
               help='Mode of training (document-fold you want to evaluate the trained model on)',
               show_default=True,
               required=True,

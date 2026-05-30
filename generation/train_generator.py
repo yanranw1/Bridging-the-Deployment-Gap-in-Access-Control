@@ -102,11 +102,12 @@ def train_generator(dataset_path, num_epochs=3, learning_rate=2e-4, batch_size=8
             output_dir=out_dir,
             per_device_train_batch_size=1,#changed from batch_size to 1
             gradient_accumulation_steps=8, #changed from batch_size to 4
-            evaluation_strategy='steps',
+
+            evaluation_strategy="epoch",
+            save_strategy="epoch",
+            logging_strategy="epoch",
+
             optim="paged_adamw_32bit",
-            save_steps=10,
-            logging_steps=10,
-            eval_steps=10,
             do_eval=True,  # Change
             learning_rate=learning_rate,
             max_grad_norm=0.3,
@@ -115,7 +116,11 @@ def train_generator(dataset_path, num_epochs=3, learning_rate=2e-4, batch_size=8
             group_by_length=False,
             lr_scheduler_type='constant',
             report_to='none',
-            weight_decay=0.01
+            weight_decay=0.01,
+            load_best_model_at_end=True,
+            metric_for_best_model="eval_loss",
+            greater_is_better=False,
+            save_total_limit=1,
         )
         trainer = SFTTrainer(
             model=model,
@@ -136,10 +141,10 @@ def train_generator(dataset_path, num_epochs=3, learning_rate=2e-4, batch_size=8
             per_device_train_batch_size=1,
             gradient_accumulation_steps=8,
             optim="paged_adamw_32bit",
-            save_steps=10,
+            # save_steps=10,
 	        gradient_checkpointing = True,
 	        gradient_checkpointing_kwargs={'use_reentrant':True},
-            logging_steps=10,
+            # logging_steps=10,
             do_eval=False,
             learning_rate=learning_rate,
             bf16=True,
@@ -149,7 +154,12 @@ def train_generator(dataset_path, num_epochs=3, learning_rate=2e-4, batch_size=8
             group_by_length=True,
             lr_scheduler_type='constant',
             report_to='none',
-            weight_decay=0.01
+            weight_decay=0.01,
+
+            load_best_model_at_end=True,
+            metric_for_best_model="eval_loss",
+            greater_is_better=False,
+            save_total_limit=1,
         )
         trainer = SFTTrainer(
             model=model,
@@ -169,7 +179,7 @@ def train_generator(dataset_path, num_epochs=3, learning_rate=2e-4, batch_size=8
 @click.option('--dataset_path',
               help='Location of the dataset',
               show_default=True,
-              default="combined_verification_acps_missing_rules_phi_errorids_train_250.csv",
+              default="/home/ubuntu/agentv-main/email_agent/dataset/combined_train.csv",
               required=True)
 @click.option('--num_epochs', default=3, help='Number of epoch to train', show_default=True)
 @click.option('--learning_rate', default=2e-4, help='Learning rate', show_default=True)
@@ -180,7 +190,7 @@ def train_generator(dataset_path, num_epochs=3, learning_rate=2e-4, batch_size=8
               show_default=True)
 @click.option('--val', default=True, help='Validate',
               show_default=True)
-@click.option('--out_dir', default='../checkpoints/llama3/ibm', help='Output directory', show_default=True)
+@click.option('--out_dir', default='../checkpoints/llama3/customized', help='Output directory', show_default=True)
 def main(dataset_path='../data/overall/train.csv', num_epochs=500, learning_rate=2e-4, batch_size=8, lora_alpha=32,
          lora_dropout=0.05, lora_r=16, val=True, out_dir='../checkpoints/generation/train'):
     """Trains the access control policy generation model"""

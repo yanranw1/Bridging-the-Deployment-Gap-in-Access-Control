@@ -31,7 +31,7 @@ import os
 import random
 
 RANDOM_SEED = 42
-TEST_RATIO = 0.2
+TEST_RATIO = 0.1
 
 
 def serialize_resource(val) -> str:
@@ -44,6 +44,10 @@ def serialize_resource(val) -> str:
     if val is None:
         return "none"
     if isinstance(val, str):
+        # normalize "key: value" → "key=value"
+        if ": " in val:
+            k, v = val.split(": ", 1)
+            return f"{k}={v}"
         return val.strip()
     if isinstance(val, dict):
         parts = [f"{k}={v}" for k, v in val.items() if v is not None]
@@ -53,14 +57,11 @@ def serialize_resource(val) -> str:
 
 def serialize_nl(turns: list) -> str:
     """
-    Serialize all NL turns preserving role, text, and resource.
-    No curly braces, no pipe characters used.
+    Serialize all NL turns in Llama 3 chat format:
+      <|start_header_id|>role<|end_header_id|>\n\ntext<|eot_id|>
 
-    Per turn format:
-      - No resource : "Role: text"
-      - With resource: "Role: text (key=value, key=value)"
-
-    Multiple turns are joined with " -> " to show conversation flow.
+    Resource (if present) is appended inline to the text:
+      text (key=value, key=value)
     """
     parts = []
     for turn in turns:
@@ -68,18 +69,18 @@ def serialize_nl(turns: list) -> str:
         text = turn.get("text", "").strip()
         resource = turn.get("resource")
 
-        turn_str = f"{role}: {text}"
-
         if resource and isinstance(resource, dict):
             kv = ", ".join(
                 f"{k}={v}" for k, v in resource.items() if v is not None
             )
             if kv:
-                turn_str += f" ({kv})"
+                text += f" ({kv})"
 
-        parts.append(turn_str)
+        parts.append(
+            f"<|start_header_id|>{role}<|end_header_id|>\n\n{text}<|eot_id|>"
+        )
 
-    return " -> ".join(parts)
+    return "".join(parts)
 
 
 def format_acp(acp_entry: dict) -> str:
@@ -98,7 +99,7 @@ def format_acp(acp_entry: dict) -> str:
         decision=fmt(acp_entry.get("decision")),
         subject=fmt(acp_entry.get("subject")),
         action=fmt(acp_entry.get("action")),
-        resource=serialize_resource(acp_entry.get("resource")),
+        resource="["+serialize_resource(acp_entry.get("resource"))+"]",
         purpose=fmt(acp_entry.get("purpose")),
         condition=fmt(acp_entry.get("condition")),
     )
@@ -156,6 +157,10 @@ def stratified_split(all_rows_with_class: list, test_ratio: float, seed: int):
 
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    aug_dir = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "augmented_output"
+    )
 
     combined_rows = []          # plain row dicts (acp=1)
     tagged_rows   = []          # (source_class, row_dict) for stratification
@@ -173,6 +178,17 @@ if __name__ == "__main__":
         rows = convert(input_path, output_path)
         combined_rows.extend(rows)
         tagged_rows.extend((n, row) for row in rows)
+        if n != 7:
+            input_path  = os.path.join(aug_dir, f"augmented_class{n}.json")
+            output_path = os.path.join(aug_dir, f"augmented_class{n}_converted.csv")
+            if not os.path.exists(input_path):
+                print(f"[SKIP] class{n}.json not found.")
+                continue
+
+            print(f"[{n}/6] Converting augmented class{n}.json ...")
+            rows = convert(input_path, output_path)
+            combined_rows.extend(rows)
+            tagged_rows.extend((n, row) for row in rows)
 
     # --- Combined CSV (acp always 1) ---
     combined_path = os.path.join(script_dir, "combined_converted.csv")
