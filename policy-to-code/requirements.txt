@@ -1,0 +1,30 @@
+# ACP→CODE Fine-tuning Pipeline — Requirements
+# Install with: pip install -r requirements.txt
+#
+# CUDA note: the torch line below targets CUDA 12.1.
+# For CUDA 11.8, replace cu121 with cu118.
+# For CPU-only (not recommended for training), remove the --index-url line.
+
+
+# ── HuggingFace stack ─────────────────────────────────────────────────────────
+transformers==4.43.3
+datasets==2.20.0
+tokenizers==0.19.1
+accelerate==0.32.0
+safetensors==0.4.3
+huggingface-hub==0.24.0
+
+# ── Fine-tuning ───────────────────────────────────────────────────────────────
+trl==0.9.6
+peft==0.12.0
+
+# ── Quantization (QLoRA) ──────────────────────────────────────────────────────
+bitsandbytes==0.43.1
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+numpy==1.26.4
+scipy==1.13.1
+sentencepiece==0.2.0   # needed by some tokenizer variants
+protobuf==5.27.2       # required by sentencepiece
+packaging==24.1
+tqdm==4.66.4
