@@ -4,25 +4,11 @@ convert_json_to_csv.py
 Converts class1.json through class7.json to CSVs matching the format of collected.csv:
   columns: (index), input, acp, output
 
-- input : all NL turns serialized, preserving role, text, and resource
-- acp   : always 1
-- output: ACP entries formatted as
-          {decision: X; subject: X; action: X; resource: X; purpose: X; condition: X}
-          multiple ACP entries joined by " | "
-
-NL serialization format (no curly braces, no pipe):
-  Single turn:  "Role: text"
-  Agent turn with resource: "Role: text (key=value, key=value)"
-  Multiple turns joined by " -> "
-
-Place this script in the same folder as class1.json ... class7.json and run:
-    python3 convert_json_to_csv.py
-
-Output files:
+Outputs:
   class1_converted.csv ... class7_converted.csv
-  combined_converted.csv
-  combined_train.csv  (80% stratified per source class)
-  combined_test.csv   (20% stratified per source class)
+  combined_converted.csv      / combined.json
+  combined_train.csv          / combined_train.json
+  combined_test.csv           / combined_test.json
 """
 
 import json
@@ -32,7 +18,6 @@ import random
 
 RANDOM_SEED = 42
 TEST_RATIO = 0.1
-
 
 def serialize_resource(val) -> str:
     """
@@ -107,9 +92,54 @@ def format_acp(acp_entry: dict) -> str:
         purpose=fmt(acp_entry.get("purpose")),
         condition=fmt(acp_entry.get("condition")),
     )
+
+
+
+def write_csv(path: str, rows: list) -> None:
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["", "input", "acp", "output"])
+        for i, row in enumerate(rows):
+            writer.writerow([i, row["input"], row["acp"], row["output"]])
+
+
 def write_json(path: str, data) -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def stratified_split(tagged, test_ratio: float, seed: int):
+    """
+    Stratified split keeping equal per-source-class ratio.
+    tagged: list of (source_class_int, row_dict, json_record)
+    Returns (train_rows, test_rows, train_records, test_records),
+    where the CSV rows and JSON records stay aligned per split.
+    """
+    rng = random.Random(seed)
+
+    by_class = {}
+    for cls, row, rec in tagged:
+        by_class.setdefault(cls, []).append((row, rec))
+
+    train, test = [], []
+    for cls in sorted(by_class):
+        items = by_class[cls][:]
+        rng.shuffle(items)
+        n_test = max(1, round(len(items) * test_ratio))
+        test.extend(items[:n_test])
+        train.extend(items[n_test:])
+        print(f"  class {cls}: {len(items)} total -> "
+              f"{len(items) - n_test} train, {n_test} test")
+
+    rng.shuffle(train)
+    rng.shuffle(test)
+
+    train_rows = [r for r, _ in train]
+    test_rows = [r for r, _ in test]
+    train_records = [rec for _, rec in train]
+    test_records = [rec for _, rec in test]
+    return train_rows, test_rows, train_records, test_records
+
 
 def convert(input_path: str, output_path: str) -> list:
     with open(input_path, "r", encoding="utf-8") as f:
@@ -128,54 +158,16 @@ def convert(input_path: str, output_path: str) -> list:
     return rows
 
 
-def write_csv(path: str, rows: list) -> None:
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["", "input", "acp", "output"])
-        for i, row in enumerate(rows):
-            writer.writerow([i, row["input"], row["acp"], row["output"]])
-
-
-def stratified_split(all_rows_with_class: list, test_ratio: float, seed: int):
-    """
-    Stratified split keeping equal per-source-class ratio.
-    all_rows_with_class: list of (source_class_int, row_dict)
-    acp in row_dict stays 1 throughout.
-    """
-    rng = random.Random(seed)
-
-    by_class = {}
-    for cls, row in all_rows_with_class:
-        by_class.setdefault(cls, []).append(row)
-
-    train, test = [], []
-    for cls in sorted(by_class):
-        cls_rows = by_class[cls][:]
-        rng.shuffle(cls_rows)
-        n_test = max(1, round(len(cls_rows) * test_ratio))
-        test.extend(cls_rows[:n_test])
-        train.extend(cls_rows[n_test:])
-        print(f"  class {cls}: {len(cls_rows)} total → {len(cls_rows) - n_test} train, {n_test} test")
-
-    rng.shuffle(train)
-    rng.shuffle(test)
-    return train, test
-
-
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    aug_dir = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "augmented_output"
-    )
 
-    combined_rows = []          # plain row dicts (acp=1)
-    tagged_rows   = []          # (source_class, row_dict) for stratification
+    combined_rows = []
     combined_json_records = []
+    tagged_rows = []  # (source_class, row_dict, json_record)
 
     # --- Convert each file individually ---
     for n in range(1, 8):
-        input_path  = os.path.join(script_dir, f"class{n}.json")
+        input_path = os.path.join(script_dir, f"class{n}.json")
         output_path = os.path.join(script_dir, f"class{n}_converted.csv")
 
         if not os.path.exists(input_path):
@@ -185,43 +177,34 @@ if __name__ == "__main__":
         with open(input_path, "r", encoding="utf-8") as f:
             original_data = json.load(f)
 
-        combined_json_records.extend(original_data)
-
         print(f"[{n}/7] Converting class{n}.json ...")
         rows = convert(input_path, output_path)
+
         combined_rows.extend(rows)
-        tagged_rows.extend((n, row) for row in rows)
-        # if n != 7:
-        #     input_path  = os.path.join(aug_dir, f"augmented_class{n}.json")
-        #     output_path = os.path.join(aug_dir, f"augmented_class{n}_converted.csv")
-        #     if not os.path.exists(input_path):
-        #         print(f"[SKIP] class{n}.json not found.")
-        #         continue
+        combined_json_records.extend(original_data)
+        tagged_rows.extend(
+            (n, row, rec) for row, rec in zip(rows, original_data)
+        )
 
-        #     print(f"[{n}/6] Converting augmented class{n}.json ...")
-        #     rows = convert(input_path, output_path)
-        #     combined_rows.extend(rows)
-        #     tagged_rows.extend((n, row) for row in rows)
-    # --- Combined JSON (acp always 1) ---
-    combined_json_path = os.path.join(script_dir, "combined.json")
-    write_json(combined_json_path, combined_json_records)
+    # --- Combined CSV + JSON ---
+    write_csv(os.path.join(script_dir, "combined_converted.csv"), combined_rows)
+    write_json(os.path.join(script_dir, "combined.json"), combined_json_records)
+    print(f"\nCombined: {len(combined_rows)} rows -> "
+          f"'combined_converted.csv' / 'combined.json'")
 
-    print(
-        f"\nCombined JSON: {len(combined_json_records)} records "
-        f"→ 'combined.json'"
-    )
-    # --- Combined CSV (acp always 1) ---
-    combined_path = os.path.join(script_dir, "combined_converted.csv")
-    write_csv(combined_path, combined_rows)
-    print(f"\nCombined: {len(combined_rows)} total rows → 'combined_converted.csv'")
-
-    # --- Stratified train / test split ---
+    # --- Stratified train / test split (CSV + JSON) ---
     print(f"\nSplitting with test_ratio={TEST_RATIO}, seed={RANDOM_SEED}:")
-    train_rows, test_rows = stratified_split(tagged_rows, TEST_RATIO, RANDOM_SEED)
+    train_rows, test_rows, train_recs, test_recs = stratified_split(
+        tagged_rows, TEST_RATIO, RANDOM_SEED
+    )
 
     write_csv(os.path.join(script_dir, "combined_train.csv"), train_rows)
-    write_csv(os.path.join(script_dir, "combined_test.csv"),  test_rows)
+    write_csv(os.path.join(script_dir, "combined_test.csv"), test_rows)
+    write_json(os.path.join(script_dir, "combined_train.json"), train_recs)
+    write_json(os.path.join(script_dir, "combined_test.json"), test_recs)
 
-    print(f"\nTrain: {len(train_rows)} rows → 'combined_train.csv'")
-    print(f"Test:  {len(test_rows)} rows → 'combined_test.csv'")
+    print(f"\nTrain: {len(train_rows)} rows -> "
+          f"'combined_train.csv' / 'combined_train.json'")
+    print(f"Test:  {len(test_rows)} rows -> "
+          f"'combined_test.csv' / 'combined_test.json'")
     print("All done.")
