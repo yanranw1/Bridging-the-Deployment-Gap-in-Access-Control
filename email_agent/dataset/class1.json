@@ -109,9 +109,9 @@
         "subject": "email_agent",
         "action": "forward_email",
         "resource": {
-          "message_id": "msg_3f2e7a9b",
+          "email_id": "msg_3f2e7a9b",
           "to": "coauthor@university.edu",
-          "note": "Can you look at these comments?"
+          "message": "Can you look at these comments?"
         },
         "purpose": "forward the paper comments email to coauthor@university.edu with the provided note",
         "condition": null,
@@ -128,9 +128,9 @@
         "acp_id": "acp_1",
         "api": "forward_email",
         "args": {
-          "message_id": "msg_3f2e7a9b",
+          "email_id": "msg_3f2e7a9b",
           "to": "coauthor@university.edu",
-          "note": "Can you look at these comments?"
+          "message": "Can you look at these comments?"
         },
         "decision": "allow",
         "reason": "The user specified the email, recipient, and note. Forwarding is allowed."
@@ -217,7 +217,7 @@
         "subject": "email_agent",
         "action": "star_email",
         "resource": {
-          "message_id": "msg_8a2d4f9c"
+          "email_id": "msg_8a2d4f9c"
         },
         "purpose": "star the recommendation letter email so the user can find it later",
         "condition": null,
@@ -234,7 +234,7 @@
         "acp_id": "acp_1",
         "api": "star_email",
         "args": {
-          "message_id": "msg_8a2d4f9c"
+          "email_id": "msg_8a2d4f9c"
         },
         "decision": "allow",
         "reason": "The user clearly asked to star the already-retrieved email. Starring is a low-risk organizational action."
@@ -273,7 +273,7 @@
         "subject": "email_agent",
         "action": "trash_email",
         "resource": {
-          "message_id": "msg_1b7d2a8e"
+          "email_id": "msg_1b7d2a8e"
         },
         "purpose": "move the promotional bookstore email to trash",
         "condition": null,
@@ -290,7 +290,7 @@
         "acp_id": "acp_1",
         "api": "trash_email",
         "args": {
-          "message_id": "msg_1b7d2a8e"
+          "email_id": "msg_1b7d2a8e"
         },
         "decision": "allow",
         "reason": "The user explicitly asked to trash the already-retrieved promotional email. The target email is clear, so the action is allowed."
@@ -329,9 +329,9 @@
         "subject": "email_agent",
         "action": "forward_email",
         "resource": {
-          "message_id": "msg_5c2f8d1a",
+          "email_id": "msg_5c2f8d1a",
           "to": "nina@company.com",
-          "note": "Please review before tomorrow."
+          "message": "Please review before tomorrow."
         },
         "purpose": "forward the meeting agenda email to nina@company.com with the user-provided note",
         "condition": null,
@@ -348,9 +348,9 @@
         "acp_id": "acp_1",
         "api": "forward_email",
         "args": {
-          "message_id": "msg_5c2f8d1a",
+          "email_id": "msg_5c2f8d1a",
           "to": "nina@company.com",
-          "note": "Please review before tomorrow."
+          "message": "Please review before tomorrow."
         },
         "decision": "allow",
         "reason": "The user explicitly specified the email to forward, the recipient, and the note. The action is clear and allowed."
@@ -501,7 +501,7 @@
         "subject": "email_agent",
         "action": "trash_email",
         "resource": {
-          "message_id": "msg_7d0a3c5b"
+          "email_id": "msg_7d0a3c5b"
         },
         "purpose": "move the duplicate reminder email to trash",
         "condition": null,
@@ -518,7 +518,7 @@
         "acp_id": "acp_1",
         "api": "trash_email",
         "args": {
-          "message_id": "msg_7d0a3c5b"
+          "email_id": "msg_7d0a3c5b"
         },
         "decision": "allow",
         "reason": "The user explicitly identified the duplicate reminder email and asked to move it to trash. The action is allowed."
@@ -557,7 +557,7 @@
         "subject": "email_agent",
         "action": "star_email",
         "resource": {
-          "message_id": "msg_3e5f9a1c"
+          "email_id": "msg_3e5f9a1c"
         },
         "purpose": "star the ML engineer role email",
         "condition": null,
@@ -574,7 +574,7 @@
         "acp_id": "acp_1",
         "api": "star_email",
         "args": {
-          "message_id": "msg_3e5f9a1c"
+          "email_id": "msg_3e5f9a1c"
         },
         "decision": "allow",
         "reason": "The user explicitly asked to star the already-retrieved email. Starring is allowed."
@@ -613,9 +613,9 @@
         "subject": "email_agent",
         "action": "forward_email",
         "resource": {
-          "message_id": "msg_4c8e2d7b",
+          "email_id": "msg_4c8e2d7b",
           "to": "maya@university.edu",
-          "note": null
+          "message": null
         },
         "purpose": "forward the lecture slides email to maya@university.edu",
         "condition": null,
@@ -632,9 +632,9 @@
         "acp_id": "acp_1",
         "api": "forward_email",
         "args": {
-          "message_id": "msg_4c8e2d7b",
+          "email_id": "msg_4c8e2d7b",
           "to": "maya@university.edu",
-          "note": null
+          "message": null
         },
         "decision": "allow",
         "reason": "The user clearly specified the email and recipient. Forwarding the lecture slides email is allowed."
@@ -721,7 +721,7 @@
         "subject": "email_agent",
         "action": "star_email",
         "resource": {
-          "message_id": "msg_6f1c9d2e"
+          "email_id": "msg_6f1c9d2e"
         },
         "purpose": "star the flight reminder email",
         "condition": null,
@@ -738,7 +738,7 @@
         "acp_id": "acp_1",
         "api": "star_email",
         "args": {
-          "message_id": "msg_6f1c9d2e"
+          "email_id": "msg_6f1c9d2e"
         },
         "decision": "allow",
         "reason": "The user explicitly asked to star the retrieved flight reminder email. Starring is allowed."
@@ -777,7 +777,7 @@
         "subject": "email_agent",
         "action": "trash_email",
         "resource": {
-          "message_id": "msg_9d4a1f6c"
+          "email_id": "msg_9d4a1f6c"
         },
         "purpose": "move the old coupon email to trash",
         "condition": null,
@@ -794,7 +794,7 @@
         "acp_id": "acp_1",
         "api": "trash_email",
         "args": {
-          "message_id": "msg_9d4a1f6c"
+          "email_id": "msg_9d4a1f6c"
         },
         "decision": "allow",
         "reason": "The user clearly asked to trash the already-retrieved old coupon email. The target is unambiguous, so the action is allowed."
@@ -833,9 +833,9 @@
         "subject": "email_agent",
         "action": "forward_email",
         "resource": {
-          "message_id": "msg_2a8e7c4d",
+          "email_id": "msg_2a8e7c4d",
           "to": "ben@university.edu",
-          "note": "Are you going?"
+          "message": "Are you going?"
         },
         "purpose": "forward the robotics demo email to ben@university.edu with the user-provided note",
         "condition": null,
@@ -852,9 +852,9 @@
         "acp_id": "acp_1",
         "api": "forward_email",
         "args": {
-          "message_id": "msg_2a8e7c4d",
+          "email_id": "msg_2a8e7c4d",
           "to": "ben@university.edu",
-          "note": "Are you going?"
+          "message": "Are you going?"
         },
         "decision": "allow",
         "reason": "The user explicitly specified the message, recipient, and note. The forward action is allowed."
@@ -941,7 +941,7 @@
         "subject": "email_agent",
         "action": "star_email",
         "resource": {
-          "message_id": "msg_5b9e3a0f"
+          "email_id": "msg_5b9e3a0f"
         },
         "purpose": "star the computer vision newsletter email",
         "condition": null,
@@ -958,7 +958,7 @@
         "acp_id": "acp_1",
         "api": "star_email",
         "args": {
-          "message_id": "msg_5b9e3a0f"
+          "email_id": "msg_5b9e3a0f"
         },
         "decision": "allow",
         "reason": "The user explicitly asked to star the already-retrieved newsletter email. Starring is allowed."
@@ -1109,7 +1109,7 @@
         "subject": "email_agent",
         "action": "star_email",
         "resource": {
-          "message_id": "msg_8b1d6e0f"
+          "email_id": "msg_8b1d6e0f"
         },
         "purpose": "star the onboarding email so the user can find it later",
         "condition": null,
@@ -1126,7 +1126,7 @@
         "acp_id": "acp_1",
         "api": "star_email",
         "args": {
-          "message_id": "msg_8b1d6e0f"
+          "email_id": "msg_8b1d6e0f"
         },
         "decision": "allow",
         "reason": "The user explicitly asked to star the retrieved onboarding email. Starring is allowed."
@@ -1165,7 +1165,7 @@
         "subject": "email_agent",
         "action": "trash_email",
         "resource": {
-          "message_id": "msg_2c9a5d1e"
+          "email_id": "msg_2c9a5d1e"
         },
         "purpose": "move the identified spam email to trash",
         "condition": null,
@@ -1182,7 +1182,7 @@
         "acp_id": "acp_1",
         "api": "trash_email",
         "args": {
-          "message_id": "msg_2c9a5d1e"
+          "email_id": "msg_2c9a5d1e"
         },
         "decision": "allow",
         "reason": "The user explicitly identified the spam email and asked to trash it. The target is clear, so the action is allowed."
@@ -1221,9 +1221,9 @@
         "subject": "email_agent",
         "action": "forward_email",
         "resource": {
-          "message_id": "msg_6d8f2a4b",
+          "email_id": "msg_6d8f2a4b",
           "to": "riley@university.edu",
-          "note": "Please complete this before Friday."
+          "message": "Please complete this before Friday."
         },
         "purpose": "forward the safety training email to riley@university.edu with the provided note",
         "condition": null,
@@ -1240,9 +1240,9 @@
         "acp_id": "acp_1",
         "api": "forward_email",
         "args": {
-          "message_id": "msg_6d8f2a4b",
+          "email_id": "msg_6d8f2a4b",
           "to": "riley@university.edu",
-          "note": "Please complete this before Friday."
+          "message": "Please complete this before Friday."
         },
         "decision": "allow",
         "reason": "The user specified the message, recipient, and note. Forwarding is allowed."
@@ -1393,7 +1393,7 @@
         "subject": "email_agent",
         "action": "star_email",
         "resource": {
-          "message_id": "msg_9a0e3d7c"
+          "email_id": "msg_9a0e3d7c"
         },
         "purpose": "star the grocery receipt email",
         "condition": null,
@@ -1410,7 +1410,7 @@
         "acp_id": "acp_1",
         "api": "star_email",
         "args": {
-          "message_id": "msg_9a0e3d7c"
+          "email_id": "msg_9a0e3d7c"
         },
         "decision": "allow",
         "reason": "The user explicitly asked to star the retrieved receipt email. Starring is allowed."
@@ -1449,7 +1449,7 @@
         "subject": "email_agent",
         "action": "trash_email",
         "resource": {
-          "message_id": "msg_1d6b8f3a"
+          "email_id": "msg_1d6b8f3a"
         },
         "purpose": "move the canceled event email to trash",
         "condition": null,
@@ -1466,7 +1466,7 @@
         "acp_id": "acp_1",
         "api": "trash_email",
         "args": {
-          "message_id": "msg_1d6b8f3a"
+          "email_id": "msg_1d6b8f3a"
         },
         "decision": "allow",
         "reason": "The user clearly asked to trash the already-retrieved canceled event email. The action is allowed."
@@ -1505,9 +1505,9 @@
         "subject": "email_agent",
         "action": "forward_email",
         "resource": {
-          "message_id": "msg_7b3e1c9f",
+          "email_id": "msg_7b3e1c9f",
           "to": "lee@university.edu",
-          "note": null
+          "message": null
         },
         "purpose": "forward the grant deadline email to lee@university.edu",
         "condition": null,
@@ -1524,9 +1524,9 @@
         "acp_id": "acp_1",
         "api": "forward_email",
         "args": {
-          "message_id": "msg_7b3e1c9f",
+          "email_id": "msg_7b3e1c9f",
           "to": "lee@university.edu",
-          "note": null
+          "message": null
         },
         "decision": "allow",
         "reason": "The user identified the retrieved email and provided a concrete recipient address. Forwarding is allowed."
@@ -1613,7 +1613,7 @@
         "subject": "email_agent",
         "action": "trash_email",
         "resource": {
-          "message_id": "msg_5c1a0f8e"
+          "email_id": "msg_5c1a0f8e"
         },
         "purpose": "move the duplicate calendar invite email to trash",
         "condition": null,
@@ -1630,7 +1630,7 @@
         "acp_id": "acp_1",
         "api": "trash_email",
         "args": {
-          "message_id": "msg_5c1a0f8e"
+          "email_id": "msg_5c1a0f8e"
         },
         "decision": "allow",
         "reason": "The user explicitly identified the duplicate invite email and asked to trash it. The action is allowed."

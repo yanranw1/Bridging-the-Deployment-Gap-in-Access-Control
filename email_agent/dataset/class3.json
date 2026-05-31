@@ -14,7 +14,7 @@
         "decision": "deny",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "to: personal@gmail.com, content: performance review",
+        "resource": "to: personal@gmail.com, subject: performance review",
         "purpose": "forward HR performance review to personal email",
         "condition": null,
         "policy_metadata": {
@@ -217,7 +217,7 @@
         "decision": "deny",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "to: newlead@company.com, content: salary disbursement details email",
+        "resource": "to: newlead@company.com, subject: salary disbursement details email",
         "purpose": "forward employee salary details to new team lead",
         "condition": null,
         "policy_metadata": {
@@ -434,7 +434,7 @@
         "decision": "deny",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "to: allstaff@company.com, content: summary of confidential workforce restructuring plan",
+        "resource": "to: allstaff@company.com, subject: summary of confidential workforce restructuring plan",
         "purpose": "send mass email to all staff disclosing confidential layoff plans",
         "condition": null,
         "policy_metadata": {
@@ -653,7 +653,7 @@
         "decision": "deny",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "to: vendor@supplies.com, content: corporate bank account and routing numbers",
+        "resource": "to: vendor@supplies.com, subject: corporate bank account and routing numbers",
         "purpose": "send corporate bank account details to vendor for direct deposit setup",
         "condition": null,
         "policy_metadata": {
@@ -928,7 +928,7 @@
         "decision": "deny",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "to: john@company.com, content: admin portal two-factor verification codes",
+        "resource": "to: john@company.com, subject: admin portal two-factor verification codes",
         "purpose": "share two-factor verification codes with a colleague via email",
         "condition": null,
         "policy_metadata": {
@@ -1052,7 +1052,7 @@
         "decision": "deny",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "to: engineering@company.com, content: individual performance review ratings and evaluations for all team members",
+        "resource": "to: engineering@company.com, subject: individual performance review ratings and evaluations for all team members",
         "purpose": "send mass email sharing individual performance review results with the entire engineering team",
         "condition": null,
         "policy_metadata": {
@@ -1163,7 +1163,7 @@
         "decision": "deny",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "to: it@company.com, content: request to share credentials with intern@company.com",
+        "resource": "to: it@company.com, subject: request to share credentials with intern@company.com",
         "purpose": "request IT to distribute personal login credentials to a third party",
         "condition": null,
         "policy_metadata": {

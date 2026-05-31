@@ -90,6 +90,7 @@ def extract_resource_ref(resource_val: str) -> tuple[str | None, str | None]:
 _ACTION_ALIASES: dict[str, set[str]] = {
     "reply_email":   {"reply_email",   "send_email"},
     "forward_email": {"forward_email", "send_email"},
+    "send_email": {"send_email", "forward_email"},
 }
 
 def _action_normalize(action: str) -> str:

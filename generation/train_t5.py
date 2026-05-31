@@ -228,6 +228,7 @@ def predict(model_dir: str, nl_turns: list[dict]) -> list[dict]:
     # except json.JSONDecodeError:
     #     logger.warning("Model output was not valid JSON:\n%s", result)
     #     return [{"raw_output": result}]
+    print("$$:",result)
     return result
 
 
