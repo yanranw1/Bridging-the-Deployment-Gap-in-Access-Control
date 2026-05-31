@@ -1,6 +1,5 @@
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import warnings
 
@@ -40,7 +39,7 @@ ERRORS = [k for k, _ in AUGS2ID.items()]
 
 VER_MODEL_NAME = "facebook/bart-large"
 verification_ckpt = "../checkpoints/verification/checkpoint/"
-ver_device = "cuda:0"
+ver_device = "cuda"
 
 
 def covert_classes(c):
