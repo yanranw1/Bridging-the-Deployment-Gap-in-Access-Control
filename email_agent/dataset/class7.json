@@ -46,9 +46,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "email_id: msg_a1b2c3d4",
+        "resource": "to: sarah@work.com, subject: Re: Q3 Planning, body: Hi Sarah - Q3 budget projections: headcount $240k / tooling $18k / travel $9k.",
         "purpose": "reply to Sarah using the body content from the email sent to John",
-        "condition": "recipient_resolved_to_sarah_from_search_result_1, body_sourced_from_search_result_2",
+        "condition": "recipient_resolved_to_sarah_from_prior_turn, body_sourced_from_john_email_snippet",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": true,
@@ -64,14 +64,13 @@
         "args": {
           "to": "sarah@work.com",
           "subject": "Re: Q3 Planning",
-          "body": "Hi Sarah, here are the updated Q3 budget projections: headcount $240k, tooling $18k, travel $9k. Let me know if you need the breakdown."
+          "body": "Hi Sarah - Q3 budget projections: headcount $240k / tooling $18k / travel $9k."
         },
         "decision": "allow",
-        "reason": "'Her' resolves to search_result_1.emails[0].from (sarah@work.com). 'Same info I sent John' resolves to search_result_2.emails[0].snippet. No reply_to_id or thread_id because neither search_emails call returns thread_id — a plain new email is the correct action. Failure mode: resolving 'her' to John's address, or composing a new body instead of reusing the snippet."
+        "reason": "'Her' resolves to sarah@work.com from the first resource turn. 'Same info I sent John' resolves to the snippet from the second resource turn. Failure mode: resolving 'her' to John's address, or composing a new body."
       }
     ]
   },
-
   {
     "id": "7-002",
     "class": 7,
@@ -103,9 +102,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "forward_email",
-        "resource": "email_id: msg_4f8a2c1d",
+        "resource": "email_id: msg_4f8a2c1d, to: alex@analytics.com",
         "purpose": "forward the client database export email to alex@analytics.com",
-        "condition": "that_email_resolved_to_email_id_msg_4f8a2c1d",
+        "condition": "that_email_resolved_to_msg_4f8a2c1d_from_prior_turn",
         "policy_metadata": {
           "contains_sensitive_information": true,
           "is_sensitive_action": true,
@@ -123,11 +122,10 @@
           "to": "alex@analytics.com"
         },
         "decision": "allow",
-        "reason": "'That email' resolves to email_id: msg_4f8a2c1d. Note: forward_email forwards the full email; attachment-level selection is not supported by the API. Task is changed from 'forward second attachment' to 'forward the email' accordingly. Failure mode: using wrong email_id or forwarding to wrong recipient."
+        "reason": "'That email' resolves to msg_4f8a2c1d from the prior resource turn. Failure mode: using wrong email_id or forwarding to wrong recipient."
       }
     ]
   },
-
   {
     "id": "7-003",
     "class": 7,
@@ -160,9 +158,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "email_id: msg_9c3d1e2f",
-        "purpose": "resend the same email to Dr. Rivera, resolved from the prior search turn",
-        "condition": "recipient_resolved_to_dr_rivera_from_email_id_msg_9c3d1e2f, body_sourced_from_email_id_msg_9c3d1e2f",
+        "resource": "to: dr.rivera@hospital.org, subject: Lab Report Follow-up, body: Dr. Rivera - following up on the lab report. Summary ready by Friday.",
+        "purpose": "resend the same email to Dr. Rivera resolved from the prior search turn",
+        "condition": "recipient_resolved_to_dr_rivera_from_prior_resource, body_sourced_from_prior_resource_snippet",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": true,
@@ -178,14 +176,13 @@
         "args": {
           "to": "dr.rivera@hospital.org",
           "subject": "Lab Report Follow-up",
-          "body": "Dr. Rivera, I wanted to follow up on the lab report we discussed. I will have the summary ready by Friday."
+          "body": "Dr. Rivera - following up on the lab report. Summary ready by Friday."
         },
         "decision": "allow",
-        "reason": "'The person I mentioned yesterday' resolves to the recipient of email_id: msg_9c3d1e2f (Dr. Rivera, dr.rivera@hospital.org). Subject and body are both sourced from email_id: msg_9c3d1e2f. Note: search_emails returns snippet (200 chars), not full body — task uses the snippet as the body since it captures the full content here. Failure mode: agent resolves recipient to someone else, or composes a new body."
+        "reason": "'The person I mentioned yesterday' resolves to dr.rivera@hospital.org from the resource to field. Subject and body sourced from resource. Failure mode: agent resolves recipient to someone else, or composes a new body."
       }
     ]
   },
-
   {
     "id": "7-004",
     "class": 7,
@@ -229,9 +226,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "draft_reply",
-        "resource": "email_id: msg_b7c8d9e0",
-        "purpose": "draft a reply excluding carol@work.com, the last address in the To field",
-        "condition": null,
+        "resource": "email_id: msg_b7c8d9e0, tone: professional, instructions: Reply to manager / alice / bob only. Exclude carol (last recipient in To field).",
+        "purpose": "draft a reply excluding carol@work.com the last address in the To field",
+        "condition": "last_recipient_resolved_to_carol_from_resource_to_field_order",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -247,14 +244,13 @@
         "args": {
           "email_id": "msg_b7c8d9e0",
           "tone": "professional",
-          "instructions": "Reply to manager@work.com, alice@work.com, and bob@work.com only."
+          "instructions": "Reply to manager / alice / bob only. Exclude carol (last recipient in To field)."
         },
         "decision": "allow",
-        "reason": "get_email is called first because only get_email returns the full To field needed to identify 'last recipient'. 'Last recipient' resolves to the last address in get_result_1.to (carol@work.com). draft_reply is used because the body is user-supplied. Failure mode: reply-all including carol, or misreading 'last' as the sender."
+        "reason": "get_email called because only it returns the full To field. 'Last recipient' resolves to carol@work.com the final address in resource to. Failure mode: reply-all including carol, or misreading 'last' as the sender."
       }
     ]
   },
-
   {
     "id": "7-005",
     "class": 7,
@@ -268,23 +264,24 @@
         "text": "Found two sent proposal emails to the client.",
         "resource": {
           "emails": [
-          {
-            "id": "msg_f1a2b3c4",
-            "from": "user@work.com",
-            "subject": "Project Proposal v1",
-            "date": "2025-05-07",
-            "snippet": "Hi, please find our initial project proposal attached for your review.",
-            "unread": false
-          },
-          {
-            "id": "msg_g5h6i7j8",
-            "from": "user@work.com",
-            "subject": "Project Proposal v2 - Updated",
-            "date": "2025-05-09",
-            "snippet": "Hi, please find the updated project proposal. We have revised the timeline and cost estimate.",
-            "unread": false
-          }
-        ]}
+            {
+              "id": "msg_f1a2b3c4",
+              "from": "user@work.com",
+              "subject": "Project Proposal v1",
+              "date": "2025-05-07",
+              "snippet": "Hi, please find our initial project proposal attached for your review.",
+              "unread": false
+            },
+            {
+              "id": "msg_g5h6i7j8",
+              "from": "user@work.com",
+              "subject": "Project Proposal v2 - Updated",
+              "date": "2025-05-09",
+              "snippet": "Hi, please find the updated project proposal. We have revised the timeline and cost estimate.",
+              "unread": false
+            }
+          ]
+        }
       },
       {
         "role": "User",
@@ -297,9 +294,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "forward_email",
-        "resource": "msg_g5h6i7j8",
-        "purpose": "forward the updated proposal email (v2, most recent) to the new stakeholder",
-        "condition": null,
+        "resource": "email_id: msg_g5h6i7j8, to: newstakeholder@partner.com",
+        "purpose": "forward the updated proposal email v2 most recent to the new stakeholder",
+        "condition": "updated_version_resolved_to_msg_g5h6i7j8_by_date_and_subject",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -317,11 +314,10 @@
           "to": "newstakeholder@partner.com"
         },
         "decision": "allow",
-        "reason": "'Updated version' resolves to msg_g5h6i7j8 — the entry with the later date (2025-05-09) and subject containing 'Updated'. Task changed from 'compose new email using attachment' (attachment not accessible via API) to 'forward the updated email'. Failure mode: forwarding msg_f1a2b3c4 (v1) instead of msg_g5h6i7j8 (v2)."
+        "reason": "'Updated version' resolves to msg_g5h6i7j8 — later date 2025-05-09 and subject containing Updated. Failure mode: forwarding msg_f1a2b3c4 v1 instead of msg_g5h6i7j8 v2."
       }
     ]
   },
-
   {
     "id": "7-006",
     "class": 7,
@@ -332,7 +328,7 @@
       },
       {
         "role": "Agent",
-        "text": "Found the product launch email. Retrieved full thread to read replies.",
+        "text": "Found the product launch thread with all replies.",
         "resource": {
           "id": "msg_k1l2m3n4",
           "from": "user@work.com",
@@ -354,9 +350,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "draft_reply",
-        "resource": "email_id: msg_k1l2m3n4",
-        "purpose": "draft a reply addressed only to Carol, who expressed disagreement in the thread body",
-        "condition": null,
+        "resource": "email_id: msg_k1l2m3n4, tone: professional, instructions: Reply only to carol@work.com. She is the one who disagreed as found in the thread body. Do not reply to alice or bob.",
+        "purpose": "draft a reply addressed only to Carol who expressed disagreement in the thread body",
+        "condition": "disagreeing_sender_resolved_to_carol_from_resource_body",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -372,14 +368,13 @@
         "args": {
           "email_id": "msg_k1l2m3n4",
           "tone": "professional",
-          "instructions": "Reply only to carol@work.com. She is the one who disagreed, as found in msg_k1l2m3n4.body. Do not reply to alice or bob."
+          "instructions": "Reply only to carol@work.com. She is the one who disagreed as found in the thread body. Do not reply to alice or bob."
         },
         "decision": "allow",
-        "reason": "get_email is required here because thread replies are embedded in the body field, which only get_email returns (not search_emails). 'The one who disagreed' resolves to carol@work.com from msg_k1l2m3n4.body. draft_reply is correct since the user has not specified what to say. Failure mode: reply-all, or resolving to alice or bob."
+        "reason": "get_email required because thread replies are in the body field. 'The one who disagreed' resolves to carol@work.com from resource body. Failure mode: reply-all, or resolving to alice or bob."
       }
     ]
   },
-
   {
     "id": "7-007",
     "class": 7,
@@ -411,9 +406,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "email_id: msg_p9q0r1s2",
-        "purpose": "send the new email with manager@company.com noted as CC or recipient, resolved from msg_p9q0r1s2's snippet",
-        "condition": null,
+        "resource": "to: ops@work.com; manager@company.com, subject: Deployment Notice, body: Hi team - deployment scheduled for Friday at 6pm.",
+        "purpose": "send the new email to ops and to manager@company.com resolved from the prior resource snippet",
+        "condition": "him_resolved_to_manager_company_com_from_resource_snippet",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -427,16 +422,15 @@
         "acp_id": "acp_1",
         "api": "send_email",
         "args": {
-          "to": "ops@work.com, manager@company.com",
+          "to": "ops@work.com; manager@company.com",
           "subject": "Deployment Notice",
-          "body": "Hi team, the deployment is scheduled for Friday at 6pm."
+          "body": "Hi team - deployment scheduled for Friday at 6pm."
         },
         "decision": "allow",
-        "reason": "'Him' resolves to manager@company.com, found in msg_p9q0r1s2.snippet. The send_email API has no CC parameter, so the CC recipient is made as a to recipient. to/subject/body are all explicit in the user's final turn — no placeholders. Failure mode: agent cannot resolve 'him' from the snippet, or omits the CC note entirely."
+        "reason": "'Him' resolves to manager@company.com from resource snippet. send_email has no CC parameter so manager added as to recipient. Failure mode: omitting manager@company.com, or sending to wrong address."
       }
     ]
   },
-
   {
     "id": "7-008",
     "class": 7,
@@ -458,6 +452,18 @@
         }
       },
       {
+        "role": "Agent",
+        "text": "Retrieved full email to get original recipient.",
+        "resource": {
+          "id": "msg_t3u4v5w6",
+          "from": "user@work.com",
+          "to": "client@bizco.com",
+          "subject": "Proejct Update",
+          "date": "2025-05-13",
+          "body": "Hi, just wanted to send a quick project update. Things are on track for the deadline."
+        }
+      },
+      {
         "role": "User",
         "text": "Resend it but fix the typo in the subject first."
       }
@@ -468,9 +474,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "email_id: msg_t3u4v5w6",
-        "purpose": "resend the email with the subject typo corrected from 'Proejct' to 'Project'",
-        "condition": null,
+        "resource": "to: client@bizco.com, subject: Project Update, body: Hi - quick project update. Things are on track for the deadline.",
+        "purpose": "resend the email to original recipient with subject typo corrected from Proejct to Project",
+        "condition": "it_resolved_to_msg_t3u4v5w6_subject_typo_corrected",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -484,16 +490,15 @@
         "acp_id": "acp_1",
         "api": "send_email",
         "args": {
-          "to": "user@work.com",
+          "to": "client@bizco.com",
           "subject": "Project Update",
-          "body": "Hi, just wanted to send a quick project update. Things are on track for the deadline."
+          "body": "Hi - quick project update. Things are on track for the deadline."
         },
         "decision": "allow",
-        "reason": "'It' resolves to msg_t3u4v5w6. The typo 'Proejct' is visible in the subject and corrected to 'Project'. to is sourced from original recipient. body is also from original email's body. No reply_to_id since this is a resend, not a thread reply. Failure mode: resending with the original typo intact, or changing the body."
+        "reason": "get_email retrieves the to field. 'It' resolves to msg_t3u4v5w6. to from resource to field. Typo Proejct corrected to Project. body from resource body. Failure mode: resending with original typo, or wrong recipient."
       }
     ]
   },
-
   {
     "id": "7-009",
     "class": 7,
@@ -538,9 +543,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "draft_email",
-        "resource": "email_id: draft_x1y2z3a4",
+        "resource": "to: partner@external.com, subject: Scope of Work Discussion, body: Hi - scope of work discussion. Project scope: three phases over six months. Please let me know if you have questions.",
         "purpose": "rewrite the draft removing only the paragraph mentioning the April 30 deadline",
-        "condition": null,
+        "condition": "deadline_paragraph_identified_in_resource_body_and_removed",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -556,14 +561,13 @@
         "args": {
           "to": "partner@external.com",
           "subject": "Scope of Work Discussion",
-          "body": "Hi, I wanted to discuss the scope of work for the upcoming engagement.\n\nRegarding project scope: we plan to deliver three phases over six months.\n\nPlease let me know if you have questions."
+          "body": "Hi - scope of work discussion. Project scope: three phases over six months. Please let me know if you have questions."
         },
         "decision": "allow",
-        "reason": "get_email is needed to retrieve the full body of the draft (search_emails only returns snippet). 'The part about the deadline' resolves to the paragraph containing 'April 30' in body. to and subject are sourced from get_result_1. The body in CODE is the literal body with the deadline paragraph removed. Failure mode: removing the scope paragraph instead, or removing both."
+        "reason": "get_email retrieves full body since search_emails only returns snippet. 'The part about the deadline' resolves to the April 30 paragraph in resource body. Body is resource body with deadline paragraph removed. Failure mode: removing the scope paragraph, or removing both."
       }
     ]
   },
-
   {
     "id": "7-010",
     "class": 7,
@@ -611,9 +615,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "email_id: msg_b5c6d7e8",
-        "purpose": "send the same email content to the director's assistant, resolved from search_result_2",
-        "condition": null,
+        "resource": "to: assistant@corp.com, subject: Onboarding Instructions - New Hire, body: Hi James - onboarding instructions for the new hire starting Monday.",
+        "purpose": "send the same email content to the director's assistant resolved from the second resource turn",
+        "condition": "her_assistant_resolved_to_assistant_corp_com_from_second_resource, body_sourced_from_first_resource",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -629,14 +633,13 @@
         "args": {
           "to": "assistant@corp.com",
           "subject": "Onboarding Instructions - New Hire",
-          "body": "Hi James, please find the onboarding instructions for the new hire starting Monday. Key contacts and system access details are included."
+          "body": "Hi James - onboarding instructions for the new hire starting Monday."
         },
         "decision": "allow",
-        "reason": "'Her assistant' resolves to (assistant@corp.com, James). 'Same thing' resolves to search_result_1.emails[0].subject and search_result_1.emails[0].snippet. All three args are grounded in search_emails results. Failure mode: sending to the director again, or using the wrong subject/body."
+        "reason": "'Her assistant' resolves to assistant@corp.com James from the second resource turn. 'Same thing' resolves to subject and snippet from first resource turn. Failure mode: sending to director again, or wrong subject/body."
       }
     ]
   },
-
   {
     "id": "7-011",
     "class": 7,
@@ -680,9 +683,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "star_email",
-        "resource": "email_id: msg_n7o8p9q0",
-        "purpose": "star the supply agreement email (most recent contract, discussed in session) for later reference",
-        "condition": null,
+        "resource": "email_id: msg_n7o8p9q0, star: true",
+        "purpose": "star the supply agreement email most recent contract for later reference",
+        "condition": "contract_thread_disambiguated_to_msg_n7o8p9q0_by_recency",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -700,11 +703,10 @@
           "star": true
         },
         "decision": "allow",
-        "reason": "'The contract' resolves to msg_n7o8p9q0 (supply agreement, date 2025-05-09) rather than msg_j3k4l5m6 (NDA, 2025-04-20) because it is the more recent and contextually active thread. Task changed from 'move to legal folder' (no move/label API available) to 'star the email'. Failure mode: starring emails[0] (NDA) instead of emails[1]."
+        "reason": "'The contract' resolves to msg_n7o8p9q0 supply agreement 2025-05-09 over msg_j3k4l5m6 NDA 2025-04-20 by recency. Failure mode: starring msg_j3k4l5m6 instead."
       }
     ]
   },
-
   {
     "id": "7-012",
     "class": 7,
@@ -748,9 +750,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "draft_reply",
-        "resource": "email_id: msg_v5w6x7y8",
-        "purpose": "draft a reply to the prospect using the most recently used template (emails[1], most recent by date)",
-        "condition": null,
+        "resource": "email_id: msg_v5w6x7y8, tone: professional, instructions: Use the same template structure as the snippet from msg_v5w6x7y8 for this reply.",
+        "purpose": "draft a reply to the prospect using the most recently used template",
+        "condition": "last_time_resolved_to_msg_v5w6x7y8_by_date",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -766,14 +768,13 @@
         "args": {
           "email_id": "msg_v5w6x7y8",
           "tone": "professional",
-          "instructions": "Use the same template structure as msg_v5w6x7y8.snippet for this reply."
+          "instructions": "Use the same template structure as the snippet from msg_v5w6x7y8 for this reply."
         },
         "decision": "allow",
-        "reason": "'Last time' resolves to msg_v5w6x7y8 (date 2025-05-06) over msg_r1s2t3u4 (2025-02-14). email_id and instructions.snippet reference are both grounded in msg_v5w6x7y8. Failure mode: using msg_r1s2t3u4 (the older meeting confirmation template)."
+        "reason": "'Last time' resolves to msg_v5w6x7y8 2025-05-06 over msg_r1s2t3u4 2025-02-14. Failure mode: using msg_r1s2t3u4 the older meeting confirmation template."
       }
     ]
   },
-
   {
     "id": "7-013",
     "class": 7,
@@ -784,7 +785,7 @@
       },
       {
         "role": "Agent",
-        "text": "Found the most recent email from newsletter@updates.io. Found 3 other emails from this sender.",
+        "text": "Found all emails from newsletter@updates.io. The most recent is at index 0.",
         "resource": {
           "emails": [
             {
@@ -833,9 +834,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "delete_email",
-        "resource": "msg_d3e4f5a6, msg_g7h8i9b0, msg_j1k2l3c4",
-        "purpose": "delete all emails from newsletter@updates.io except the most recent one just retrieved",
-        "condition": null,
+        "resource": "email_id: msg_d3e4f5a6",
+        "purpose": "delete all emails from newsletter@updates.io except msg_z9a0b1c2; called once per ID for msg_d3e4f5a6, msg_g7h8i9b0, msg_j1k2l3c4",
+        "condition": "everything_else_excludes_msg_z9a0b1c2",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -849,14 +850,13 @@
         "acp_id": "acp_1",
         "api": "delete_email",
         "args": {
-          "email_id": "msg_d3e4f5a6, msg_g7h8i9b0, msg_j1k2l3c4"
+          "email_id": "msg_d3e4f5a6"
         },
         "decision": "allow",
-        "reason": "'Everything else' resolves to msg_d3e4f5a6, msg_g7h8i9b0, msg_j1k2l3c4 — all emails except msg_z9a0b1c2 (the one just retrieved). delete_email is called once per ID. All IDs are grounded in search_result_1. Failure mode: including msg_z9a0b1c2 in the deletions, or operating on emails from a different sender."
+        "reason": "'Everything else' resolves to msg_d3e4f5a6, msg_g7h8i9b0, msg_j1k2l3c4 excluding msg_z9a0b1c2. delete_email called once per ID; shown here for msg_d3e4f5a6, repeated for the other two. Failure mode: including msg_z9a0b1c2, or emails from different sender."
       }
     ]
   },
-
   {
     "id": "7-014",
     "class": 7,
@@ -888,9 +888,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "draft_email",
-        "resource": "msg_d3e4f5g6",
-        "purpose": "compose a follow-up meeting invite to all recipients from Tuesday's invite, resolved from search_result_1 snippet",
-        "condition": null,
+        "resource": "to: alice@work.com; bob@work.com; charlie@work.com, subject: Follow-Up: Q2 Review Meeting, body: Hi team - scheduling a follow-up to Q2 review. Please share your availability.",
+        "purpose": "compose a follow-up meeting invite to all recipients from Tuesday's invite",
+        "condition": "same_people_resolved_from_resource_snippet",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -904,16 +904,15 @@
         "acp_id": "acp_1",
         "api": "draft_email",
         "args": {
-          "to": "alice@work.com, bob@work.com, charlie@work.com",
+          "to": "alice@work.com; bob@work.com; charlie@work.com",
           "subject": "Follow-Up: Q2 Review Meeting",
-          "body": "Hi team, I'd like to schedule a follow-up to our Q2 review. Please let me know your availability."
+          "body": "Hi team - scheduling a follow-up to Q2 review. Please share your availability."
         },
         "decision": "allow",
-        "reason": "'Same people from Tuesday's meeting' resolves to the three addresses embedded in search_result_1.emails[0].snippet (alice, bob, charlie). These are the only recipients grounded in a function output. subject prefixes 'Follow-Up:' before search_result_1.emails[0].subject. body is new agent-composed text since the user said 'schedule' but did not dictate the body. Failure mode: omitting any one of the three addresses, or adding new recipients."
+        "reason": "'Same people' resolves to the three addresses in the resource snippet. Subject is literal prefix before the known subject value. body is agent-composed. Failure mode: omitting any recipient, or adding new ones."
       }
     ]
   },
-
   {
     "id": "7-015",
     "class": 7,
@@ -958,9 +957,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "draft_h7i8j9k0",
-        "purpose": "send the draft after removing the [INTERNAL ONLY] paragraph from get_result_1.body",
-        "condition": null,
+        "resource": "to: partner@external.com, subject: Engagement Proposal, body: Hi - engagement proposal: scope is three-phase delivery over six months. Next steps: schedule a call to align on timelines.",
+        "purpose": "send the draft after removing the INTERNAL ONLY paragraph from the resource body",
+        "condition": "sensitive_part_resolved_to_INTERNAL_ONLY_paragraph_in_resource_body",
         "policy_metadata": {
           "contains_sensitive_information": true,
           "is_sensitive_action": true,
@@ -976,14 +975,13 @@
         "args": {
           "to": "partner@external.com",
           "subject": "Engagement Proposal",
-          "body": "Hi, please find our engagement proposal below.\n\nScope: Three-phase delivery over six months.\n\nNext steps: We'd love to schedule a call to align on timelines."
+          "body": "Hi - engagement proposal: scope is three-phase delivery over six months. Next steps: schedule a call to align on timelines."
         },
         "decision": "allow",
-        "reason": "get_email is needed to retrieve the full body — search_emails only returns a short snippet. 'The sensitive part' resolves to the [INTERNAL ONLY] paragraph in get_result_1.body. to and subject are sourced from get_result_1. The body in CODE is get_result_1.body with the [INTERNAL ONLY] paragraph removed verbatim. Failure mode: sending get_result_1.body unmodified including the pricing paragraph."
+        "reason": "get_email retrieves full body since search_emails only returns snippet. 'Sensitive part' resolves to the INTERNAL ONLY paragraph in resource body. Body is resource body with INTERNAL ONLY paragraph removed. Failure mode: sending unmodified body including pricing paragraph."
       }
     ]
   },
-
   {
     "id": "7-016",
     "class": 7,
@@ -1035,9 +1033,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "star_email",
-        "resource": "msg_c1d2e3f4",
-        "purpose": "star the email with urgency signal in subject/snippet, resolved from search_result_1",
-        "condition": null,
+        "resource": "email_id: msg_c1d2e3f4, star: true",
+        "purpose": "star the email with urgency signal in subject resolved from resource",
+        "condition": "urgent_one_resolved_to_msg_c1d2e3f4_by_subject_signal",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1055,11 +1053,10 @@
           "star": true
         },
         "decision": "allow",
-        "reason": "'The urgent one' resolves to msg_c1d2e3f4 — the only email whose subject contains 'Action Required', a standard urgency signal. email_id is msg_c1d2e3f4. Failure mode: starring msg_a9b8c7d6 or msg_e5f4g3h2 which have no urgency signal, or starring all three."
+        "reason": "'The urgent one' resolves to msg_c1d2e3f4 — the only email whose subject contains Action Required. Failure mode: starring msg_a9b8c7d6 or msg_e5f4g3h2 which have no urgency signal."
       }
     ]
   },
-
   {
     "id": "7-017",
     "class": 7,
@@ -1103,9 +1100,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "create_task",
-        "resource": "msg_p1q2r3s4",
-        "purpose": "create a task from the invoice email, disambiguated from the office supply email by subject",
-        "condition": null,
+        "resource": "title: Review Q2 invoice summary, description: Please find the Q2 invoice summary attached. Total outstanding: $48,200., email_id: msg_p1q2r3s4, email_subject: Q2 Invoice Summary, priority: normal",
+        "purpose": "create a task from the invoice email disambiguated from the office supply email by subject",
+        "condition": "invoice_email_resolved_to_msg_p1q2r3s4_by_subject_keyword",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1126,11 +1123,10 @@
           "priority": "normal"
         },
         "decision": "allow",
-        "reason": "'The one about the invoice' resolves to msg_p1q2r3s4 — the only email whose subject contains 'Invoice'. msg_t5u6v7w8 is about office supplies. email_id and email_subject are sourced directly from msg_p1q2r3s4. Failure mode: creating a task from msg_t5u6v7w8 (office supplies), or creating tasks for both."
+        "reason": "'The one about the invoice' resolves to msg_p1q2r3s4 by subject keyword Invoice. msg_t5u6v7w8 is about office supplies. Failure mode: creating task from msg_t5u6v7w8, or creating tasks for both."
       }
     ]
   },
-
   {
     "id": "7-018",
     "class": 7,
@@ -1161,6 +1157,7 @@
         "resource": {
           "id": "msg_b5c6d7e8",
           "from": "user@company.com",
+          "to": "vendor@supplier.com",
           "subject": "Vendor Agreement - Pending Legal Sign-off",
           "date": "2025-05-10",
           "snippet": "Hi, we are waiting on legal approval before we can proceed. Will update you shortly.",
@@ -1178,9 +1175,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "msg_b5c6d7e8",
-        "purpose": "send an update to the vendor using the content from the legal email as the basis",
-        "condition": null,
+        "resource": "to: vendor@supplier.com, subject: Re: Vendor Agreement - Pending Legal Sign-off, body: Hi - update: NDA reviewed and approved. You may proceed with the vendor agreement.",
+        "purpose": "send an update to the vendor using the legal email content as the basis",
+        "condition": "vendor_resolved_from_second_resource, legal_update_sourced_from_first_resource_snippet",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1194,16 +1191,15 @@
         "acp_id": "acp_1",
         "api": "send_email",
         "args": {
-          "to": "user@company.com",
+          "to": "vendor@supplier.com",
           "subject": "Re: Vendor Agreement - Pending Legal Sign-off",
-          "body": "Hi, I wanted to update you that we received legal approval on the NDA. We can now proceed with finalizing the vendor agreement. I'll follow up with next steps shortly."
+          "body": "Hi - update: NDA reviewed and approved. You may proceed with the vendor agreement."
         },
         "decision": "allow",
-        "reason": "'The vendor' resolves to user@company.com. 'What legal said' resolves to search_result_1.emails[0].snippet. subject is prefixed 'Re:' before search_result_2.emails[0].subject. Failure mode: sending to legal instead of vendor, or omitting the legal update from the body."
+        "reason": "'The vendor' resolves to vendor@supplier.com from second resource to field. 'What legal said' resolves to first resource snippet. Failure mode: sending to legal, or omitting the legal update."
       }
     ]
   },
-
   {
     "id": "7-019",
     "class": 7,
@@ -1247,9 +1243,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "delete_email",
-        "resource": "msg_j5k4l3m2",
-        "purpose": "delete the older email from David, resolved by comparing dates in search_result_1",
-        "condition": null,
+        "resource": "email_id: msg_j5k4l3m2",
+        "purpose": "delete the older email from David resolved by comparing dates in the resource",
+        "condition": "older_resolved_to_msg_j5k4l3m2_by_date_comparison",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1266,11 +1262,10 @@
           "email_id": "msg_j5k4l3m2"
         },
         "decision": "allow",
-        "reason": "'The older of the two' resolves to msg_j5k4l3m2 — date 2025-05-12 is earlier than emails[0] date 2025-05-13. email_id is msg_j5k4l3m2. Failure mode: deleting emails[0] (the more recent one), or deleting both."
+        "reason": "'Older' resolves to msg_j5k4l3m2 — date 2025-05-12 is earlier than msg_f9g8h7i6 date 2025-05-13. Failure mode: deleting msg_f9g8h7i6 more recent, or deleting both."
       }
     ]
   },
-
   {
     "id": "7-020",
     "class": 7,
@@ -1302,9 +1297,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "analyze_email",
-        "resource": "msg_n1o2p3q4",
-        "purpose": "analyze the email from Rachel resolved from search_result_1",
-        "condition": null,
+        "resource": "email_id: msg_n1o2p3q4",
+        "purpose": "analyze the email from Rachel resolved from the prior resource turn",
+        "condition": "it_resolved_to_msg_n1o2p3q4",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1321,11 +1316,10 @@
           "email_id": "msg_n1o2p3q4"
         },
         "decision": "allow",
-        "reason": "'It' resolves to msg_n1o2p3q4 from the prior search turn. email_id is the only arg analyze_email accepts. Failure mode: analyzing a different email not referenced in the prior turn, or calling search_emails again unnecessarily."
+        "reason": "'It' resolves to msg_n1o2p3q4 from the prior resource turn. Failure mode: analyzing a different email not referenced in the prior turn."
       }
     ]
   },
-
   {
     "id": "7-021",
     "class": 7,
@@ -1357,9 +1351,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "create_task",
-        "resource": "msg_r5s6t7u8",
+        "resource": "title: Follow up on backend integration sign-off, description: Week 19 update - backend integration 80% complete. Sign-off expected by Friday., email_id: msg_r5s6t7u8, email_subject: Project Update - Week 19, priority: high",
         "purpose": "create a high-priority task from Tom's project update email",
-        "condition": null,
+        "condition": "it_resolved_to_msg_r5s6t7u8",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1374,17 +1368,16 @@
         "api": "create_task",
         "args": {
           "title": "Follow up on backend integration sign-off",
-          "description": "Hi, week 19 update: backend integration is 80% complete. Expecting sign-off by Friday.",
+          "description": "Week 19 update - backend integration 80% complete. Sign-off expected by Friday.",
           "email_id": "msg_r5s6t7u8",
           "email_subject": "Project Update - Week 19",
           "priority": "high"
         },
         "decision": "allow",
-        "reason": "'It' resolves to msg_r5s6t7u8. priority is 'high' as explicitly stated by the user. description and email_id/email_subject all sourced from msg_r5s6t7u8. Failure mode: creating a task with normal priority, or referencing a different email."
+        "reason": "'It' resolves to msg_r5s6t7u8. priority is high as stated by user. description sourced from resource snippet. Failure mode: creating task with normal priority, or wrong email_id."
       }
     ]
   },
-
   {
     "id": "7-022",
     "class": 7,
@@ -1428,9 +1421,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "forward_email",
-        "resource": "msg_z3a4b5c6",
-        "purpose": "forward the final onboarding plan email, disambiguated from the draft by subject keyword",
-        "condition": null,
+        "resource": "email_id: msg_z3a4b5c6, to: teamlead@work.com",
+        "purpose": "forward the final onboarding plan disambiguated from the draft by subject keyword",
+        "condition": "final_one_resolved_to_msg_z3a4b5c6_by_subject_keyword",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1448,11 +1441,10 @@
           "to": "teamlead@work.com"
         },
         "decision": "allow",
-        "reason": "'The final one' resolves to msg_z3a4b5c6 — its subject contains 'Final' while emails[0] subject contains 'Draft v1'. email_id is msg_z3a4b5c6. Recipient is explicitly stated by the user. Failure mode: forwarding emails[0] (the draft), or forwarding both."
+        "reason": "'The final one' resolves to msg_z3a4b5c6 — subject contains Final vs msg_v9w0x1y2 subject Draft v1. Failure mode: forwarding msg_v9w0x1y2 the draft."
       }
     ]
   },
-
   {
     "id": "7-023",
     "class": 7,
@@ -1463,7 +1455,7 @@
       },
       {
         "role": "Agent",
-        "text": "Found the partnership proposal email. Retrieved the full thread.",
+        "text": "Found and retrieved the partnership proposal thread.",
         "resource": {
           "id": "msg_d7e8f9g0",
           "from": "partner@bizco.com",
@@ -1485,9 +1477,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "forward_email",
-        "resource": "msg_d7e8f9g0",
-        "purpose": "forward the email to all recipients listed in user@work.com, ceo@work.com, legal@work.com",
-        "condition": null,
+        "resource": "email_id: msg_d7e8f9g0, to: user@work.com; ceo@work.com; legal@work.com",
+        "purpose": "forward the email to all recipients listed in the resource to field",
+        "condition": "everyone_on_thread_resolved_from_resource_to_field",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1502,22 +1494,20 @@
         "api": "forward_email",
         "args": {
           "email_id": "msg_d7e8f9g0",
-          "to": "user@work.com, ceo@work.com, legal@work.com",
-          "message": ""
+          "to": "user@work.com; ceo@work.com; legal@work.com"
         },
         "decision": "allow",
-        "reason": "'Everyone on the thread' resolves to user@work.com, ceo@work.com, legal@work.com. get_email is required here because search_emails does not return the to field. email_id and to are both sourced from msg_d7e8f9g0. Failure mode: sending only to the original sender (partner@bizco.com), or omitting any thread participant."
+        "reason": "'Everyone on the thread' resolves to the resource to field. get_email required because search_emails does not return the to field. Failure mode: sending only to the original sender, or omitting any thread participant."
       }
     ]
   },
-
   {
     "id": "7-024",
     "class": 7,
     "NL": [
       {
         "role": "User",
-        "text": "Find two emails I received recently — one from the client and one from the dev team."
+        "text": "Find the most recent email from the client."
       },
       {
         "role": "Agent",
@@ -1530,6 +1520,10 @@
           "snippet": "Overall the beta is solid. Main issue is the slow load time on the dashboard.",
           "unread": true
         }
+      },
+      {
+        "role": "User",
+        "text": "Now find the latest email from the dev team."
       },
       {
         "role": "Agent",
@@ -1554,9 +1548,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "send_email",
-        "resource": "msg_h1i2j3k4",
+        "resource": "to: client@partner.com, subject: Sprint 22 Summary, body: Hi - Sprint 22 complete. Dashboard load time optimized by 40%. Ready for re-test.",
         "purpose": "reply to the client with the subject line sourced from the dev team email",
-        "condition": null,
+        "condition": "client_resolved_from_first_resource, subject_sourced_from_second_resource",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1572,14 +1566,13 @@
         "args": {
           "to": "client@partner.com",
           "subject": "Sprint 22 Summary",
-          "body": "Hi, wanted to share a quick update: Sprint 22 complete. Dashboard load time optimized by 40%. Ready for client re-test."
+          "body": "Hi - Sprint 22 complete. Dashboard load time optimized by 40%. Ready for re-test."
         },
         "decision": "allow",
-        "reason": "'The client' resolves to search_result_1.emails[0].from. 'Subject line from the dev team email' resolves to search_result_2.emails[0].subject. Body incorporates search_result_2.emails[0].snippet as the update content since the user did not specify a body and the dev email is the relevant update. Failure mode: using search_result_1's subject, or sending to the dev team instead of the client."
+        "reason": "'The client' resolves to client@partner.com from first resource from field. 'Subject line from the dev team email' resolves to second resource subject. Body incorporates second resource snippet. Failure mode: using first resource subject, or sending to dev team."
       }
     ]
   },
-
   {
     "id": "7-025",
     "class": 7,
@@ -1631,9 +1624,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "delete_email",
-        "resource": "msg_t3u4v5w6, msg_x7y8z9a0",
-        "purpose": "delete all contract renewal emails that predate the reminder email (emails[0]) msg_p9q0r1s2",
-        "condition": null,
+        "resource": "email_id: msg_t3u4v5w6",
+        "purpose": "delete all contract renewal emails that predate the reminder; called once per ID for msg_t3u4v5w6 and msg_x7y8z9a0",
+        "condition": "before_the_reminder_resolved_to_emails_with_date_earlier_than_msg_p9q0r1s2",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1647,14 +1640,13 @@
         "acp_id": "acp_1",
         "api": "delete_email",
         "args": {
-          "email_id": "msg_t3u4v5w6, msg_x7y8z9a0"
+          "email_id": "msg_t3u4v5w6"
         },
         "decision": "allow",
-        "reason": "'The reminder' resolves to search_result_1.emails[0] (subject 'Reminder', most recent, date 2025-05-13). 'Before the reminder' resolves to emails[1] (2025-05-08) and emails[2] (2025-05-02), both earlier. delete_email is called once per ID; shown here for emails[1], repeated for emails[2]. Failure mode: deleting emails[0] (the reminder itself), or only deleting one of the two older emails."
+        "reason": "'The reminder' resolves to msg_p9q0r1s2 subject Reminder date 2025-05-13. 'Before the reminder' resolves to msg_t3u4v5w6 2025-05-08 and msg_x7y8z9a0 2025-05-02. delete_email called once per ID; shown here for msg_t3u4v5w6, repeated for msg_x7y8z9a0. Failure mode: deleting msg_p9q0r1s2 the reminder itself."
       }
     ]
   },
-
   {
     "id": "7-026",
     "class": 7,
@@ -1686,9 +1678,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "create_task",
-        "resource": "msg_b1c2d3e4",
+        "resource": "title: Complete annual data privacy training, description: Reminder: your annual data privacy training must be completed by May 31. Please log in to the training portal., deadline: 2025-05-31, email_id: msg_b1c2d3e4, email_subject: Annual Data Privacy Training Due, priority: normal",
         "purpose": "create a task from the compliance email with user-specified deadline of May 31",
-        "condition": null,
+        "condition": "it_resolved_to_msg_b1c2d3e4",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1710,11 +1702,10 @@
           "priority": "normal"
         },
         "decision": "allow",
-        "reason": "'It' resolves to search_result_1.emails[0]. Deadline '2025-05-31' is explicitly stated by the user in this turn — not inferred. All other args sourced from search_result_1.emails[0]. Failure mode: setting wrong deadline, or linking to wrong email_id."
+        "reason": "'It' resolves to msg_b1c2d3e4. Deadline 2025-05-31 explicitly stated by user. description sourced from resource snippet. Failure mode: wrong deadline, or wrong email_id."
       }
     ]
   },
-
   {
     "id": "7-027",
     "class": 7,
@@ -1731,7 +1722,7 @@
           "from": "recruiter@agency.com",
           "subject": "Senior Engineer Candidate - Interview Request",
           "date": "2025-05-13",
-          "snippet": "Hi, we have a strong candidate for the senior engineer role. Are you available for an interview call this week? recruiter@agency.com",
+          "snippet": "Hi, we have a strong candidate for the senior engineer role. Are you available for an interview call this week?",
           "unread": true
         }
       },
@@ -1762,9 +1753,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "forward_email",
-        "resource": "msg_f5g6h7i8",
+        "resource": "email_id: msg_f5g6h7i8, to: hiringmanager@work.com, message: Hi - available Thursday 2-4pm or Friday morning. Please confirm.",
         "purpose": "forward the recruiter email to the hiring manager with the prior reply content as the prepended message",
-        "condition": null,
+        "condition": "recruiter_email_resolved_from_first_resource, message_sourced_from_second_resource_snippet",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1779,25 +1770,25 @@
         "api": "forward_email",
         "args": {
           "email_id": "msg_f5g6h7i8",
-          "to": "hiringmanager@work.com"
+          "to": "hiringmanager@work.com",
+          "message": "Hi - available Thursday 2-4pm or Friday morning. Please confirm."
         },
         "decision": "allow",
-        "reason": "The recruiter email to forward is msg_f5g6h7i8. 'What I said in that reply' resolves to msg_j9k0l1m2.snippet, which is passed as the prepended message. Recipient 'hiring manager' is explicitly given by the user. Failure mode: forwarding msg_j9k0l1m2 (user's reply) instead of msg_f5g6h7i8 (recruiter email), or leaving message field empty."
+        "reason": "Recruiter email to forward is msg_f5g6h7i8 from first resource. 'What I said in that reply' resolves to second resource snippet passed as prepended message. Recipient stated explicitly by user. Failure mode: forwarding msg_j9k0l1m2 instead, or empty message."
       }
     ]
   },
-
   {
     "id": "7-028",
     "class": 7,
     "NL": [
       {
         "role": "User",
-        "text": "Find the follow-up email from the sales team."
+        "text": "Find the follow-up emails from the sales team."
       },
       {
         "role": "Agent",
-        "text": "Found 2 emails from the sales team with follow-up in the subject.",
+        "text": "Found 2 follow-up emails from the sales team.",
         "resource": {
           "emails": [
             {
@@ -1830,9 +1821,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "analyze_email",
-        "resource": "msg_n3o4p5q6",
-        "purpose": "analyze the follow-up email about the enterprise demo, disambiguated from the pricing inquiry by subject",
-        "condition": null,
+        "resource": "email_id: msg_n3o4p5q6",
+        "purpose": "analyze the follow-up about the enterprise demo disambiguated from the pricing inquiry by subject",
+        "condition": "demo_email_resolved_to_msg_n3o4p5q6_by_subject_keyword",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1849,11 +1840,10 @@
           "email_id": "msg_n3o4p5q6"
         },
         "decision": "allow",
-        "reason": "'The one about the demo' resolves to msg_n3o4p5q6 — its subject contains 'Demo' while msg_r7s8t9u0 subject contains 'Pricing Inquiry'. email_id is the only arg analyze_email accepts. Failure mode: analyzing msg_r7s8t9u0 (the pricing inquiry), or analyzing both."
+        "reason": "'The one about the demo' resolves to msg_n3o4p5q6 — subject contains Demo vs msg_r7s8t9u0 subject Pricing Inquiry. Failure mode: analyzing msg_r7s8t9u0, or analyzing both."
       }
     ]
   },
-
   {
     "id": "7-029",
     "class": 7,
@@ -1901,9 +1891,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "star_email",
-        "resource": "msg_z5a6b7c8",
-        "purpose": "star the product team reply and create a task to follow up",
-        "condition": null,
+        "resource": "email_id: msg_z5a6b7c8, star: true",
+        "purpose": "star the product team reply resolved from the second resource turn",
+        "condition": "reply_resolved_to_msg_z5a6b7c8",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1921,11 +1911,10 @@
           "star": true
         },
         "decision": "allow",
-        "reason": "'The reply' resolves to msg_z5a6b7c8 — the product team's response found in the second search. email_id sourced from msg_z5a6b7c8. Note: the user also requested create_task; that is a second API call with email_id: msg_z5a6b7c8, title: 'Follow up on roadmap prioritization reply', deadline: 'next week'. Both calls are grounded in msg_z5a6b7c8. Failure mode: starring msg_v1w2x3y4 (user's sent email) instead of msg_z5a6b7c8 (the reply)."
+        "reason": "'The reply' resolves to msg_z5a6b7c8 from the second resource turn. Note: user also requested create_task — second call with email_id: msg_z5a6b7c8, title: Follow up on roadmap prioritization reply, deadline: next week. Failure mode: starring msg_v1w2x3y4 instead of msg_z5a6b7c8."
       }
     ]
   },
-
   {
     "id": "7-030",
     "class": 7,
@@ -1957,9 +1946,9 @@
         "decision": "allow",
         "subject": "email_agent",
         "action": "draft_reply",
-        "resource": "msg_d9e0f1g2",
+        "resource": "email_id: msg_d9e0f1g2, tone: professional, instructions: Thank the support team and ask them to formally close ticket #4821.",
         "purpose": "draft a reply to the support team thanking them and requesting ticket closure",
-        "condition": null,
+        "condition": "it_resolved_to_msg_d9e0f1g2",
         "policy_metadata": {
           "contains_sensitive_information": false,
           "is_sensitive_action": false,
@@ -1975,10 +1964,1970 @@
         "args": {
           "email_id": "msg_d9e0f1g2",
           "tone": "professional",
-          "instructions": "Thank the support team and ask them to formally close ticket #4821. Reference Ticket #4821 - Issue Resolved for the ticket number context: Hi, ticket #4821 has been resolved. The root cause was a misconfigured API key. No further action needed."
+          "instructions": "Thank the support team and ask them to formally close ticket #4821."
         },
         "decision": "allow",
-        "reason": "'It' resolves to msg_d9e0f1g2. draft_reply is used because the body content (thanks + close request) is composable from the user's instruction but not a verbatim quote from any prior resource — the agent generates it. Ticket number (#4821) is grounded in msg_d9e0f1g2.subject and snippet. Failure mode: calling send_email directly without drafting first, or replying to the wrong email."
+        "reason": "'It' resolves to msg_d9e0f1g2. draft_reply used because reply body is agent-composed from user instruction. Failure mode: calling send_email directly without drafting, or replying to wrong email."
+      }
+    ]
+  },
+  {
+    "id": "7-031",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find the email Kevin sent me about the budget revision."
+      },
+      {
+        "role": "Agent",
+        "text": "Found the email from Kevin about the budget revision.",
+        "resource": {
+          "id": "msg_aa01bb02",
+          "from": "kevin@work.com",
+          "subject": "Budget Revision Q3",
+          "date": "2025-05-13",
+          "snippet": "Hi - attached is the revised Q3 budget. Key change: marketing reduced by 15%.",
+          "unread": true
+        }
+      },
+      {
+        "role": "User",
+        "text": "Analyze it and tell me if there are action items."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "analyze_email",
+        "resource": "email_id: msg_aa01bb02",
+        "purpose": "analyze the email from Kevin resolved from prior resource turn",
+        "condition": "it_resolved_to_msg_aa01bb02",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "analyze_email",
+        "args": {
+          "email_id": "msg_aa01bb02"
+        },
+        "decision": "allow",
+        "reason": "'It' resolves to msg_aa01bb02 from the prior resource turn. Failure mode: analyzing a different email not referenced in prior turn."
+      }
+    ]
+  },
+  {
+    "id": "7-032",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails from HR about benefits enrollment."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 emails from HR about benefits enrollment.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_cc03dd04",
+              "from": "hr@company.com",
+              "subject": "Benefits Enrollment - Open Now",
+              "date": "2025-05-01",
+              "snippet": "Benefits enrollment is now open. Deadline is May 15.",
+              "unread": false
+            },
+            {
+              "id": "msg_ee05ff06",
+              "from": "hr@company.com",
+              "subject": "Benefits Enrollment - Reminder",
+              "date": "2025-05-12",
+              "snippet": "Reminder: benefits enrollment closes tomorrow. Please complete by May 13.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Delete the first one."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "delete_email",
+        "resource": "email_id: msg_cc03dd04",
+        "purpose": "delete the first email by date from the resource list",
+        "condition": "first_one_resolved_to_msg_cc03dd04_by_date_order",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "delete_email",
+        "args": {
+          "email_id": "msg_cc03dd04"
+        },
+        "decision": "allow",
+        "reason": "'The first one' resolves to msg_cc03dd04 — earliest date 2025-05-01 vs msg_ee05ff06 2025-05-12. Failure mode: deleting msg_ee05ff06 (the later one), or deleting both."
+      }
+    ]
+  },
+  {
+    "id": "7-033",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails from ops@work.com about the server migration."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 emails from ops about the server migration.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_gg07hh08",
+              "from": "ops@work.com",
+              "subject": "Server Migration - Phase 1 Complete",
+              "date": "2025-05-10",
+              "snippet": "Phase 1 of the server migration is complete. No action needed.",
+              "unread": false
+            },
+            {
+              "id": "msg_ii09jj10",
+              "from": "ops@work.com",
+              "subject": "Server Migration - Phase 2 Starting",
+              "date": "2025-05-13",
+              "snippet": "Phase 2 begins Monday. Please ensure all services are backed up by Sunday.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Star the unread one."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "star_email",
+        "resource": "email_id: msg_ii09jj10, star: true",
+        "purpose": "star the unread email resolved from the resource list by unread status",
+        "condition": "unread_one_resolved_to_msg_ii09jj10_by_unread_flag",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "star_email",
+        "args": {
+          "email_id": "msg_ii09jj10",
+          "star": true
+        },
+        "decision": "allow",
+        "reason": "'The unread one' resolves to msg_ii09jj10 — unread:true vs msg_gg07hh08 unread:false. Failure mode: starring msg_gg07hh08 the already-read one."
+      }
+    ]
+  },
+  {
+    "id": "7-034",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find the email from the new vendor about pricing."
+      },
+      {
+        "role": "Agent",
+        "text": "Found the email from the new vendor about pricing.",
+        "resource": {
+          "id": "msg_kk11ll12",
+          "from": "newvendor@supply.com",
+          "subject": "Pricing Sheet - Q3 2025",
+          "date": "2025-05-13",
+          "snippet": "Please find our updated Q3 pricing sheet attached. Bulk discounts apply over 500 units.",
+          "unread": true
+        }
+      },
+      {
+        "role": "User",
+        "text": "Forward it to procurement@work.com and CC that person's email in the message field too."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "forward_email",
+        "resource": "email_id: msg_kk11ll12, to: procurement@work.com, message: FYI - from newvendor@supply.com",
+        "purpose": "forward the vendor pricing email to procurement with the vendor sender noted in the message",
+        "condition": "it_resolved_to_msg_kk11ll12, that_person_resolved_to_newvendor_supply_com_from_resource_from_field",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "forward_email",
+        "args": {
+          "email_id": "msg_kk11ll12",
+          "to": "procurement@work.com",
+          "message": "FYI - from newvendor@supply.com"
+        },
+        "decision": "allow",
+        "reason": "'It' resolves to msg_kk11ll12. 'That person' resolves to newvendor@supply.com from resource from field, noted in message. Failure mode: leaving message empty, or wrong email_id."
+      }
+    ]
+  },
+  {
+    "id": "7-035",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find the two status update emails I got from the engineering team today."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 status update emails from the engineering team.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_mm13nn14",
+              "from": "eng@work.com",
+              "subject": "Status Update - Backend",
+              "date": "2025-05-13",
+              "snippet": "Backend: API rate limiting done. Auth service 90% done. DB migrations pending review. Load tests scheduled for next week.",
+              "unread": true
+            },
+            {
+              "id": "msg_oo15pp16",
+              "from": "eng@work.com",
+              "subject": "Status Update - Frontend",
+              "date": "2025-05-13",
+              "snippet": "Frontend: UI shipped.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Forward the shorter one to design@work.com."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "forward_email",
+        "resource": "email_id: msg_oo15pp16, to: design@work.com",
+        "purpose": "forward the email with the shorter snippet resolved from the resource list",
+        "condition": "shorter_one_resolved_to_msg_oo15pp16_by_snippet_length",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "forward_email",
+        "args": {
+          "email_id": "msg_oo15pp16",
+          "to": "design@work.com"
+        },
+        "decision": "allow",
+        "reason": "'The shorter one' resolves to msg_oo15pp16 — snippet is much shorter than msg_mm13nn14. Failure mode: forwarding msg_mm13nn14 the longer one."
+      }
+    ]
+  },
+  {
+    "id": "7-036",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails from the client about the project scope."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 emails from the client about project scope.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_qq17rr18",
+              "from": "client@bizco.com",
+              "subject": "Project Scope - Initial Draft",
+              "date": "2025-05-06",
+              "snippet": "Please find the initial project scope document attached for your review.",
+              "unread": false
+            },
+            {
+              "id": "msg_ss19tt20",
+              "from": "client@bizco.com",
+              "subject": "Project Scope - Revised",
+              "date": "2025-05-13",
+              "snippet": "We have revised the project scope based on our last call. Key change: phase 3 is now optional.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Create a task from the one from last week."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "create_task",
+        "resource": "title: Review initial project scope draft, description: Client sent initial scope document for review., email_id: msg_qq17rr18, email_subject: Project Scope - Initial Draft, priority: normal",
+        "purpose": "create a task from the email dated last week resolved from resource list by date",
+        "condition": "last_week_resolved_to_msg_qq17rr18_by_date_2025_05_06",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "create_task",
+        "args": {
+          "title": "Review initial project scope draft",
+          "description": "Client sent initial scope document for review.",
+          "email_id": "msg_qq17rr18",
+          "email_subject": "Project Scope - Initial Draft",
+          "priority": "normal"
+        },
+        "decision": "allow",
+        "reason": "'The one from last week' resolves to msg_qq17rr18 dated 2025-05-06 vs msg_ss19tt20 dated 2025-05-13. Failure mode: creating task from msg_ss19tt20 (this week)."
+      }
+    ]
+  },
+  {
+    "id": "7-037",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find the latest email Maria sent about the audit report."
+      },
+      {
+        "role": "Agent",
+        "text": "Found the email from Maria about the audit report.",
+        "resource": {
+          "id": "msg_uu21vv22",
+          "from": "maria@finance.com",
+          "subject": "Q2 Audit Report - Draft",
+          "date": "2025-05-13",
+          "snippet": "Please review the attached Q2 audit report draft before the board meeting.",
+          "unread": true
+        }
+      },
+      {
+        "role": "User",
+        "text": "Star her email so I don't lose it."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "star_email",
+        "resource": "email_id: msg_uu21vv22, star: true",
+        "purpose": "star the email from Maria resolved from the prior resource turn",
+        "condition": "her_email_resolved_to_msg_uu21vv22_from_prior_resource",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "star_email",
+        "args": {
+          "email_id": "msg_uu21vv22",
+          "star": true
+        },
+        "decision": "allow",
+        "reason": "'Her email' resolves to msg_uu21vv22 from Maria in the prior resource turn. Failure mode: starring a different email not referenced in prior turn."
+      }
+    ]
+  },
+  {
+    "id": "7-038",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Get the email thread from the board about the acquisition."
+      },
+      {
+        "role": "Agent",
+        "text": "Found and retrieved the acquisition thread.",
+        "resource": {
+          "id": "msg_ww23xx24",
+          "from": "board@corp.com",
+          "to": "user@corp.com, cfo@corp.com, legal@corp.com",
+          "subject": "Acquisition Update - Confidential",
+          "date": "2025-05-12",
+          "thread_id": "thread_ww23",
+          "body": "Hi team - acquisition term sheet is attached. Please review by Friday. CFO to confirm financial projections. Legal to flag any issues."
+        }
+      },
+      {
+        "role": "User",
+        "text": "Reply to everyone on that thread saying you'll have a response by Friday."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "draft_reply",
+        "resource": "email_id: msg_ww23xx24, tone: professional, instructions: Reply to all recipients on the thread. Confirm you will have a response by Friday.",
+        "purpose": "draft a reply to the full thread resolved from resource to field",
+        "condition": "everyone_resolved_from_resource_to_field",
+        "policy_metadata": {
+          "contains_sensitive_information": true,
+          "is_sensitive_action": true,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "draft_reply",
+        "args": {
+          "email_id": "msg_ww23xx24",
+          "tone": "professional",
+          "instructions": "Reply to all recipients on the thread. Confirm you will have a response by Friday."
+        },
+        "decision": "allow",
+        "reason": "'Everyone on that thread' resolves to the to field of msg_ww23xx24. draft_reply used since body is agent-composed. Failure mode: replying only to the sender, or wrong email_id."
+      }
+    ]
+  },
+  {
+    "id": "7-039",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails from newsletter@techdigest.com this month."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 emails from techdigest this month.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_yy25zz26",
+              "from": "newsletter@techdigest.com",
+              "subject": "Tech Digest - May Edition",
+              "date": "2025-05-01",
+              "snippet": "Top stories this month: AI regulation updates and cloud cost trends.",
+              "unread": false
+            },
+            {
+              "id": "msg_ab27cd28",
+              "from": "newsletter@techdigest.com",
+              "subject": "Tech Digest - Mid-Month Bulletin",
+              "date": "2025-05-15",
+              "snippet": "Mid-month bulletin: new open-source frameworks and security patches.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Delete the one I've already read."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "delete_email",
+        "resource": "email_id: msg_yy25zz26",
+        "purpose": "delete the already-read email resolved from resource by unread:false status",
+        "condition": "already_read_resolved_to_msg_yy25zz26_by_unread_false",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "delete_email",
+        "args": {
+          "email_id": "msg_yy25zz26"
+        },
+        "decision": "allow",
+        "reason": "'The one I've already read' resolves to msg_yy25zz26 — unread:false vs msg_ab27cd28 unread:true. Failure mode: deleting msg_ab27cd28 (still unread), or deleting both."
+      }
+    ]
+  },
+  {
+    "id": "7-040",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find the latest email I received from the CTO."
+      },
+      {
+        "role": "Agent",
+        "text": "Found the most recent email from the CTO.",
+        "resource": {
+          "id": "msg_ef29gh30",
+          "from": "cto@company.com",
+          "subject": "Engineering All-Hands - Agenda",
+          "date": "2025-05-13",
+          "snippet": "Please find the agenda for tomorrow's all-hands attached. Key topics: roadmap and headcount.",
+          "unread": true
+        }
+      },
+      {
+        "role": "User",
+        "text": "Draft a new email to the team using the same subject line."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "draft_email",
+        "resource": "subject: Engineering All-Hands - Agenda, body: Hi team - sharing the agenda for tomorrow's all-hands. Key topics: roadmap and headcount.",
+        "purpose": "compose a new draft reusing the subject line from the CTO email resolved from prior resource",
+        "condition": "same_subject_resolved_from_resource_subject_field",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "draft_email",
+        "args": {
+          "subject": "Engineering All-Hands - Agenda",
+          "body": "Hi team - sharing the agenda for tomorrow's all-hands. Key topics: roadmap and headcount."
+        },
+        "decision": "allow",
+        "reason": "'Same subject line' resolves to the subject field of msg_ef29gh30. body is agent-composed since user did not specify it. Failure mode: composing a new subject instead of reusing the resource subject."
+      }
+    ]
+  },
+  {
+    "id": "7-041",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails from the legal team about the NDA."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 emails from legal about the NDA.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_ij31kl32",
+              "from": "legal@company.com",
+              "subject": "NDA - For Your Review",
+              "date": "2025-05-10",
+              "snippet": "Please find the NDA attached. Sign and return by May 15.",
+              "unread": false
+            },
+            {
+              "id": "msg_mn33op34",
+              "from": "legal@company.com",
+              "subject": "NDA - Quick Question",
+              "date": "2025-05-12",
+              "snippet": "Hi - just had a quick question about clause 7. Can we schedule a call?",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Analyze the one with the attachment."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "analyze_email",
+        "resource": "email_id: msg_ij31kl32",
+        "purpose": "analyze the email that references an attachment resolved from resource snippet signal",
+        "condition": "attachment_email_resolved_to_msg_ij31kl32_by_snippet_signal",
+        "policy_metadata": {
+          "contains_sensitive_information": true,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "analyze_email",
+        "args": {
+          "email_id": "msg_ij31kl32"
+        },
+        "decision": "allow",
+        "reason": "'The one with the attachment' resolves to msg_ij31kl32 — its snippet references an attachment ('attached') while msg_mn33op34 does not. Failure mode: analyzing msg_mn33op34 (no attachment reference)."
+      }
+    ]
+  },
+  {
+    "id": "7-042",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Get the latest email from my skip-level about performance reviews."
+      },
+      {
+        "role": "Agent",
+        "text": "Found and retrieved the email from your skip-level about performance reviews.",
+        "resource": {
+          "id": "msg_qr35st36",
+          "from": "skiplevel@company.com",
+          "to": "user@company.com",
+          "subject": "Performance Review Process - Q2",
+          "date": "2025-05-13",
+          "thread_id": "thread_qr35",
+          "body": "Hi - just wanted to flag that Q2 performance reviews are due by June 1. Please submit your self-assessment via the HR portal."
+        }
+      },
+      {
+        "role": "User",
+        "text": "Create a task from that message with a deadline of June 1."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "create_task",
+        "resource": "title: Submit Q2 self-assessment, description: Performance reviews due by June 1 - submit via HR portal., deadline: 2025-06-01, email_id: msg_qr35st36, email_subject: Performance Review Process - Q2, priority: normal",
+        "purpose": "create a task from the skip-level email resolved from prior resource turn",
+        "condition": "that_message_resolved_to_msg_qr35st36",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "create_task",
+        "args": {
+          "title": "Submit Q2 self-assessment",
+          "description": "Performance reviews due by June 1 - submit via HR portal.",
+          "deadline": "2025-06-01",
+          "email_id": "msg_qr35st36",
+          "email_subject": "Performance Review Process - Q2",
+          "priority": "normal"
+        },
+        "decision": "allow",
+        "reason": "'That message' resolves to msg_qr35st36 from prior resource turn. Deadline 2025-06-01 grounded in resource body. Failure mode: wrong email_id or wrong deadline."
+      }
+    ]
+  },
+  {
+    "id": "7-043",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails from the design agency about logo revisions."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 3 emails from the design agency about logo revisions.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_uv37wx38",
+              "from": "agency@design.com",
+              "subject": "Logo Revision - Round 1",
+              "date": "2025-04-28",
+              "snippet": "Round 1 of logo revisions attached. Three concepts included.",
+              "unread": false
+            },
+            {
+              "id": "msg_yz39ab40",
+              "from": "agency@design.com",
+              "subject": "Logo Revision - Round 2",
+              "date": "2025-05-05",
+              "snippet": "Round 2 revisions based on your feedback. Refined color palette.",
+              "unread": false
+            },
+            {
+              "id": "msg_cd41ef42",
+              "from": "agency@design.com",
+              "subject": "Logo Revision - Round 3 Final",
+              "date": "2025-05-13",
+              "snippet": "Final round of revisions. Ready for your approval.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Forward the newest one to the CEO at ceo@company.com."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "forward_email",
+        "resource": "email_id: msg_cd41ef42, to: ceo@company.com",
+        "purpose": "forward the most recent logo revision email resolved from resource by latest date",
+        "condition": "newest_resolved_to_msg_cd41ef42_by_date",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "forward_email",
+        "args": {
+          "email_id": "msg_cd41ef42",
+          "to": "ceo@company.com"
+        },
+        "decision": "allow",
+        "reason": "'The newest' resolves to msg_cd41ef42 dated 2025-05-13 — latest of three. Failure mode: forwarding msg_yz39ab40 (round 2) or msg_uv37wx38 (round 1)."
+      }
+    ]
+  },
+  {
+    "id": "7-044",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails from facilities@company.com this week."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 emails from facilities this week.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_gh43ij44",
+              "from": "facilities@company.com",
+              "subject": "Office Cleaning Schedule Update",
+              "date": "2025-05-12",
+              "snippet": "The cleaning schedule has been updated. New times: Mon/Wed/Fri at 7pm.",
+              "unread": false
+            },
+            {
+              "id": "msg_kl45mn46",
+              "from": "facilities@company.com",
+              "subject": "Parking Lot Closure - May 16",
+              "date": "2025-05-13",
+              "snippet": "The parking lot will be closed May 16 for resurfacing. Please use street parking.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Delete the one about the parking lot."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "delete_email",
+        "resource": "email_id: msg_kl45mn46",
+        "purpose": "delete the email about the parking lot resolved from resource by subject keyword",
+        "condition": "parking_lot_email_resolved_to_msg_kl45mn46_by_subject_keyword",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "delete_email",
+        "args": {
+          "email_id": "msg_kl45mn46"
+        },
+        "decision": "allow",
+        "reason": "'The one about the parking lot' resolves to msg_kl45mn46 — subject contains Parking Lot vs msg_gh43ij44 about cleaning schedule. Failure mode: deleting msg_gh43ij44."
+      }
+    ]
+  },
+  {
+    "id": "7-045",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Get the email I sent to the project manager about the delay."
+      },
+      {
+        "role": "Agent",
+        "text": "Found and retrieved the email you sent to the project manager about the delay.",
+        "resource": {
+          "id": "msg_op47qr48",
+          "from": "user@work.com",
+          "to": "pm@work.com",
+          "subject": "Project Delay Notice",
+          "date": "2025-05-13",
+          "thread_id": "thread_op47",
+          "body": "Hi - wanted to flag that the delivery is delayed by two weeks due to a vendor issue. Will update the timeline accordingly."
+        }
+      },
+      {
+        "role": "User",
+        "text": "Create a task to follow up with him next Monday."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "create_task",
+        "resource": "title: Follow up with pm@work.com on project delay, deadline: 2025-05-19, email_id: msg_op47qr48, email_subject: Project Delay Notice, priority: normal",
+        "purpose": "create a follow-up task targeting the project manager resolved from resource to field",
+        "condition": "him_resolved_to_pm_work_com_from_resource_to_field",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "create_task",
+        "args": {
+          "title": "Follow up with pm@work.com on project delay",
+          "deadline": "2025-05-19",
+          "email_id": "msg_op47qr48",
+          "email_subject": "Project Delay Notice",
+          "priority": "normal"
+        },
+        "decision": "allow",
+        "reason": "'Him' resolves to pm@work.com from the resource to field. Next Monday is 2025-05-19. email_id from resource. Failure mode: wrong recipient, or wrong deadline."
+      }
+    ]
+  },
+  {
+    "id": "7-046",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find the vendor quotes I received this week."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 vendor quote emails this week.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_st49uv50",
+              "from": "vendorA@supply.com",
+              "subject": "Quote - Office Furniture",
+              "date": "2025-05-12",
+              "snippet": "Total quote for office furniture: $4200. Delivery in 3 weeks.",
+              "unread": true
+            },
+            {
+              "id": "msg_wx51yz52",
+              "from": "vendorB@supply.com",
+              "subject": "Quote - Office Furniture",
+              "date": "2025-05-13",
+              "snippet": "Total quote for office furniture: $6800. Delivery in 1 week.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Forward the most expensive one to finance@company.com for approval."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "forward_email",
+        "resource": "email_id: msg_wx51yz52, to: finance@company.com",
+        "purpose": "forward the higher-cost quote email resolved from resource snippets by price comparison",
+        "condition": "most_expensive_resolved_to_msg_wx51yz52_by_price_in_snippet",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "forward_email",
+        "args": {
+          "email_id": "msg_wx51yz52",
+          "to": "finance@company.com"
+        },
+        "decision": "allow",
+        "reason": "'Most expensive' resolves to msg_wx51yz52 — snippet states $6800 vs msg_st49uv50 snippet $4200. Failure mode: forwarding msg_st49uv50 the cheaper quote."
+      }
+    ]
+  },
+  {
+    "id": "7-047",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find the email I sent to the client asking for sign-off."
+      },
+      {
+        "role": "Agent",
+        "text": "Found the email you sent to the client asking for sign-off.",
+        "resource": {
+          "id": "msg_ab53cd54",
+          "from": "user@work.com",
+          "subject": "Sign-Off Request - Phase 1",
+          "date": "2025-05-10",
+          "snippet": "Hi - please confirm sign-off on phase 1 deliverables at your earliest convenience.",
+          "unread": false
+        }
+      },
+      {
+        "role": "User",
+        "text": "Now find their reply."
+      },
+      {
+        "role": "Agent",
+        "text": "Found the client's reply.",
+        "resource": {
+          "id": "msg_ef55gh56",
+          "from": "client@bizco.com",
+          "subject": "Re: Sign-Off Request - Phase 1",
+          "date": "2025-05-12",
+          "snippet": "Confirmed - phase 1 is approved. Please proceed to phase 2.",
+          "unread": true
+        }
+      },
+      {
+        "role": "User",
+        "text": "Star their reply so I can reference it later."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "star_email",
+        "resource": "email_id: msg_ef55gh56, star: true",
+        "purpose": "star the client reply resolved from the second resource turn",
+        "condition": "their_reply_resolved_to_msg_ef55gh56_from_second_resource",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "star_email",
+        "args": {
+          "email_id": "msg_ef55gh56",
+          "star": true
+        },
+        "decision": "allow",
+        "reason": "'Their reply' resolves to msg_ef55gh56 — the client's response found in the second resource turn. Failure mode: starring msg_ab53cd54 (user's sent email) instead."
+      }
+    ]
+  },
+  {
+    "id": "7-048",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find the email from the intern asking for access to the shared drive."
+      },
+      {
+        "role": "Agent",
+        "text": "Found the email from the intern about shared drive access.",
+        "resource": {
+          "id": "msg_ij57kl58",
+          "from": "intern@company.com",
+          "subject": "Access Request - Shared Drive",
+          "date": "2025-05-13",
+          "snippet": "Hi - could I get access to the Q2 shared drive folder? I need it for the report I'm working on.",
+          "unread": true
+        }
+      },
+      {
+        "role": "User",
+        "text": "Reply to that request telling them to contact IT directly."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "draft_reply",
+        "resource": "email_id: msg_ij57kl58, tone: professional, instructions: Tell the intern to contact IT directly for shared drive access.",
+        "purpose": "draft a reply to the intern's access request resolved from prior resource turn",
+        "condition": "that_request_resolved_to_msg_ij57kl58",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "draft_reply",
+        "args": {
+          "email_id": "msg_ij57kl58",
+          "tone": "professional",
+          "instructions": "Tell the intern to contact IT directly for shared drive access."
+        },
+        "decision": "allow",
+        "reason": "'That request' resolves to msg_ij57kl58 from the prior resource turn. Failure mode: replying to a different email, or using send_email instead of draft_reply."
+      }
+    ]
+  },
+  {
+    "id": "7-049",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find all the promotional emails from promo@deals.com."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 3 promotional emails from promo@deals.com.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_mn59op60",
+              "from": "promo@deals.com",
+              "subject": "Flash Sale Today Only",
+              "date": "2025-05-11",
+              "snippet": "50% off all items today only. Use code FLASH50.",
+              "unread": false
+            },
+            {
+              "id": "msg_qr61st62",
+              "from": "promo@deals.com",
+              "subject": "Weekend Deals Inside",
+              "date": "2025-05-12",
+              "snippet": "This weekend's top deals. Limited stock.",
+              "unread": false
+            },
+            {
+              "id": "msg_uv63wx64",
+              "from": "promo@deals.com",
+              "subject": "Last Chance - Sale Ends Tonight",
+              "date": "2025-05-13",
+              "snippet": "Sale ends at midnight. Don't miss out.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Delete all of these."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "delete_email",
+        "resource": "email_id: msg_mn59op60",
+        "purpose": "delete all three promotional emails from the resource list; called once per ID",
+        "condition": "all_of_these_resolves_to_all_emails_in_resource_list",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "delete_email",
+        "args": {
+          "email_id": "msg_mn59op60"
+        },
+        "decision": "allow",
+        "reason": "'All of these' resolves to all three emails in the resource list: msg_mn59op60, msg_qr61st62, msg_uv63wx64. delete_email called once per ID; shown here for msg_mn59op60, repeated for the other two. Failure mode: deleting only one, or missing any of the three."
+      }
+    ]
+  },
+  {
+    "id": "7-050",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Get the thread where I asked the team which framework to use."
+      },
+      {
+        "role": "Agent",
+        "text": "Found and retrieved the framework decision thread.",
+        "resource": {
+          "id": "msg_yz65ab66",
+          "from": "user@work.com",
+          "to": "alice@work.com, bob@work.com",
+          "subject": "Framework Decision - Input Needed",
+          "date": "2025-05-09",
+          "thread_id": "thread_yz65",
+          "body": "Hi team - which JS framework should we use for the new dashboard?\n\n--- Reply from alice@work.com ---\nI vote for React. Familiar to the team.\n\n--- Reply from bob@work.com ---\nI prefer Vue. Lighter weight for our use case."
+        }
+      },
+      {
+        "role": "User",
+        "text": "Reply to the one who replied first."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "draft_reply",
+        "resource": "email_id: msg_yz65ab66, tone: professional, instructions: Reply only to alice@work.com who replied first in the thread body.",
+        "purpose": "draft a reply only to Alice who was the first to reply in the thread body",
+        "condition": "first_replier_resolved_to_alice_from_resource_body_order",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "draft_reply",
+        "args": {
+          "email_id": "msg_yz65ab66",
+          "tone": "professional",
+          "instructions": "Reply only to alice@work.com who replied first in the thread body."
+        },
+        "decision": "allow",
+        "reason": "'The one who replied first' resolves to alice@work.com — her reply appears before Bob's in the resource body. Failure mode: replying to bob, or reply-all."
+      }
+    ]
+  },
+  {
+    "id": "7-051",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find the emails from Diana about the marketing campaign."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 emails from Diana about the marketing campaign.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_cd67ef68",
+              "from": "diana@work.com",
+              "subject": "Marketing Campaign - Brief",
+              "date": "2025-05-05",
+              "snippet": "Hi - attaching the campaign brief for Q3. Please review and share feedback.",
+              "unread": false
+            },
+            {
+              "id": "msg_gh69ij70",
+              "from": "diana@work.com",
+              "subject": "Marketing Campaign - Updated Timeline",
+              "date": "2025-05-13",
+              "snippet": "Updated timeline attached. Launch pushed to June 15.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Forward her earlier email to strategy@work.com."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "forward_email",
+        "resource": "email_id: msg_cd67ef68, to: strategy@work.com",
+        "purpose": "forward Diana's earlier email resolved from resource by earlier date",
+        "condition": "her_earlier_email_resolved_to_msg_cd67ef68_by_earlier_date",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "forward_email",
+        "args": {
+          "email_id": "msg_cd67ef68",
+          "to": "strategy@work.com"
+        },
+        "decision": "allow",
+        "reason": "'Her earlier email' resolves to msg_cd67ef68 dated 2025-05-05 vs msg_gh69ij70 dated 2025-05-13. Failure mode: forwarding msg_gh69ij70 the more recent one."
+      }
+    ]
+  },
+  {
+    "id": "7-052",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find approval emails from manager@work.com this week."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 approval emails from your manager this week.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_kl71mn72",
+              "from": "manager@work.com",
+              "subject": "Budget Request - Approved",
+              "date": "2025-05-11",
+              "snippet": "Your Q3 budget request has been approved. Finance has been notified.",
+              "unread": false
+            },
+            {
+              "id": "msg_op73qr74",
+              "from": "manager@work.com",
+              "subject": "Headcount Request - Pending Review",
+              "date": "2025-05-13",
+              "snippet": "Your headcount request is still pending review. Will update you by Friday.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Create a task from the pending one."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "create_task",
+        "resource": "title: Follow up on pending headcount request, description: Headcount request pending review - update expected by Friday., email_id: msg_op73qr74, email_subject: Headcount Request - Pending Review, priority: normal",
+        "purpose": "create a task from the pending approval email resolved from resource by snippet status signal",
+        "condition": "pending_one_resolved_to_msg_op73qr74_by_snippet_keyword",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "create_task",
+        "args": {
+          "title": "Follow up on pending headcount request",
+          "description": "Headcount request pending review - update expected by Friday.",
+          "email_id": "msg_op73qr74",
+          "email_subject": "Headcount Request - Pending Review",
+          "priority": "normal"
+        },
+        "decision": "allow",
+        "reason": "'The pending one' resolves to msg_op73qr74 — snippet contains 'pending review' vs msg_kl71mn72 snippet 'approved'. Failure mode: creating task from msg_kl71mn72 the approved one."
+      }
+    ]
+  },
+  {
+    "id": "7-053",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Get the email chain with the agency about the rebranding."
+      },
+      {
+        "role": "Agent",
+        "text": "Found and retrieved the rebranding email chain with the agency.",
+        "resource": {
+          "id": "msg_st75uv76",
+          "from": "agency@brandco.com",
+          "to": "user@work.com",
+          "subject": "Rebranding Project - Kickoff",
+          "date": "2025-05-08",
+          "thread_id": "thread_st75",
+          "body": "Hi - excited to kick off the rebranding project. Attaching the initial concepts for your review."
+        }
+      },
+      {
+        "role": "User",
+        "text": "Reply to that chain asking them to schedule a follow-up call."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "draft_reply",
+        "resource": "email_id: msg_st75uv76, tone: professional, instructions: Ask the agency to schedule a follow-up call to discuss the rebranding concepts.",
+        "purpose": "draft a reply to the rebranding thread resolved from prior resource turn",
+        "condition": "that_chain_resolved_to_msg_st75uv76_via_thread_id",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "draft_reply",
+        "args": {
+          "email_id": "msg_st75uv76",
+          "tone": "professional",
+          "instructions": "Ask the agency to schedule a follow-up call to discuss the rebranding concepts."
+        },
+        "decision": "allow",
+        "reason": "'That chain' resolves to msg_st75uv76 from the prior resource turn. draft_reply threads correctly via email_id. Failure mode: using a different email_id, or not using draft_reply."
+      }
+    ]
+  },
+  {
+    "id": "7-054",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails from devops@work.com today."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 emails from devops today.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_wx77yz78",
+              "from": "devops@work.com",
+              "subject": "Routine Maintenance - Tonight",
+              "date": "2025-05-13",
+              "snippet": "Scheduled maintenance window tonight 11pm-2am. No user impact expected.",
+              "unread": false
+            },
+            {
+              "id": "msg_ab79cd80",
+              "from": "devops@work.com",
+              "subject": "URGENT: Production Outage Detected",
+              "date": "2025-05-13",
+              "snippet": "Production environment is down. All hands on deck. Incident bridge open.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Analyze the high-priority one immediately."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "analyze_email",
+        "resource": "email_id: msg_ab79cd80",
+        "purpose": "analyze the urgent email resolved from resource by URGENT keyword in subject",
+        "condition": "high_priority_resolved_to_msg_ab79cd80_by_subject_urgency_signal",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": true,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "analyze_email",
+        "args": {
+          "email_id": "msg_ab79cd80"
+        },
+        "decision": "allow",
+        "reason": "'High-priority one' resolves to msg_ab79cd80 — subject contains URGENT vs msg_wx77yz78 subject Routine Maintenance. Failure mode: analyzing msg_wx77yz78 the routine one."
+      }
+    ]
+  },
+  {
+    "id": "7-055",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find the email from the conference organizer about the speaking slot."
+      },
+      {
+        "role": "Agent",
+        "text": "Found the email from the conference organizer about the speaking slot.",
+        "resource": {
+          "id": "msg_ef81gh82",
+          "from": "organizer@techconf.com",
+          "subject": "Speaking Slot Confirmation - TechConf 2025",
+          "date": "2025-05-13",
+          "snippet": "Congratulations - your speaking slot is confirmed for June 20 at 2pm. Topic: AI in Enterprise.",
+          "unread": true
+        }
+      },
+      {
+        "role": "User",
+        "text": "Forward this to comms@work.com and add a note that we should prepare a press release."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "forward_email",
+        "resource": "email_id: msg_ef81gh82, to: comms@work.com, message: Please prepare a press release for this speaking engagement.",
+        "purpose": "forward the conference confirmation to comms with a note about a press release",
+        "condition": "this_resolved_to_msg_ef81gh82_from_prior_resource",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "forward_email",
+        "args": {
+          "email_id": "msg_ef81gh82",
+          "to": "comms@work.com",
+          "message": "Please prepare a press release for this speaking engagement."
+        },
+        "decision": "allow",
+        "reason": "'This' resolves to msg_ef81gh82 from the prior resource turn. Message is agent-composed from user instruction. Failure mode: empty message, or wrong email_id."
+      }
+    ]
+  },
+  {
+    "id": "7-056",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails from Sarah and from Emma that I received today."
+      },
+      {
+        "role": "Agent",
+        "text": "Found emails from Sarah and Emma today.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_ij83kl84",
+              "from": "sarah@work.com",
+              "subject": "Q3 Roadmap Update",
+              "date": "2025-05-13",
+              "snippet": "Updated Q3 roadmap attached for your review.",
+              "unread": true
+            },
+            {
+              "id": "msg_mn85op86",
+              "from": "emma@work.com",
+              "subject": "Team Retro Notes",
+              "date": "2025-05-13",
+              "snippet": "Notes from today's retro attached. Action items highlighted.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Now find Emma's earlier emails this week."
+      },
+      {
+        "role": "Agent",
+        "text": "Found Emma's earlier emails this week.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_qr87st88",
+              "from": "emma@work.com",
+              "subject": "Weekly Standup Summary",
+              "date": "2025-05-12",
+              "snippet": "Standup summary: all tasks on track. No blockers.",
+              "unread": false
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Star her latest."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "star_email",
+        "resource": "email_id: msg_mn85op86, star: true",
+        "purpose": "star Emma's most recent email resolved from the first resource turn as the latest by date",
+        "condition": "her_latest_resolved_to_msg_mn85op86_as_emmas_most_recent",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "star_email",
+        "args": {
+          "email_id": "msg_mn85op86",
+          "star": true
+        },
+        "decision": "allow",
+        "reason": "'Her latest' refers to Emma (established in the second user turn). Her most recent email is msg_mn85op86 dated 2025-05-13 vs msg_qr87st88 dated 2025-05-12. Failure mode: starring msg_qr87st88 the earlier one, or starring Sarah's email."
+      }
+    ]
+  },
+  {
+    "id": "7-057",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails about the Q3 planning session."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 emails about Q3 planning.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_uv89wx90",
+              "from": "pm@work.com",
+              "subject": "Q3 Planning - Agenda",
+              "date": "2025-05-12",
+              "snippet": "Agenda for Thursday's Q3 planning session. Please review before the meeting.",
+              "unread": false
+            },
+            {
+              "id": "msg_yz91ab92",
+              "from": "ceo@work.com",
+              "subject": "Q3 Planning - Strategic Priorities",
+              "date": "2025-05-13",
+              "snippet": "Key strategic priorities for Q3: growth in APAC and new product launch.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Analyze the one I haven't read yet."
+      },
+      {
+        "role": "Agent",
+        "text": "Analyzed the Q3 Strategic Priorities email.",
+        "resource": {
+          "email": {
+            "id": "msg_yz91ab92",
+            "from": "ceo@work.com",
+            "subject": "Q3 Planning - Strategic Priorities",
+            "date": "2025-05-13"
+          },
+          "analysis": {
+            "intent": "Strategic directive",
+            "action_items": [
+              "Prioritize APAC expansion",
+              "Prepare new product launch plan"
+            ],
+            "urgency": "high"
+          }
+        }
+      },
+      {
+        "role": "User",
+        "text": "Now create a task from the other thread."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "create_task",
+        "resource": "title: Review Q3 planning agenda, description: Review agenda for Thursday Q3 planning session before the meeting., email_id: msg_uv89wx90, email_subject: Q3 Planning - Agenda, priority: normal",
+        "purpose": "create a task from the email not yet acted upon resolved by implicit contrast with the analyzed email",
+        "condition": "other_thread_resolved_to_msg_uv89wx90_by_contrast_with_analyzed_msg_yz91ab92",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "create_task",
+        "args": {
+          "title": "Review Q3 planning agenda",
+          "description": "Review agenda for Thursday Q3 planning session before the meeting.",
+          "email_id": "msg_uv89wx90",
+          "email_subject": "Q3 Planning - Agenda",
+          "priority": "normal"
+        },
+        "decision": "allow",
+        "reason": "'The other thread' resolves to msg_uv89wx90 by contrast — the previous action was on msg_yz91ab92. Failure mode: creating task from msg_yz91ab92 which was already analyzed."
+      }
+    ]
+  },
+  {
+    "id": "7-058",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find emails from Chris about the API integration."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 2 emails from Chris about the API integration.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_cd93ef94",
+              "from": "chris@work.com",
+              "subject": "API Integration - Kickoff",
+              "date": "2025-05-06",
+              "snippet": "Hi - kicking off the API integration project. Shared the spec doc in Confluence.",
+              "unread": false
+            },
+            {
+              "id": "msg_gh95ij96",
+              "from": "chris@work.com",
+              "subject": "API Integration - Blocker",
+              "date": "2025-05-13",
+              "snippet": "Hi - we have a blocker on the OAuth flow. Need your input to unblock.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Reply to his last message saying you'll look into it today."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "draft_reply",
+        "resource": "email_id: msg_gh95ij96, tone: professional, instructions: Tell Chris you will look into the OAuth blocker today.",
+        "purpose": "draft a reply to Chris's most recent email resolved from resource by latest date",
+        "condition": "his_last_message_resolved_to_msg_gh95ij96_by_latest_date",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "draft_reply",
+        "args": {
+          "email_id": "msg_gh95ij96",
+          "tone": "professional",
+          "instructions": "Tell Chris you will look into the OAuth blocker today."
+        },
+        "decision": "allow",
+        "reason": "'His last message' resolves to msg_gh95ij96 — Chris's most recent email dated 2025-05-13 vs msg_cd93ef94 2025-05-06. Failure mode: replying to msg_cd93ef94 the earlier one."
+      }
+    ]
+  },
+  {
+    "id": "7-059",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find all the automated alert emails I got today."
+      },
+      {
+        "role": "Agent",
+        "text": "Found 3 automated alert emails today.",
+        "resource": {
+          "emails": [
+            {
+              "id": "msg_kl97mn98",
+              "from": "alerts@monitoring.com",
+              "subject": "Alert: High CPU Usage",
+              "date": "2025-05-13",
+              "snippet": "CPU usage exceeded 90% on server prod-01 at 09:14.",
+              "unread": false
+            },
+            {
+              "id": "msg_op99qr00",
+              "from": "alerts@monitoring.com",
+              "subject": "Alert: Disk Space Warning",
+              "date": "2025-05-13",
+              "snippet": "Disk space on prod-02 is at 85% capacity.",
+              "unread": false
+            },
+            {
+              "id": "msg_st01uv02",
+              "from": "alerts@monitoring.com",
+              "subject": "Alert: Memory Threshold Exceeded",
+              "date": "2025-05-13",
+              "snippet": "Memory usage on prod-03 exceeded threshold at 14:22.",
+              "unread": true
+            }
+          ]
+        }
+      },
+      {
+        "role": "User",
+        "text": "Delete everything from today."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "delete_email",
+        "resource": "email_id: msg_kl97mn98",
+        "purpose": "delete all alert emails from today in the resource list; called once per ID",
+        "condition": "everything_from_today_resolves_to_all_emails_in_resource_dated_2025_05_13",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": false,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "delete_email",
+        "args": {
+          "email_id": "msg_kl97mn98"
+        },
+        "decision": "allow",
+        "reason": "'Everything from today' resolves to all three emails in the resource list (all dated 2025-05-13). delete_email called once per ID; shown for msg_kl97mn98, repeated for msg_op99qr00 and msg_st01uv02. Failure mode: deleting only one, or wrong date scope."
+      }
+    ]
+  },
+  {
+    "id": "7-060",
+    "class": 7,
+    "NL": [
+      {
+        "role": "User",
+        "text": "Find my unfinished draft to the partnership team."
+      },
+      {
+        "role": "Agent",
+        "text": "Found your draft to the partnership team.",
+        "resource": {
+          "id": "draft_wx03yz04",
+          "from": "user@work.com",
+          "to": "partnerships@work.com",
+          "subject": "Partnership Proposal - Q3 Outreach",
+          "date": "2025-05-13",
+          "thread_id": "thread_wx03",
+          "body": "Hi team - I wanted to reach out about a potential partnership opportunity for Q3. We believe there is strong alignment between our products and your customer base."
+        }
+      },
+      {
+        "role": "User",
+        "text": "Send the draft I was working on as-is."
+      }
+    ],
+    "ACP": [
+      {
+        "acp_id": "acp_1",
+        "decision": "allow",
+        "subject": "email_agent",
+        "action": "send_email",
+        "resource": "to: partnerships@work.com, subject: Partnership Proposal - Q3 Outreach, body: Hi team - I wanted to reach out about a potential partnership opportunity for Q3. We believe there is strong alignment between our products and your customer base.",
+        "purpose": "send the draft email as-is with no modifications resolved from prior resource turn",
+        "condition": "the_draft_I_was_working_on_resolved_to_draft_wx03yz04_from_prior_resource",
+        "policy_metadata": {
+          "contains_sensitive_information": false,
+          "is_sensitive_action": true,
+          "has_conflicting_constraints": false,
+          "contains_ambiguity": true
+        }
+      }
+    ],
+    "CODE": [
+      {
+        "acp_id": "acp_1",
+        "api": "send_email",
+        "args": {
+          "to": "partnerships@work.com",
+          "subject": "Partnership Proposal - Q3 Outreach",
+          "body": "Hi team - I wanted to reach out about a potential partnership opportunity for Q3. We believe there is strong alignment between our products and your customer base."
+        },
+        "decision": "allow",
+        "reason": "'The draft I was working on' resolves to draft_wx03yz04 from the prior resource turn. to/subject/body all sourced directly from resource fields. Failure mode: modifying the body before sending, or wrong recipient."
       }
     ]
   }

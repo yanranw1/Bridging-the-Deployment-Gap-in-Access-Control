@@ -74,7 +74,7 @@ def generate_dataset(
 @click.command()
 @click.option(
     "--dataset_path",
-    default="/home/ubuntu/agentv-main/email_agent/dataset/combined_test.csv",
+    default="/home/ubuntu/agentv-main/email_agent/dataset/combined_train.csv",
     required=True,
     show_default=True,
     help="CSV test set used for generation (must have 'input' and 'output' columns)",

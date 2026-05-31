@@ -1,0 +1,548 @@
+Please help me check this JSON dataset based on the following three rules only. Do not check other rules unless I explicitly ask.
+
+The dataset has two important sections: ACP and CODE.
+
+ACP usually looks like this:
+
+ACP action means the permission/action name.
+ACP resource means the arguments for that action, but written as one string.
+
+CODE usually looks like this:
+
+CODE api means the actual API/tool name.
+CODE args means the arguments for that API, written as a JSON object.
+
+The three things you need to check are:
+
+Rule 1. Required vs optional arguments must follow the dispatch contract.
+
+Each action/API has fixed required arguments and optional arguments. Required arguments must be present. Optional arguments can be included only when they are actually used. Do not use unsupported argument names.
+
+Use this full dispatch contract:
+
+1. list_emails
+   Required arguments: none
+   Optional arguments: max_results, query
+   Default meaning: max_results defaults to 10, query defaults to empty string.
+
+2. get_email
+   Required arguments: email_id
+   Optional arguments: none
+
+3. search_emails
+   Required arguments: query
+   Optional arguments: max_results
+   Default meaning: max_results defaults to 10.
+
+4. analyze_email
+   Required arguments: email_id
+   Optional arguments: none
+
+5. draft_reply
+   Required arguments: email_id
+   Optional arguments: tone, instructions
+   Default meaning: tone defaults to professional, instructions defaults to empty string.
+   Use this API when replying to an existing email.
+
+6. send_email
+   Required arguments: to, subject, body
+   Optional arguments: reply_to_id, thread_id
+   This sends an email immediately, so it is a sensitive action.
+
+7. send_draft
+   Required arguments: draft_id
+   Optional arguments: none
+   Even if the code uses args.get("draft_id"), it returns an error if draft_id is missing, so treat draft_id as required.
+
+8. summarize_inbox
+   Required arguments: none
+   Optional arguments: focus, max_results
+   Default meaning: focus defaults to empty string, max_results defaults to 15.
+
+9. create_task
+   Required arguments: title
+   Optional arguments: description, deadline, email_id, email_subject, priority
+   Default meaning: description defaults to empty string, priority defaults to normal.
+
+10. list_tasks
+    Required arguments: none
+    Optional arguments: status
+    Default meaning: status defaults to pending.
+
+11. complete_task
+    Required arguments: task_id
+    Optional arguments: none
+
+12. forward_email
+    Required arguments: email_id, to
+    Optional arguments: message
+    Default meaning: message defaults to empty string.
+
+13. delete_email
+    Required arguments: email_id
+    Optional arguments: none
+    Use delete_email, not trash_email.
+
+14. draft_email
+    Required arguments: body
+    Optional arguments: to, subject
+    Use this API to create a new email draft. Do not use draft_email for replying to an existing email.
+
+15. star_email
+    Required arguments: email_id
+    Optional arguments: star
+    Default meaning: star defaults to true. Use star false only when the user wants to unstar something.
+
+Important argument naming rules:
+
+Use email_id, not message_id.
+Use body, not content.
+Use to, not recipient.
+Use message, not note.
+Use delete_email, not trash_email.
+Use draft_reply for replies to existing emails, not draft_email with reply_to_id.
+Do not put reply_to_id or thread_id inside draft_email, because draft_email only supports body, to, and subject.
+
+Correct example for forward_email:
+
+ACP action should be forward_email.
+ACP resource should be:
+email_id: msg_123, to: [team@company.com](mailto:team@company.com), message: Please review this.
+
+CODE api should be forward_email.
+CODE args should be:
+{
+"email_id": "msg_123",
+"to": "[team@company.com](mailto:team@company.com)",
+"message": "Please review this."
+}
+
+Wrong example:
+
+ACP action:
+forward_email
+
+ACP resource:
+message_id: msg_123, to: [team@company.com](mailto:team@company.com), note: Please review this.
+
+CODE args:
+{
+"message_id": "msg_123",
+"to": "[team@company.com](mailto:team@company.com)",
+"note": "Please review this."
+}
+
+This is wrong because the correct names are email_id and message, not message_id and note.
+
+Correct example for draft_email:
+
+ACP action should be draft_email.
+ACP resource should be:
+body: I will submit the report by Friday., to: [manager@company.com](mailto:manager@company.com), subject: Report Update
+
+CODE api should be draft_email.
+CODE args should be:
+{
+"body": "I will submit the report by Friday.",
+"to": "[manager@company.com](mailto:manager@company.com)",
+"subject": "Report Update"
+}
+
+Wrong example:
+
+ACP resource:
+content: I will submit the report by Friday., recipient: [manager@company.com](mailto:manager@company.com), subject: Report Update
+
+CODE args:
+{
+"content": "I will submit the report by Friday.",
+"recipient": "[manager@company.com](mailto:manager@company.com)",
+"subject": "Report Update"
+}
+
+This is wrong because draft_email requires body and optionally accepts to and subject. It does not support content or recipient.
+
+Correct example for replying to an existing email:
+
+ACP action should be draft_reply.
+ACP resource should be:
+email_id: msg_456, instructions: Draft a reply saying: I agree.
+
+CODE api should be draft_reply.
+CODE args should be:
+{
+"email_id": "msg_456",
+"instructions": "Draft a reply saying: I agree."
+}
+
+Wrong example:
+
+ACP action:
+draft_email
+
+ACP resource:
+body: I agree., reply_to_id: msg_456
+
+CODE args:
+{
+"body": "I agree.",
+"reply_to_id": "msg_456"
+}
+
+This is wrong because replies should use draft_reply, not draft_email with reply_to_id.
+
+Rule 2. ACP resource must use the exact string format "key: value, key2: value2".
+
+ACP resource must always be a string. It should not be a JSON object.
+
+Correct ACP resource format:
+
+"resource": "email_id: msg_123"
+
+or:
+
+"resource": "email_id: msg_123, to: [team@company.com](mailto:team@company.com)"
+
+or:
+
+"resource": "title: Finish report, description: Submit final version by Friday"
+
+Every argument must be written as key colon space value.
+
+The format should be:
+
+key: value
+
+If there is more than one argument, separate them with comma and space:
+
+key: value, key2: value2, key3: value3
+
+The separator must be comma plus space. That means ", " is correct. Just "," is not correct.
+
+Correct:
+
+"resource": "email_id: msg_123, to: [team@company.com](mailto:team@company.com)"
+
+Wrong:
+
+"resource": "email_id: msg_123,to: [team@company.com](mailto:team@company.com)"
+
+This is wrong because it is missing the space after the comma.
+
+Wrong:
+
+"resource": "msg_123"
+
+This is wrong because it does not say what argument the value belongs to. It should be:
+
+"resource": "email_id: msg_123"
+
+Wrong:
+
+"resource": {
+"email_id": "msg_123",
+"to": "[team@company.com](mailto:team@company.com)"
+}
+
+This is wrong because ACP resource must be a string, not a JSON object.
+
+Wrong:
+
+"resource": "Finish report, Submit by Friday"
+
+This is wrong because each value needs a key. It should be:
+
+"resource": "title: Finish report, description: Submit by Friday"
+
+Optional arguments should only be included when they are actually used.
+
+For example, forward_email has required email_id and to, and optional message.
+
+If there is no message, use:
+
+"resource": "email_id: msg_123, to: [team@company.com](mailto:team@company.com)"
+
+Do not write:
+
+"resource": "email_id: msg_123, to: [team@company.com](mailto:team@company.com), message: null"
+
+Same for CODE args. If an optional value is not used, it is better to omit it.
+
+Correct:
+
+"args": {
+"email_id": "msg_123",
+"to": "[team@company.com](mailto:team@company.com)"
+}
+
+Avoid unnecessary null optional values like:
+
+"args": {
+"email_id": "msg_123",
+"to": "[team@company.com](mailto:team@company.com)",
+"message": null
+}
+
+Rule 3. ACP and CODE must match each other exactly.
+
+For each ACP entry, find the CODE entry with the same acp_id. Then check the following things.
+
+First, ACP action must match CODE api.
+
+Correct:
+
+ACP:
+{
+"acp_id": "acp_1",
+"action": "forward_email"
+}
+
+CODE:
+{
+"acp_id": "acp_1",
+"api": "forward_email"
+}
+
+Wrong:
+
+ACP:
+{
+"acp_id": "acp_1",
+"action": "trash_email"
+}
+
+CODE:
+{
+"acp_id": "acp_1",
+"api": "delete_email"
+}
+
+This is wrong because ACP action and CODE api do not match. Also, trash_email is not a supported dispatch API. Use delete_email.
+
+Second, ACP resource keys must match CODE args keys.
+
+Correct:
+
+ACP:
+{
+"acp_id": "acp_1",
+"action": "create_task",
+"resource": "title: Finish report, description: Submit final version by Friday"
+}
+
+CODE:
+{
+"acp_id": "acp_1",
+"api": "create_task",
+"args": {
+"title": "Finish report",
+"description": "Submit final version by Friday"
+}
+}
+
+This is correct because ACP has title and description, and CODE also has title and description.
+
+Wrong:
+
+ACP:
+{
+"acp_id": "acp_1",
+"action": "create_task",
+"resource": "title: Finish report, description: Submit final version by Friday"
+}
+
+CODE:
+{
+"acp_id": "acp_1",
+"api": "create_task",
+"args": {
+"title": "Finish report"
+}
+}
+
+This is wrong because ACP resource has title and description, but CODE args only has title. They must match.
+
+Wrong:
+
+ACP:
+{
+"resource": "email_id: msg_123, to: [team@company.com](mailto:team@company.com)"
+}
+
+CODE:
+{
+"args": {
+"email_id": "msg_123",
+"to": "[team@company.com](mailto:team@company.com)",
+"message": "Please review this."
+}
+}
+
+This is wrong because CODE args has message, but ACP resource does not. If CODE uses message, ACP resource must also include message.
+
+Correct version:
+
+ACP:
+{
+"resource": "email_id: msg_123, to: [team@company.com](mailto:team@company.com), message: Please review this."
+}
+
+CODE:
+{
+"args": {
+"email_id": "msg_123",
+"to": "[team@company.com](mailto:team@company.com)",
+"message": "Please review this."
+}
+}
+
+Third, ACP resource values must match CODE args values.
+
+Correct:
+
+ACP:
+{
+"resource": "email_id: msg_123, to: [team@company.com](mailto:team@company.com)"
+}
+
+CODE:
+{
+"args": {
+"email_id": "msg_123",
+"to": "[team@company.com](mailto:team@company.com)"
+}
+}
+
+Wrong:
+
+ACP:
+{
+"resource": "email_id: msg_123, to: [team@company.com](mailto:team@company.com)"
+}
+
+CODE:
+{
+"args": {
+"email_id": "msg_456",
+"to": "[team@company.com](mailto:team@company.com)"
+}
+}
+
+This is wrong because ACP says email_id is msg_123, but CODE says email_id is msg_456.
+
+Fourth, if there are multiple ACP entries, each ACP entry must have a matching CODE entry with the same acp_id.
+
+Correct:
+
+ACP:
+[
+{
+"acp_id": "acp_1",
+"action": "search_emails",
+"resource": "query: from:alex@company.com project update"
+},
+{
+"acp_id": "acp_2",
+"action": "star_email",
+"resource": "email_id: msg_123, star: true"
+}
+]
+
+CODE:
+[
+{
+"acp_id": "acp_1",
+"api": "search_emails",
+"args": {
+"query": "from:alex@company.com project update"
+}
+},
+{
+"acp_id": "acp_2",
+"api": "star_email",
+"args": {
+"email_id": "msg_123",
+"star": true
+}
+}
+]
+
+Wrong:
+
+ACP:
+[
+{
+"acp_id": "acp_1",
+"action": "search_emails",
+"resource": "query: from:alex@company.com project update"
+},
+{
+"acp_id": "acp_2",
+"action": "star_email",
+"resource": "email_id: msg_123, star: true"
+}
+]
+
+CODE:
+[
+{
+"acp_id": "acp_1",
+"api": "search_emails",
+"args": {
+"query": "from:alex@company.com project update"
+}
+}
+]
+
+This is wrong because ACP has acp_2, but CODE does not have a matching acp_2 entry.
+
+Deny examples still need to follow these rules.
+
+Even if decision is deny, the API/action names and argument names should still be valid.
+
+For example, if the user says:
+
+Forward it to the team.
+
+This should be denied because "the team" is not a concrete recipient.
+
+A reasonable deny example is:
+
+ACP:
+{
+"acp_id": "acp_1",
+"decision": "deny",
+"subject": "email_agent",
+"action": "forward_email",
+"resource": "email_id: msg_123",
+"purpose": "forward the email to the team",
+"condition": "the recipient is underspecified because 'the team' does not identify a concrete email address or group"
+}
+
+CODE:
+{
+"acp_id": "acp_1",
+"api": "forward_email",
+"args": {
+"email_id": "msg_123"
+},
+"decision": "deny",
+"reason": "Forwarding requires a concrete recipient. The agent cannot infer which address or group 'the team' means."
+}
+
+This will be reported as missing the required to argument, and that is okay because the deny reason explains exactly why the required argument is missing.
+
+Do not use wrong placeholder names like message_id, note, content, recipient, or trash_email just because the example is deny. Deny examples should still use the correct API names and correct argument names.
+
+Final checklist for checking each dataset item:
+
+Check whether ACP action is one of the 15 supported API/action names.
+Check whether CODE api is the same as ACP action.
+Check whether all required arguments for that API are present, unless the decision is deny and the missing argument is exactly the reason for denial.
+Check whether unsupported or old argument names are used.
+Check whether ACP resource is a string.
+Check whether ACP resource uses key: value, key2: value2 format.
+Check whether ACP resource keys exactly match CODE args keys.
+Check whether ACP resource values exactly match CODE args values.
+Check whether each ACP entry has a matching CODE entry with the same acp_id.
+If an item has multiple problems, report all of them together instead of only reporting one.

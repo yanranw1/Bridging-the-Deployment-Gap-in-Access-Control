@@ -5,7 +5,7 @@ class VerificationDataset(Dataset):
     
     def __init__(self, df, tokenizer, max_len = 512):
         self.premise = df['inputs'].to_list()
-        self.hypothesis = df['policies'].to_list()
+        self.hypothesis = df['outputs'].to_list()
         self.labels = torch.tensor(df['labels'].to_list())
         
         self.input = [tokenizer(p,h,

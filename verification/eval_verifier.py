@@ -46,7 +46,7 @@ def covert_classes(c):
     return AUGS2ID[c]
 
 
-truth = ver_test_df["label"].to_list()
+truth = ver_test_df["labels"].to_list()
 truth_bin = []
 
 for i in truth:

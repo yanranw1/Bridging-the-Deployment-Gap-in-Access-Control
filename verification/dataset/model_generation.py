@@ -175,7 +175,7 @@ class ModelGeneration:
         df = pd.DataFrame(
             {
                 "inputs":  self.inputs_gen,
-                "outputs": self.outputs_gen,
+                "outputs": self.outputs_gen,  
                 "labels":  self.labels_gen,
             }
         )
