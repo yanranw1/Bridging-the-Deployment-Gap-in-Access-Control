@@ -161,7 +161,8 @@ def main(args: argparse.Namespace) -> None:
         warmup_ratio=0.05,
         weight_decay=0.01,
         learning_rate=args.lr,
-        fp16=torch.cuda.is_available() and not args.no_fp16,
+        bf16=torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8,
+        fp16=False,
         predict_with_generate=True,
         generation_max_length=args.max_target_len,
         eval_strategy="epoch",
@@ -246,8 +247,8 @@ if __name__ == "__main__":
                         help="Path to the evaluation CSV file (same format as --data_path)")
 
     # Model
-    parser.add_argument("--model_name", type=str, default="t5-base",
-                        help="HuggingFace model name or local path (default: t5-base). "
+    parser.add_argument("--model_name", type=str, default="google/flan-t5-base",
+                        help="HuggingFace model name or local path (default: flan-t5-base). "
                              "Use 't5-large' or 'google/flan-t5-base' for better quality.")
     parser.add_argument("--output_dir", type=str, default="./nl_acp_model",
                         help="Directory to save the fine-tuned model")
