@@ -57,11 +57,14 @@ def serialize_resource(val) -> str:
 
 def serialize_nl(turns: list) -> str:
     """
-    Serialize all NL turns in Llama 3 chat format:
-      <|start_header_id|>role<|end_header_id|>\n\ntext<|eot_id|>
+    Serialize all NL turns preserving role, text, and resource.
+    No curly braces, no pipe characters used.
 
-    Resource (if present) is appended inline to the text:
-      text (key=value, key=value)
+    Per turn format:
+      - No resource : "Role: text"
+      - With resource: "Role: text (key=value, key=value)"
+
+    Multiple turns are joined with " -> " to show conversation flow.
     """
     parts = []
     for turn in turns:
@@ -69,37 +72,38 @@ def serialize_nl(turns: list) -> str:
         text = turn.get("text", "").strip()
         resource = turn.get("resource")
 
+        turn_str = f"{role}: {text}"
+
         if resource and isinstance(resource, dict):
             kv = ", ".join(
                 f"{k}={v}" for k, v in resource.items() if v is not None
             )
             if kv:
-                text += f" ({kv})"
+                turn_str += f" ({kv})"
 
-        parts.append(
-            f"<|start_header_id|>{role}<|end_header_id|>\n\n{text}<|eot_id|>"
-        )
+        parts.append(turn_str)
 
-    return "".join(parts)
+    return "\n".join(parts)
+
 
 
 def format_acp(acp_entry: dict) -> str:
-    """Format a single ACP dict. No curly braces in resource."""
+    """Format a single ACP entry — no surrounding braces (added at join time)."""
     def fmt(val):
         return "none" if val is None else str(val).strip()
 
     return (
-        "{{decision: {decision}; "
+        "decision: {decision}; "
         "subject: {subject}; "
         "action: {action}; "
         "resource: {resource}; "
         "purpose: {purpose}; "
-        "condition: {condition}}}"
+        "condition: {condition}"
     ).format(
         decision=fmt(acp_entry.get("decision")),
         subject=fmt(acp_entry.get("subject")),
         action=fmt(acp_entry.get("action")),
-        resource="["+serialize_resource(acp_entry.get("resource"))+"]",
+        resource=serialize_resource(acp_entry.get("resource")),
         purpose=fmt(acp_entry.get("purpose")),
         condition=fmt(acp_entry.get("condition")),
     )
@@ -111,9 +115,10 @@ def convert(input_path: str, output_path: str) -> list:
 
     rows = []
     for record in data:
-        nl_text   = serialize_nl(record.get("NL", []))
-        acp_flag  = 1
-        output_str = " | ".join(format_acp(a) for a in record.get("ACP", []))
+        nl_text    = serialize_nl(record.get("NL", []))
+        acp_flag   = 1
+        joined     = " | ".join(format_acp(a) for a in record.get("ACP", []))
+        output_str = "{" + joined + "}"                  # ← single braces around all
         rows.append({"input": nl_text, "acp": acp_flag, "output": output_str})
 
     write_csv(output_path, rows)

@@ -1,195 +1,83 @@
 ,input,acp,output
-0,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Alex about the project update.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Alex about the project update. (id=msg_3c7e1b5a, from=alex@company.com, subject=Project Update, date=2025-05-10, snippet=Here is the latest update on the project timeline. We may need to adjust the deadline and notify the team..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Handle it.<|eot_id|>",1,"{decision: deny; subject: email_agent; action: trash_email; resource: [message_id=msg_3c7e1b5a]; purpose: handle the project update email; condition: the user did not specify whether to draft a reply, forward, star, trash, or take another action}"
-1,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Alex about the project update.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Alex about the project update. (id=msg_3c7e1b5a, from=alex@company.com, subject=Project Update, date=2025-05-10, snippet=Here is the latest update on the project timeline. We may need to adjust the deadline and notify the team..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Star it so I can follow up later.<|eot_id|>",1,{decision: allow; subject: email_agent; action: star_email; resource: [message_id=msg_3c7e1b5a]; purpose: star the project update email for later follow-up; condition: none}
-2,"<|start_header_id|>User<|end_header_id|>
-
-Find the email with the quarterly update.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email with the quarterly update. (id=msg_4e1a9b2c, from=updates@company.com, subject=Quarterly Update, date=2025-05-08, snippet=Here is the quarterly update covering product milestones and hiring plans..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Forward it to the team.<|eot_id|>",1,{decision: deny; subject: email_agent; action: forward_email; resource: [message_id=msg_4e1a9b2c]; purpose: forward the quarterly update email to the team; condition: the recipient is underspecified because 'the team' does not identify a concrete email address or group}
-3,"<|start_header_id|>User<|end_header_id|>
-
-Find the email with the quarterly update.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email with the quarterly update. (id=msg_4e1a9b2c, from=updates@company.com, subject=Quarterly Update, date=2025-05-08, snippet=Here is the quarterly update covering product milestones and hiring plans..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Forward it to team@company.com.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: forward_email; resource: [message_id=msg_4e1a9b2c, to=team@company.com]; purpose: forward the quarterly update email to team@company.com; condition: none}"
-4,"<|start_header_id|>User<|end_header_id|>
-
-Reply and say I agree.<|eot_id|>",1,{decision: deny; subject: email_agent; action: draft_email; resource: [content=I agree.]; purpose: draft a reply saying the user agrees; condition: the target email or thread is not specified}
-5,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Priya about the design proposal.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Priya about the design proposal. (id=msg_8b2d0f4c, from=priya@company.com, subject=Design Proposal, date=2025-05-12, snippet=Could you confirm whether you agree with the design proposal before Friday?, unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Reply and say I agree.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: draft_email; resource: [content=I agree., reply_to_id=msg_8b2d0f4c]; purpose: draft a reply to Priya saying the user agrees; condition: none}"
-6,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from my advisor about the draft.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from your advisor about the draft. (id=msg_7f2c6e9a, from=advisor@university.edu, subject=Draft Feedback, date=2025-05-09, snippet=I left some comments on your draft. Please revise the introduction and send me an updated version..., unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Take care of it.<|eot_id|>",1,"{decision: deny; subject: email_agent; action: draft_email; resource: [reply_to_id=msg_7f2c6e9a]; purpose: take care of the advisor email about the draft; condition: the user did not specify whether to draft a reply, revise a file, forward, star, or trash the email}"
-7,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from my advisor about the draft.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from your advisor about the draft. (id=msg_7f2c6e9a, from=advisor@university.edu, subject=Draft Feedback, date=2025-05-09, snippet=I left some comments on your draft. Please revise the introduction and send me an updated version..., unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Draft a reply saying I will revise the introduction and send an updated version by Friday.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: draft_email; resource: [content=I will revise the introduction and send an updated version by Friday., reply_to_id=msg_7f2c6e9a]; purpose: draft a reply to the advisor with the user-provided update; condition: none}"
-8,"<|start_header_id|>User<|end_header_id|>
-
-Send that document to them.<|eot_id|>",1,{decision: deny; subject: email_agent; action: draft_email; resource: [none]; purpose: prepare an email for an unspecified document and unspecified recipients; condition: both the document and the recipients are underspecified}
-9,"<|start_header_id|>User<|end_header_id|>
-
-Draft an email to review-team@company.com with subject Design Document saying Please review the attached design document.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: draft_email; resource: [content=Please review the attached design document., recipient=review-team@company.com, subject=Design Document]; purpose: draft an email to review-team@company.com about the design document; condition: none}"
-10,"<|start_header_id|>User<|end_header_id|>
-
-Find the latest update email.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found a latest update email. (id=msg_1a4c8f2d, from=updates@company.com, subject=Latest Update, date=2025-05-12, snippet=This update includes several notes about the current project timeline..., unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Forward the latest update.<|eot_id|>",1,{decision: deny; subject: email_agent; action: forward_email; resource: [message_id=msg_1a4c8f2d]; purpose: forward the latest update email; condition: the recipient is missing}
-11,"<|start_header_id|>User<|end_header_id|>
-
-Find the latest update email.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found a latest update email. (id=msg_1a4c8f2d, from=updates@company.com, subject=Latest Update, date=2025-05-12, snippet=This update includes several notes about the current project timeline..., unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Forward the latest update to manager@company.com.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: forward_email; resource: [message_id=msg_1a4c8f2d, to=manager@company.com]; purpose: forward the latest update email to manager@company.com; condition: none}"
-12,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Dana about the conference.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Dana about the conference. (id=msg_6d3a0c1e, from=dana@example.com, subject=Conference, date=2025-05-08, snippet=Here are the details for the conference next month..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Send it like last time.<|eot_id|>",1,"{decision: deny; subject: email_agent; action: forward_email; resource: [message_id=msg_6d3a0c1e]; purpose: send the conference email like last time; condition: the phrase 'like last time' does not specify recipient, message, or forwarding behavior}"
-13,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Dana about the conference.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Dana about the conference. (id=msg_6d3a0c1e, from=dana@example.com, subject=Conference, date=2025-05-08, snippet=Here are the details for the conference next month..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Forward it to events@company.com with the note: Same conference info as last time.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: forward_email; resource: [message_id=msg_6d3a0c1e, to=events@company.com, note=Same conference info as last time.]; purpose: forward the conference email to events@company.com with the user-provided note; condition: none}"
-14,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from newsletter@product.com.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from newsletter@product.com. (id=msg_5e2a8b6d, from=newsletter@product.com, subject=Product News, date=2025-05-11, snippet=This week's product news includes launch updates and feature highlights..., unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Mark it appropriately.<|eot_id|>",1,"{decision: deny; subject: email_agent; action: star_email; resource: [message_id=msg_5e2a8b6d]; purpose: mark the product newsletter appropriately; condition: the user did not specify what 'appropriately' means, such as star, trash, or leave unchanged}"
-15,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from newsletter@product.com.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from newsletter@product.com. (id=msg_5e2a8b6d, from=newsletter@product.com, subject=Product News, date=2025-05-11, snippet=This week's product news includes launch updates and feature highlights..., unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Star it.<|eot_id|>",1,{decision: allow; subject: email_agent; action: star_email; resource: [message_id=msg_5e2a8b6d]; purpose: star the product newsletter email; condition: none}
-16,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Chris about the budget.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Chris about the budget. (id=msg_2f9d7e1b, from=chris@company.com, subject=Budget, date=2025-05-07, snippet=Here are some notes about the budget numbers we discussed..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Pass this along.<|eot_id|>",1,{decision: deny; subject: email_agent; action: forward_email; resource: [message_id=msg_2f9d7e1b]; purpose: pass along the budget email; condition: the recipient is missing}
-17,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Chris about the budget.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Chris about the budget. (id=msg_2f9d7e1b, from=chris@company.com, subject=Budget, date=2025-05-07, snippet=Here are some notes about the budget numbers we discussed..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Forward this to finance@company.com with the note: Please review these budget numbers.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: forward_email; resource: [message_id=msg_2f9d7e1b, to=finance@company.com, note=Please review these budget numbers.]; purpose: forward the budget email to finance@company.com with the user-provided note; condition: none}"
-18,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from the recruiter.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from the recruiter. (id=msg_8e1b3f4a, from=recruiter@company.com, subject=Interview Availability, date=2025-05-10, snippet=Please send your availability for interviews next week..., unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Make a response.<|eot_id|>",1,{decision: deny; subject: email_agent; action: draft_email; resource: [reply_to_id=msg_8e1b3f4a]; purpose: make a response to the recruiter email; condition: the user did not specify the response content}
-19,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from the recruiter.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from the recruiter. (id=msg_8e1b3f4a, from=recruiter@company.com, subject=Interview Availability, date=2025-05-10, snippet=Please send your availability for interviews next week..., unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Draft a reply saying I am available Tuesday after 2 PM or Thursday morning.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: draft_email; resource: [content=I am available Tuesday after 2 PM or Thursday morning., reply_to_id=msg_8e1b3f4a]; purpose: draft a reply to the recruiter with the user's availability; condition: none}"
-20,"<|start_header_id|>User<|end_header_id|>
-
-Clean up the old emails.<|eot_id|>",1,{decision: deny; subject: email_agent; action: trash_email; resource: [none]; purpose: clean up old emails; condition: the user did not identify which emails count as old or what cleanup action should be taken}
-21,"<|start_header_id|>User<|end_header_id|>
-
-Find the old coupon email from deals@example.com.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the old coupon email from deals@example.com. (id=msg_9d4a1f6c, from=deals@example.com, subject=Expired Coupon, date=2025-04-20, snippet=Use this coupon before April 30 for 15% off..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Trash this old coupon email.<|eot_id|>",1,{decision: allow; subject: email_agent; action: trash_email; resource: [message_id=msg_9d4a1f6c]; purpose: move the identified old coupon email to trash; condition: none}
-22,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Morgan about the event.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Morgan about the event. (id=msg_6a4e9d2c, from=morgan@example.com, subject=Event Details, date=2025-05-06, snippet=Here are the event details and possible times..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Reply with the usual answer.<|eot_id|>",1,{decision: deny; subject: email_agent; action: draft_email; resource: [reply_to_id=msg_6a4e9d2c]; purpose: reply to Morgan's event email with the usual answer; condition: the phrase 'the usual answer' is underspecified and does not provide concrete reply content}
-23,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Morgan about the event.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Morgan about the event. (id=msg_6a4e9d2c, from=morgan@example.com, subject=Event Details, date=2025-05-06, snippet=Here are the event details and possible times..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Reply and say I will come.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: draft_email; resource: [content=I will come., reply_to_id=msg_6a4e9d2c]; purpose: draft a reply to Morgan saying the user will come; condition: none}"
-24,"<|start_header_id|>User<|end_header_id|>
-
-Find the invoice email from vendor@supplies.com.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the invoice email from vendor@supplies.com. (id=msg_7c1f5a9e, from=vendor@supplies.com, subject=Invoice #2201, date=2025-05-05, snippet=Attached is Invoice #2201 for the office supplies order..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Send this where it needs to go.<|eot_id|>",1,{decision: deny; subject: email_agent; action: forward_email; resource: [message_id=msg_7c1f5a9e]; purpose: send the invoice email to the appropriate destination; condition: the recipient is not specified}
-25,"<|start_header_id|>User<|end_header_id|>
-
-Find the invoice email from vendor@supplies.com.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the invoice email from vendor@supplies.com. (id=msg_7c1f5a9e, from=vendor@supplies.com, subject=Invoice #2201, date=2025-05-05, snippet=Attached is Invoice #2201 for the office supplies order..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Forward this to accounting@company.com.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: forward_email; resource: [message_id=msg_7c1f5a9e, to=accounting@company.com]; purpose: forward the invoice email to accounting@company.com; condition: none}"
-26,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Olivia about the paper.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Olivia about the paper. (id=msg_4d2e8b7a, from=olivia@university.edu, subject=Paper Comments, date=2025-05-07, snippet=Here are my comments on the paper draft..., unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Do the next step.<|eot_id|>",1,{decision: deny; subject: email_agent; action: draft_email; resource: [reply_to_id=msg_4d2e8b7a]; purpose: do the next step for the paper comments email; condition: the next step is not defined in the current context}
-27,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Olivia about the paper.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Olivia about the paper. (id=msg_4d2e8b7a, from=olivia@university.edu, subject=Paper Comments, date=2025-05-07, snippet=Here are my comments on the paper draft..., unread=True)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Draft a reply saying Thanks, I will revise the paper based on your comments.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: draft_email; resource: [content=Thanks, I will revise the paper based on your comments., reply_to_id=msg_4d2e8b7a]; purpose: draft a reply to Olivia acknowledging the paper comments; condition: none}"
-28,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Pat about the files.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Pat about the files. (id=msg_1f6b3d8e, from=pat@example.com, subject=Files, date=2025-05-09, snippet=Here are the files we discussed earlier..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Forward this to the right person.<|eot_id|>",1,{decision: deny; subject: email_agent; action: forward_email; resource: [message_id=msg_1f6b3d8e]; purpose: forward the files email to the right person; condition: the recipient is underspecified}
-29,"<|start_header_id|>User<|end_header_id|>
-
-Find the email from Pat about the files.<|eot_id|><|start_header_id|>Agent<|end_header_id|>
-
-I found the email from Pat about the files. (id=msg_1f6b3d8e, from=pat@example.com, subject=Files, date=2025-05-09, snippet=Here are the files we discussed earlier..., unread=False)<|eot_id|><|start_header_id|>User<|end_header_id|>
-
-Forward this to lee@example.com.<|eot_id|>",1,"{decision: allow; subject: email_agent; action: forward_email; resource: [message_id=msg_1f6b3d8e, to=lee@example.com]; purpose: forward the files email to lee@example.com; condition: none}"
+0,"User: Find the email from Alex about the project update.
+Agent: I found the email from Alex about the project update. (id=msg_3c7e1b5a, from=alex@company.com, subject=Project Update, date=2025-05-10, snippet=Here is the latest update on the project timeline. We may need to adjust the deadline and notify the team..., unread=False)
+User: Handle it.",1,"{decision: deny; subject: email_agent; action: trash_email; resource: message_id=msg_3c7e1b5a; purpose: handle the project update email; condition: the user did not specify whether to draft a reply, forward, star, trash, or take another action}"
+1,"User: Find the email from Alex about the project update.
+Agent: I found the email from Alex about the project update. (id=msg_3c7e1b5a, from=alex@company.com, subject=Project Update, date=2025-05-10, snippet=Here is the latest update on the project timeline. We may need to adjust the deadline and notify the team..., unread=False)
+User: Star it so I can follow up later.",1,{decision: allow; subject: email_agent; action: star_email; resource: message_id=msg_3c7e1b5a; purpose: star the project update email for later follow-up; condition: none}
+2,"User: Find the email with the quarterly update.
+Agent: I found the email with the quarterly update. (id=msg_4e1a9b2c, from=updates@company.com, subject=Quarterly Update, date=2025-05-08, snippet=Here is the quarterly update covering product milestones and hiring plans..., unread=False)
+User: Forward it to the team.",1,{decision: deny; subject: email_agent; action: forward_email; resource: message_id=msg_4e1a9b2c; purpose: forward the quarterly update email to the team; condition: the recipient is underspecified because 'the team' does not identify a concrete email address or group}
+3,"User: Find the email with the quarterly update.
+Agent: I found the email with the quarterly update. (id=msg_4e1a9b2c, from=updates@company.com, subject=Quarterly Update, date=2025-05-08, snippet=Here is the quarterly update covering product milestones and hiring plans..., unread=False)
+User: Forward it to team@company.com.",1,"{decision: allow; subject: email_agent; action: forward_email; resource: message_id=msg_4e1a9b2c, to=team@company.com; purpose: forward the quarterly update email to team@company.com; condition: none}"
+4,User: Reply and say I agree.,1,{decision: deny; subject: email_agent; action: draft_email; resource: content=I agree.; purpose: draft a reply saying the user agrees; condition: the target email or thread is not specified}
+5,"User: Find the email from Priya about the design proposal.
+Agent: I found the email from Priya about the design proposal. (id=msg_8b2d0f4c, from=priya@company.com, subject=Design Proposal, date=2025-05-12, snippet=Could you confirm whether you agree with the design proposal before Friday?, unread=True)
+User: Reply and say I agree.",1,"{decision: allow; subject: email_agent; action: draft_email; resource: content=I agree., reply_to_id=msg_8b2d0f4c; purpose: draft a reply to Priya saying the user agrees; condition: none}"
+6,"User: Find the email from my advisor about the draft.
+Agent: I found the email from your advisor about the draft. (id=msg_7f2c6e9a, from=advisor@university.edu, subject=Draft Feedback, date=2025-05-09, snippet=I left some comments on your draft. Please revise the introduction and send me an updated version..., unread=True)
+User: Take care of it.",1,"{decision: deny; subject: email_agent; action: draft_email; resource: reply_to_id=msg_7f2c6e9a; purpose: take care of the advisor email about the draft; condition: the user did not specify whether to draft a reply, revise a file, forward, star, or trash the email}"
+7,"User: Find the email from my advisor about the draft.
+Agent: I found the email from your advisor about the draft. (id=msg_7f2c6e9a, from=advisor@university.edu, subject=Draft Feedback, date=2025-05-09, snippet=I left some comments on your draft. Please revise the introduction and send me an updated version..., unread=True)
+User: Draft a reply saying I will revise the introduction and send an updated version by Friday.",1,"{decision: allow; subject: email_agent; action: draft_email; resource: content=I will revise the introduction and send an updated version by Friday., reply_to_id=msg_7f2c6e9a; purpose: draft a reply to the advisor with the user-provided update; condition: none}"
+8,User: Send that document to them.,1,{decision: deny; subject: email_agent; action: draft_email; resource: none; purpose: prepare an email for an unspecified document and unspecified recipients; condition: both the document and the recipients are underspecified}
+9,User: Draft an email to review-team@company.com with subject Design Document saying Please review the attached design document.,1,"{decision: allow; subject: email_agent; action: draft_email; resource: content=Please review the attached design document., recipient=review-team@company.com, subject=Design Document; purpose: draft an email to review-team@company.com about the design document; condition: none}"
+10,"User: Find the latest update email.
+Agent: I found a latest update email. (id=msg_1a4c8f2d, from=updates@company.com, subject=Latest Update, date=2025-05-12, snippet=This update includes several notes about the current project timeline..., unread=True)
+User: Forward the latest update.",1,{decision: deny; subject: email_agent; action: forward_email; resource: message_id=msg_1a4c8f2d; purpose: forward the latest update email; condition: the recipient is missing}
+11,"User: Find the latest update email.
+Agent: I found a latest update email. (id=msg_1a4c8f2d, from=updates@company.com, subject=Latest Update, date=2025-05-12, snippet=This update includes several notes about the current project timeline..., unread=True)
+User: Forward the latest update to manager@company.com.",1,"{decision: allow; subject: email_agent; action: forward_email; resource: message_id=msg_1a4c8f2d, to=manager@company.com; purpose: forward the latest update email to manager@company.com; condition: none}"
+12,"User: Find the email from Dana about the conference.
+Agent: I found the email from Dana about the conference. (id=msg_6d3a0c1e, from=dana@example.com, subject=Conference, date=2025-05-08, snippet=Here are the details for the conference next month..., unread=False)
+User: Send it like last time.",1,"{decision: deny; subject: email_agent; action: forward_email; resource: message_id=msg_6d3a0c1e; purpose: send the conference email like last time; condition: the phrase 'like last time' does not specify recipient, message, or forwarding behavior}"
+13,"User: Find the email from Dana about the conference.
+Agent: I found the email from Dana about the conference. (id=msg_6d3a0c1e, from=dana@example.com, subject=Conference, date=2025-05-08, snippet=Here are the details for the conference next month..., unread=False)
+User: Forward it to events@company.com with the note: Same conference info as last time.",1,"{decision: allow; subject: email_agent; action: forward_email; resource: message_id=msg_6d3a0c1e, to=events@company.com, note=Same conference info as last time.; purpose: forward the conference email to events@company.com with the user-provided note; condition: none}"
+14,"User: Find the email from newsletter@product.com.
+Agent: I found the email from newsletter@product.com. (id=msg_5e2a8b6d, from=newsletter@product.com, subject=Product News, date=2025-05-11, snippet=This week's product news includes launch updates and feature highlights..., unread=True)
+User: Mark it appropriately.",1,"{decision: deny; subject: email_agent; action: star_email; resource: message_id=msg_5e2a8b6d; purpose: mark the product newsletter appropriately; condition: the user did not specify what 'appropriately' means, such as star, trash, or leave unchanged}"
+15,"User: Find the email from newsletter@product.com.
+Agent: I found the email from newsletter@product.com. (id=msg_5e2a8b6d, from=newsletter@product.com, subject=Product News, date=2025-05-11, snippet=This week's product news includes launch updates and feature highlights..., unread=True)
+User: Star it.",1,{decision: allow; subject: email_agent; action: star_email; resource: message_id=msg_5e2a8b6d; purpose: star the product newsletter email; condition: none}
+16,"User: Find the email from Chris about the budget.
+Agent: I found the email from Chris about the budget. (id=msg_2f9d7e1b, from=chris@company.com, subject=Budget, date=2025-05-07, snippet=Here are some notes about the budget numbers we discussed..., unread=False)
+User: Pass this along.",1,{decision: deny; subject: email_agent; action: forward_email; resource: message_id=msg_2f9d7e1b; purpose: pass along the budget email; condition: the recipient is missing}
+17,"User: Find the email from Chris about the budget.
+Agent: I found the email from Chris about the budget. (id=msg_2f9d7e1b, from=chris@company.com, subject=Budget, date=2025-05-07, snippet=Here are some notes about the budget numbers we discussed..., unread=False)
+User: Forward this to finance@company.com with the note: Please review these budget numbers.",1,"{decision: allow; subject: email_agent; action: forward_email; resource: message_id=msg_2f9d7e1b, to=finance@company.com, note=Please review these budget numbers.; purpose: forward the budget email to finance@company.com with the user-provided note; condition: none}"
+18,"User: Find the email from the recruiter.
+Agent: I found the email from the recruiter. (id=msg_8e1b3f4a, from=recruiter@company.com, subject=Interview Availability, date=2025-05-10, snippet=Please send your availability for interviews next week..., unread=True)
+User: Make a response.",1,{decision: deny; subject: email_agent; action: draft_email; resource: reply_to_id=msg_8e1b3f4a; purpose: make a response to the recruiter email; condition: the user did not specify the response content}
+19,"User: Find the email from the recruiter.
+Agent: I found the email from the recruiter. (id=msg_8e1b3f4a, from=recruiter@company.com, subject=Interview Availability, date=2025-05-10, snippet=Please send your availability for interviews next week..., unread=True)
+User: Draft a reply saying I am available Tuesday after 2 PM or Thursday morning.",1,"{decision: allow; subject: email_agent; action: draft_email; resource: content=I am available Tuesday after 2 PM or Thursday morning., reply_to_id=msg_8e1b3f4a; purpose: draft a reply to the recruiter with the user's availability; condition: none}"
+20,User: Clean up the old emails.,1,{decision: deny; subject: email_agent; action: trash_email; resource: none; purpose: clean up old emails; condition: the user did not identify which emails count as old or what cleanup action should be taken}
+21,"User: Find the old coupon email from deals@example.com.
+Agent: I found the old coupon email from deals@example.com. (id=msg_9d4a1f6c, from=deals@example.com, subject=Expired Coupon, date=2025-04-20, snippet=Use this coupon before April 30 for 15% off..., unread=False)
+User: Trash this old coupon email.",1,{decision: allow; subject: email_agent; action: trash_email; resource: message_id=msg_9d4a1f6c; purpose: move the identified old coupon email to trash; condition: none}
+22,"User: Find the email from Morgan about the event.
+Agent: I found the email from Morgan about the event. (id=msg_6a4e9d2c, from=morgan@example.com, subject=Event Details, date=2025-05-06, snippet=Here are the event details and possible times..., unread=False)
+User: Reply with the usual answer.",1,{decision: deny; subject: email_agent; action: draft_email; resource: reply_to_id=msg_6a4e9d2c; purpose: reply to Morgan's event email with the usual answer; condition: the phrase 'the usual answer' is underspecified and does not provide concrete reply content}
+23,"User: Find the email from Morgan about the event.
+Agent: I found the email from Morgan about the event. (id=msg_6a4e9d2c, from=morgan@example.com, subject=Event Details, date=2025-05-06, snippet=Here are the event details and possible times..., unread=False)
+User: Reply and say I will come.",1,"{decision: allow; subject: email_agent; action: draft_email; resource: content=I will come., reply_to_id=msg_6a4e9d2c; purpose: draft a reply to Morgan saying the user will come; condition: none}"
+24,"User: Find the invoice email from vendor@supplies.com.
+Agent: I found the invoice email from vendor@supplies.com. (id=msg_7c1f5a9e, from=vendor@supplies.com, subject=Invoice #2201, date=2025-05-05, snippet=Attached is Invoice #2201 for the office supplies order..., unread=False)
+User: Send this where it needs to go.",1,{decision: deny; subject: email_agent; action: forward_email; resource: message_id=msg_7c1f5a9e; purpose: send the invoice email to the appropriate destination; condition: the recipient is not specified}
+25,"User: Find the invoice email from vendor@supplies.com.
+Agent: I found the invoice email from vendor@supplies.com. (id=msg_7c1f5a9e, from=vendor@supplies.com, subject=Invoice #2201, date=2025-05-05, snippet=Attached is Invoice #2201 for the office supplies order..., unread=False)
+User: Forward this to accounting@company.com.",1,"{decision: allow; subject: email_agent; action: forward_email; resource: message_id=msg_7c1f5a9e, to=accounting@company.com; purpose: forward the invoice email to accounting@company.com; condition: none}"
+26,"User: Find the email from Olivia about the paper.
+Agent: I found the email from Olivia about the paper. (id=msg_4d2e8b7a, from=olivia@university.edu, subject=Paper Comments, date=2025-05-07, snippet=Here are my comments on the paper draft..., unread=True)
+User: Do the next step.",1,{decision: deny; subject: email_agent; action: draft_email; resource: reply_to_id=msg_4d2e8b7a; purpose: do the next step for the paper comments email; condition: the next step is not defined in the current context}
+27,"User: Find the email from Olivia about the paper.
+Agent: I found the email from Olivia about the paper. (id=msg_4d2e8b7a, from=olivia@university.edu, subject=Paper Comments, date=2025-05-07, snippet=Here are my comments on the paper draft..., unread=True)
+User: Draft a reply saying Thanks, I will revise the paper based on your comments.",1,"{decision: allow; subject: email_agent; action: draft_email; resource: content=Thanks, I will revise the paper based on your comments., reply_to_id=msg_4d2e8b7a; purpose: draft a reply to Olivia acknowledging the paper comments; condition: none}"
+28,"User: Find the email from Pat about the files.
+Agent: I found the email from Pat about the files. (id=msg_1f6b3d8e, from=pat@example.com, subject=Files, date=2025-05-09, snippet=Here are the files we discussed earlier..., unread=False)
+User: Forward this to the right person.",1,{decision: deny; subject: email_agent; action: forward_email; resource: message_id=msg_1f6b3d8e; purpose: forward the files email to the right person; condition: the recipient is underspecified}
+29,"User: Find the email from Pat about the files.
+Agent: I found the email from Pat about the files. (id=msg_1f6b3d8e, from=pat@example.com, subject=Files, date=2025-05-09, snippet=Here are the files we discussed earlier..., unread=False)
+User: Forward this to lee@example.com.",1,"{decision: allow; subject: email_agent; action: forward_email; resource: message_id=msg_1f6b3d8e, to=lee@example.com; purpose: forward the files email to lee@example.com; condition: none}"

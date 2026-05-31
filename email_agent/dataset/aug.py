@@ -552,7 +552,7 @@ def main():
                         help="Directory for augmented_classN.json output files")
     parser.add_argument("--max-retries", type=int, default=3,
                         help="Max mutation attempts per source entry (default: 3)")
-    parser.add_argument("--classes", nargs="+", type=int, default=[3,4,5,6,7],
+    parser.add_argument("--classes", nargs="+", type=int, default=[1,2,3,4,5,6,7],
                         help="Which classes to process (default: 1 2 3 4 5 6 7)")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()

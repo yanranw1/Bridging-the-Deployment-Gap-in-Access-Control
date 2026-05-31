@@ -8,7 +8,7 @@ Requirements:
     pip install transformers datasets torch accelerate sentencepiece
 
 Usage:
-    python train_nl_to_acp.py --data_path train.json --output_dir ./nl_acp_model
+    python train_nl_to_acp.py --data_path combined_test.csv --output_dir ./nl_acp_model
 """
 
 import argparse
@@ -17,6 +17,7 @@ import logging
 import os
 from typing import Any
 
+import csv
 import torch
 from datasets import Dataset
 from transformers import (
@@ -69,21 +70,29 @@ def format_acp_target(acp_list: list[dict]) -> str:
 
 
 def load_examples(data_path: str) -> list[dict[str, str]]:
-    """Load train.json and convert every entry to an (input, target) pair."""
-    with open(data_path, "r", encoding="utf-8") as f:
-        raw = json.load(f)
+    """Load a CSV file and convert every row to an (input, target) pair.
 
+    Expected CSV columns:
+        input   – the NL conversation string (already formatted as plain text)
+        output  – the ACP string (JSON or structured text)
+
+    The optional 'acp' column (0/1 label) is ignored during training.
+    """
     examples = []
-    for item in raw:
-        nl_turns = item.get("NL", [])
-        acp = item.get("ACP", [])
-        if not nl_turns or not acp:
-            logger.warning("Skipping item %s — missing NL or ACP field.", item.get("id"))
-            continue
+    with open(data_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for i, row in enumerate(reader):
+            input_text = row.get("input", "").strip()
+            target_text = row.get("output", "").strip()
 
-        input_text = "translate to ACP: " + format_nl_conversation(nl_turns)
-        target_text = format_acp_target(acp)
-        examples.append({"input_text": input_text, "target_text": target_text})
+            if not input_text or not target_text:
+                logger.warning("Skipping row %d — missing input or output.", i)
+                continue
+
+            examples.append({
+                "input_text": "translate to ACP: " + input_text,
+                "target_text": target_text,
+            })
 
     logger.info("Loaded %d examples from %s", len(examples), data_path)
     return examples
@@ -124,12 +133,8 @@ def main(args: argparse.Namespace) -> None:
     model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name)
 
     # ── Dataset ──────────────────────────────────────────────────────────────
-    examples = load_examples(args.data_path)
-    dataset = Dataset.from_list(examples)
-
-    split = dataset.train_test_split(test_size=args.eval_split, seed=42)
-    train_ds = split["train"]
-    eval_ds  = split["test"]
+    train_ds = Dataset.from_list(load_examples(args.data_path))
+    eval_ds  = Dataset.from_list(load_examples(args.eval_path))
     logger.info("Train: %d  |  Eval: %d", len(train_ds), len(eval_ds))
 
     # ── Tokenise ─────────────────────────────────────────────────────────────
@@ -207,16 +212,23 @@ def predict(model_dir: str, nl_turns: list[dict]) -> list[dict]:
         acp = predict("./nl_acp_model", turns)
         print(acp)
     """
-    from transformers import pipeline  # local import to keep top-level clean
+    tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
+    model.eval()
 
     prompt = "translate to ACP: " + format_nl_conversation(nl_turns)
-    pipe = pipeline("text2text-generation", model=model_dir, tokenizer=model_dir)
-    result = pipe(prompt, max_new_tokens=512)[0]["generated_text"]
-    try:
-        return json.loads(result)
-    except json.JSONDecodeError:
-        logger.warning("Model output was not valid JSON:\n%s", result)
-        return [{"raw_output": result}]
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512)
+
+    with torch.no_grad():
+        output_ids = model.generate(**inputs, max_new_tokens=512)
+
+    result = tokenizer.decode(output_ids[0], skip_special_tokens=True)
+    # try:
+    #     return json.loads(result)
+    # except json.JSONDecodeError:
+    #     logger.warning("Model output was not valid JSON:\n%s", result)
+    #     return [{"raw_output": result}]
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -227,10 +239,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fine-tune T5 for NL → ACP translation.")
 
     # Data
-    parser.add_argument("--data_path",  type=str, default="/home/ubuntu/agentv-main/email_agent/dataset/train.json",
-                        help="Path to train.json")
-    parser.add_argument("--eval_split", type=float, default=0.1,
-                        help="Fraction of data to use for evaluation (default: 0.1)")
+    parser.add_argument("--data_path", type=str, default="/home/ubuntu/agentv-main/email_agent/dataset/combined_train.csv",
+                        help="Path to the training CSV file (must have 'input' and 'output' columns)")
+    parser.add_argument("--eval_path", type=str, default="/home/ubuntu/agentv-main/email_agent/dataset/combined_test.csv",
+                        help="Path to the evaluation CSV file (same format as --data_path)")
 
     # Model
     parser.add_argument("--model_name", type=str, default="t5-base",
