@@ -107,7 +107,9 @@ def format_acp(acp_entry: dict) -> str:
         purpose=fmt(acp_entry.get("purpose")),
         condition=fmt(acp_entry.get("condition")),
     )
-
+def write_json(path: str, data) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 def convert(input_path: str, output_path: str) -> list:
     with open(input_path, "r", encoding="utf-8") as f:
@@ -169,6 +171,7 @@ if __name__ == "__main__":
 
     combined_rows = []          # plain row dicts (acp=1)
     tagged_rows   = []          # (source_class, row_dict) for stratification
+    combined_json_records = []
 
     # --- Convert each file individually ---
     for n in range(1, 8):
@@ -179,22 +182,34 @@ if __name__ == "__main__":
             print(f"[SKIP] class{n}.json not found.")
             continue
 
+        with open(input_path, "r", encoding="utf-8") as f:
+            original_data = json.load(f)
+
+        combined_json_records.extend(original_data)
+
         print(f"[{n}/7] Converting class{n}.json ...")
         rows = convert(input_path, output_path)
         combined_rows.extend(rows)
         tagged_rows.extend((n, row) for row in rows)
-        if n != 7:
-            input_path  = os.path.join(aug_dir, f"augmented_class{n}.json")
-            output_path = os.path.join(aug_dir, f"augmented_class{n}_converted.csv")
-            if not os.path.exists(input_path):
-                print(f"[SKIP] class{n}.json not found.")
-                continue
+        # if n != 7:
+        #     input_path  = os.path.join(aug_dir, f"augmented_class{n}.json")
+        #     output_path = os.path.join(aug_dir, f"augmented_class{n}_converted.csv")
+        #     if not os.path.exists(input_path):
+        #         print(f"[SKIP] class{n}.json not found.")
+        #         continue
 
-            print(f"[{n}/6] Converting augmented class{n}.json ...")
-            rows = convert(input_path, output_path)
-            combined_rows.extend(rows)
-            tagged_rows.extend((n, row) for row in rows)
+        #     print(f"[{n}/6] Converting augmented class{n}.json ...")
+        #     rows = convert(input_path, output_path)
+        #     combined_rows.extend(rows)
+        #     tagged_rows.extend((n, row) for row in rows)
+    # --- Combined JSON (acp always 1) ---
+    combined_json_path = os.path.join(script_dir, "combined.json")
+    write_json(combined_json_path, combined_json_records)
 
+    print(
+        f"\nCombined JSON: {len(combined_json_records)} records "
+        f"→ 'combined.json'"
+    )
     # --- Combined CSV (acp always 1) ---
     combined_path = os.path.join(script_dir, "combined_converted.csv")
     write_csv(combined_path, combined_rows)

@@ -67,8 +67,8 @@ ver_model.eval()
 
 for i in tqdm(range(len(ver_test_df))):
 
-    input = ver_test_df.iloc[i].input
-    pp = ver_test_df.iloc[i].policies
+    input = ver_test_df.iloc[i].inputs
+    pp = ver_test_df.iloc[i].outputs
     ver_inp = prepare_inputs_bart(input, pp, ver_tokenizer, ver_device)
     pred = ver_model(**ver_inp).logits
 
