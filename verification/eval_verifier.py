@@ -19,6 +19,7 @@ from tqdm import tqdm
 
 ver_test_df = pd.read_csv("../data/verification/test_verification_dataset.csv")
 
+
 ID2AUGS = {
     0: "allow_deny",
     1: "csub",
@@ -39,7 +40,7 @@ ERRORS = [k for k, _ in AUGS2ID.items()]
 
 VER_MODEL_NAME = "facebook/bart-large"
 verification_ckpt = "../checkpoints/verification/checkpoint/"
-ver_device = "cuda"
+ver_device = "cuda:0"
 
 
 def covert_classes(c):

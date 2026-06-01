@@ -77,7 +77,7 @@ def train_verifier(id2augs, ds_path='../datasets/verification/combined_verificat
 @click.option('--dataset_path', 
               help='Location of the generated verification dataset',
               show_default=True,
-              default='../data/verification/verification_dataset.csv',
+              default='dataset/verification_dataset.csv',
               required=True)
 @click.option('--train_epochs', default=10, help='Number of epochs to train',show_default=True)
 @click.option('--learning_rate', default=2e-5, help='Learning rate',show_default=True)

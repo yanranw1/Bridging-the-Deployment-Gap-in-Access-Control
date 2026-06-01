@@ -40,62 +40,55 @@ class ComponentManipulation():
                     
         return subs, acts, ress, purs, conds
         
-    @staticmethod
-    def _pick_different(pool: list, current: str) -> str | None:
-        """
-        Return a random element from *pool* that differs from *current*.
-        Returns None when the pool is empty or every element equals *current*
-        (i.e. no valid alternative exists).
-
-        Uses random.randrange() to avoid the off-by-one that
-        ``int(random.random() * len(pool))`` has when random() == 1.0.
-        """
-        candidates = [v for v in pool if v != current]
-        if not candidates:
-            return None
-        return candidates[random.randrange(len(candidates))]
-
-    def change_rule(self, rule: dict, aug: str, _tried: frozenset = frozenset()) -> tuple:
-        """
-        Apply augmentation *aug* to *rule* (in-place) and return (rule, aug).
-
-        Falls back to a different, not-yet-tried augmentation when the
-        requested one cannot be applied (e.g. pool has no alternative value).
-        Raises RuntimeError only when every augmentation has been exhausted.
-        """
+    def change_rule(self,rule, aug):
+    
         if aug == 'allow_deny':
-            rule['decision'] = 'deny' if 'allow' in rule['decision'] else 'allow'
-
+            if 'allow' in rule['decision']:
+                rule['decision'] = 'deny'
+            else:
+                rule['decision'] = 'allow'
+                
         elif aug == 'csub':
-            val = self._pick_different(self.subs, rule['subject'])
-            if val is None:
-                return self._fallback(rule, aug, _tried)
-            rule['subject'] = val
-
+            rand = int(random.random() * len(self.subs))
+            while self.subs[rand]==rule['subject']:
+                rand = int(random.random() * len(self.subs))
+                
+            rule['subject'] = self.subs[rand]
+            
         elif aug == 'cact':
-            val = self._pick_different(self.acts, rule['action'])
-            if val is None:
-                return self._fallback(rule, aug, _tried)
-            rule['action'] = val
-
+            rand = int(random.random() * len(self.acts))
+            while self.acts[rand]==rule['action']:
+                rand = int(random.random() * len(self.acts))
+                
+            rule['action'] = self.acts[rand]
+            
         elif aug == 'cres':
-            val = self._pick_different(self.ress, rule['resource'])
-            if val is None:
-                return self._fallback(rule, aug, _tried)
-            rule['resource'] = val
-
-        elif aug == 'ccond':
-            val = self._pick_different(self.conds, rule['condition'])
-            if val is None:
-                return self._fallback(rule, aug, _tried)
-            rule['condition'] = val
-
-        elif aug == 'cpur':
-            val = self._pick_different(self.purs, rule['purpose'])
-            if val is None:
-                return self._fallback(rule, aug, _tried)
-            rule['purpose'] = val
-
+            rand = int(random.random() * len(self.ress))
+            while self.ress[rand]==rule['resource']:
+                rand = int(random.random() * len(self.ress))
+                
+            rule['resource'] = self.ress[rand]
+            
+        elif aug == 'ccond' and len(self.conds)>1:
+            rand = int(random.random() * len(self.conds))
+            # print(len(self.conds), rand)
+            while self.conds[rand]==rule['condition']:
+                # print(rand)
+                rand = int(random.random() * len(self.conds))
+                
+            rule['condition'] = self.conds[rand]
+            
+        elif aug == 'cpur' and len(self.purs)>1:
+            rand = int(random.random() * len(self.purs))
+            # print(len(self.purs), rand)
+            while self.purs[rand]==rule['purpose']:
+                # print(rand)
+                rand = int(random.random() * len(self.purs))
+                
+            rule['purpose'] = self.purs[rand]
+            
+            
+        
         elif aug == 'msub' and rule['subject'] != 'none':
             rule['subject'] = 'none'
         elif aug == 'mres' and rule['resource'] != 'none':
@@ -104,24 +97,15 @@ class ComponentManipulation():
             rule['condition'] = 'none'
         elif aug == 'mpur' and rule['purpose'] != 'none':
             rule['purpose'] = 'none'
-
+            
         else:
-            # This aug cannot be applied to the rule — try another one.
-            return self._fallback(rule, aug, _tried)
-
+            
+            rand_aug = int(random.random() * len(self.augs))
+            augn = list(self.augs.keys())[rand_aug]
+            
+            return self.change_rule(rule, augn)
+        # augs[aug]+=1
         return rule, aug
-
-    def _fallback(self, rule: dict, failed_aug: str, _tried: frozenset) -> tuple:
-        """Pick a random aug from those not yet tried and retry."""
-        _tried = _tried | {failed_aug}
-        remaining = [a for a in self.augs if a not in _tried]
-        if not remaining:
-            raise RuntimeError(
-                f"change_rule: no applicable augmentation found for rule {rule}. "
-                f"All tried: {_tried}"
-            )
-        next_aug = remaining[random.randrange(len(remaining))]
-        return self.change_rule(rule, next_aug, _tried)
     
     
     def get_summary(self, df: pd.DataFrame):
@@ -139,27 +123,22 @@ class ComponentManipulation():
             for s,p in zip(self.correct_acps['inputs'], self.correct_acps['outputs']):
                 modified = []
                 pols = process_label([p])
-
-                if not pols:          # skip unparseable/empty policies
+                if len(pols) == 0:
                     continue
-
-                randpol = random.randrange(len(pols))
-
-                naug = None
+                randpol = int(random.random() * len(pols))
                 for i,rule in enumerate(pols):
                     if i == randpol:
-                        rand_aug = random.randrange(len(self.augs))
+                        rand_aug = int(random.random() * len(self.augs))
                         aug = self.id2augs[rand_aug]
                         mod_rule, naug = self.change_rule(rule, aug)
                         modified.append(mod_rule)
+                        labels.append(self.augs2id[naug])
                         self.augs[naug]+=1
                     else:
                         modified.append(rule)
                     
                 sents.append(s)
                 npols.append(create_out_string(modified))
-                labels.append(self.augs2id[naug])
-                #fix ended
                 
         self.augs['mrules'] = 0
 
@@ -173,7 +152,7 @@ class ComponentManipulation():
                 pols = process_label([p])
                 
                 if len(pols)>1:
-                    rand = random.randrange(len(pols))
+                    rand = int(random.random() * len(pols))
                     pols.pop(rand)
                     
                     sents.append(s)
@@ -182,7 +161,12 @@ class ComponentManipulation():
 
                     self.augs['mrules']+=1
                     
-        csents, cpols = self.correct_acps['inputs'].to_list(), self.correct_acps['outputs'].to_list()
+        csents, cpols = [], []
+        for s, p in zip(self.correct_acps['inputs'], self.correct_acps['outputs']):
+            if len(process_label([p])) == 0:
+                continue
+            csents.append(s)
+            cpols.append(p)
         clabels = [11]*len(csents)
 
         sents.extend(csents)
