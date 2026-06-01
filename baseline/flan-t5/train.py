@@ -53,20 +53,29 @@ def serialize_code(code_list):
     return json.dumps(code_list, ensure_ascii=False, separators=(",", ":"))
 
 
+def strip_policy_metadata(ex):
+    """Defensive: ensure ACP policy_metadata never enters the pipeline.
+    (NL/CODE are what get serialized; ACP is dropped here entirely.)"""
+    for block in ex.get("ACP", []):
+        block.pop("policy_metadata", None)
+    return ex
+
+
 def load_examples(path):
     data = json.loads(Path(path).read_text())
     inputs, targets = [], []
     for ex in data:
-        inputs.append(serialize_nl(ex["NL"]))          # ACP excluded
-        targets.append(serialize_code(ex["CODE"]))     # full CODE JSON
+        ex = strip_policy_metadata(ex)             # blind policy_metadata
+        inputs.append(serialize_nl(ex["NL"]))      # ACP excluded
+        targets.append(serialize_code(ex["CODE"])) # full CODE JSON
     return Dataset.from_dict({"input_text": inputs, "target_text": targets})
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--train_file", default="/mnt/user-data/uploads/class3.json")
-    ap.add_argument("--val_file", default=None, help="path to separate val json")
-    ap.add_argument("--output_dir", default="/mnt/user-data/outputs/flan_t5_nl2code")
+    ap.add_argument("--train_file", default="/home/ubuntu/agentv-main/email_agent/dataset/combined_train.json")
+    ap.add_argument("--val_file", default="/home/ubuntu/agentv-main/email_agent/dataset/combined_test.json")
+    ap.add_argument("--output_dir", default="outputs/flan_t5_nl2code")
     ap.add_argument("--epochs", type=int, default=15)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--batch_size", type=int, default=4)
@@ -113,7 +122,8 @@ def main():
         generation_max_length=MAX_TARGET_LEN,
         load_best_model_at_end=val_ds is not None,
         metric_for_best_model="eval_loss" if val_ds is not None else None,
-        fp16=torch.cuda.is_available(),
+        fp16=False,
+        bf16=torch.cuda.is_available() and torch.cuda.is_bf16_supported(),
         report_to="none",
     )
 
@@ -123,7 +133,6 @@ def main():
         train_dataset=train_ds,
         eval_dataset=val_ds,
         data_collator=collator,
-        tokenizer=tokenizer,
     )
 
     trainer.train()

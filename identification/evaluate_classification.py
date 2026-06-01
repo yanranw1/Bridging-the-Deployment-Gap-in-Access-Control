@@ -33,11 +33,11 @@ def evaluate(loader, model, device):
     return compute_metrics(eval_pred)
 
 @click.command()
-@click.option('--mode', default='t2p', 
+@click.option('--mode', default='email', 
               help='Mode of training (document-fold you want to evaluate the trained model on)',
               show_default=True,
               required=True,
-              type=click.Choice(['t2p', 'acre', 'ibm', 'collected', 'cyber', 'overall',"customized"], case_sensitive=False)
+              type=click.Choice(['t2p', 'acre', 'ibm', 'collected', 'cyber', 'overall',"email"], case_sensitive=False)
               )
 @click.option('--batch_size', default=16, help='Batch size', show_default=True)
 @click.option('--device', default='cuda:0', help='GPU/CPU', show_default=True)
@@ -49,12 +49,12 @@ def main(mode, batch_size = 16, device = 'cuda:0'):
     
     if mode=='overall':
         test_path = f'../data/overall/test.csv'
-    elif  mode=='customized':
-        test_path = f'../data/customized/test.csv'
+    elif mode=='email':
+        test_path = "/home/ubuntu/agentv-main/email_agent/dataset/combined_test.csv"
     else:
         test_path = f'../data/document_folds/{mode}.csv'
         
-    checkpoint = f'../checkpoints/identification/{mode}/checkpoint'
+    checkpoint = f'../checkpoints/identification/{mode}'
 
     model = BertForSequenceClassification.from_pretrained(checkpoint, num_labels=NUM_CLASSES).to(device)
     tokenizer = BertTokenizerFast.from_pretrained(checkpoint)
