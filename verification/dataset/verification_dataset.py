@@ -50,7 +50,7 @@ def generate_dataset(dataset_path, model_dir, num_beams=5, device='cuda:0', save
 @click.command()
 @click.option(
     "--dataset_path",
-    default="/home/ubuntu/agentv-main/email_agent/dataset/combined_test.csv",
+    default="/home/ubuntu/agentv-main/email_agent/dataset/combined_converted.csv",
     required=True,
     show_default=True,
     help="CSV test set used for generation (must have 'input' and 'output' columns)",

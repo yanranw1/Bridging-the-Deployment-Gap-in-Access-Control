@@ -123,8 +123,6 @@ class ComponentManipulation():
             for s,p in zip(self.correct_acps['inputs'], self.correct_acps['outputs']):
                 modified = []
                 pols = process_label([p])
-                if len(pols) == 0:
-                    continue
                 randpol = int(random.random() * len(pols))
                 for i,rule in enumerate(pols):
                     if i == randpol:
@@ -161,12 +159,7 @@ class ComponentManipulation():
 
                     self.augs['mrules']+=1
                     
-        csents, cpols = [], []
-        for s, p in zip(self.correct_acps['inputs'], self.correct_acps['outputs']):
-            if len(process_label([p])) == 0:
-                continue
-            csents.append(s)
-            cpols.append(p)
+        csents, cpols = self.correct_acps['inputs'].to_list(), self.correct_acps['outputs'].to_list()
         clabels = [11]*len(csents)
 
         sents.extend(csents)
@@ -183,3 +176,6 @@ class ComponentManipulation():
             print(self.get_summary(df))
         
         return df
+        
+        
+    

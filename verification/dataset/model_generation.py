@@ -6,6 +6,10 @@ class ModelGeneration():
     
     def __init__(self, df: pd.DataFrame, model, tokenizer, device):
         self.inputs_gen, self.outputs_gen, self.labels_gen = [],[],[]
+
+        # Drop rows whose policy is empty (e.g. chit-chat with output "{}"),
+        # since they carry no ACP to generate against or manipulate.
+        df = df[df['output'].astype(str).str.strip().str.replace(' ', '') != '{}'].reset_index(drop=True)
         
         self.inputs, self.outputs = df['input'].to_list(), df['output'].to_list()
         
