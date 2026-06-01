@@ -299,7 +299,7 @@ def main(args: argparse.Namespace) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test a trained NL → ACP model.")
 
-    parser.add_argument("--model_dir",   type=str, default="./nl_acp_model",
+    parser.add_argument("--model_dir",   type=str, default="./nl_acp_model-flan-t5",
                         help="Path to the saved model directory")
     parser.add_argument("--test_path",   type=str, default="/home/ubuntu/agentv-main/email_agent/dataset/combined_test.csv",
                         help="Test CSV with 'input' and 'output' columns")

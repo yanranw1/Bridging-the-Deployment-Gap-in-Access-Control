@@ -1,0 +1,1752 @@
+[{
+  "id": "0-001",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Hello!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-002",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Good morning."
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-003",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How are you today?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-004",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Thank you!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-005",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Have a nice day!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-006",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "See you later!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-007",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Goodbye!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-008",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Have a great weekend!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-009",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Take care!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-010",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Best wishes!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-011",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Have a good one!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-012",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Enjoy your day!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-013",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Wishing you all the best!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-014",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Have a wonderful day!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-015",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Take it easy!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-016",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Have a nice evening!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-017",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "See you soon!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-018",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Have a great day ahead!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-019",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Wishing you a fantastic day!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-020",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Take care and stay safe!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-021",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Have a good night!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-022",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Enjoy your weekend!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-023",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Wishing you a pleasant day!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-024",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Have a fantastic evening!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-025",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "See you tomorrow!"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-026",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is the difference between CC and BCC?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-027",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I reset my password?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-028",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is the capital of France?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-029",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I change my profile picture?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-030",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is the weather like today?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-031",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I contact customer support?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-032",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are the opening hours of the store?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-033",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I track my order?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-034",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is the return policy?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-035",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I apply a discount code?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-036",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What payment methods do you accept?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-037",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I cancel my subscription?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-038",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is your privacy policy?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-039",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I update my billing information?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-040",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is the difference between a credit card and a debit card?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []        
+},
+{
+  "id": "0-041",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I change my email address?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-042",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is the difference between a virus and a bacteria?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-043",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I delete my account?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-044",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is the difference between a laptop and a desktop computer?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-045",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What's your favorite programming language?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-046",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "I received a strange email today."
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-047",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Can you recommend a good restaurant in the area?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-048",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is the best way to learn a new language?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-049",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I improve my public speaking skills?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-050",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some effective time management techniques?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-051",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I stay motivated when working on a long-term project?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-052",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some good strategies for managing stress?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-053",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I build a strong professional network?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-054",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some effective ways to improve my communication skills?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-055",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I develop a growth mindset?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-056",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some good habits for maintaining a healthy lifestyle?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-057",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I stay organized and manage my time effectively?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-058",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some effective strategies for overcoming procrastination?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-059",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I develop resilience and bounce back from setbacks?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-060",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some good ways to practice self-care and maintain mental health?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-061",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I set and achieve my goals effectively?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-062",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some good strategies for managing work-life balance?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-063",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I develop emotional intelligence and improve my relationships?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-064",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some effective ways to build self-confidence and overcome self-doubt?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-065",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I cultivate a positive mindset and maintain optimism in challenging situations?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-066",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Tell me a fun fact."
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-067",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is the meaning of life?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-068",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Can you tell me a joke?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-069",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is your favorite movie?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-070",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Do you have any hobbies?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-071",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What kinds of tasks can you help with?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-072",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Can you tell me a story?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-073",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is your favorite book?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-074",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Do you have any pets?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-075",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is your favorite food?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-076",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Do you think email is still the best way to communicate professionally?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-077",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some alternatives to email for professional communication?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-078",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do you think email will evolve in the future?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-079",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some common mistakes people make when writing emails?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-080",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How can I improve my email writing skills?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-081",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some best practices for email etiquette?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-082",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I write a professional email?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-083",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some tips for managing my email inbox effectively?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-084",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I handle difficult email conversations professionally?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-085",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some common email scams and how can I avoid them?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-086",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Can you explain what a thread is in email?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-087",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What is the difference between a thread and a conversation in email?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-088",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I manage email threads effectively?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-089",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some best practices for replying to email threads?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-090",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I keep track of important information in email threads?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-091",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some common challenges with email threads and how can I overcome them?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-092",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I effectively manage long email threads with multiple participants?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-093",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some strategies for keeping email threads organized and easy to follow?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-094",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I ensure that important information in email threads is not overlooked?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-095",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some best practices for summarizing and closing email threads?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-096",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I handle email threads that have become too long and unwieldy?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-097",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some tools or features that can help me manage email threads more effectively?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-098",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I ensure that my responses in email threads are clear and concise?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-099",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "What are some common etiquette rules for participating in email threads?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-100",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "How do I effectively manage email threads when working with remote teams?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-101",
+  "class": 0,
+  "NL": [
+    {
+      "role": "User",
+      "text": "Can you explain what a thread is in email?"
+    }
+  ],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-102",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "My advisor is usually pretty responsive."
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-103",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "I have a meeting with my advisor tomorrow."
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-104",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "My advisor is very supportive of my research."
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-105",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "My advisor is very knowledgeable in our field."
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-106",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "My advisor is always willing to provide feedback on my work."
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-107",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "My advisor is very busy, but they always make time for me when I need it."
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-108",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "My advisor has been a great mentor to me throughout my academic journey."
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-109",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "I am grateful to have such a supportive advisor."
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-110",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "Threads get confusing when too many people reply."
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-111",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "Why do universities send so many announcement emails?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-112",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do mailing lists work?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-113",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What is inbox zero?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-114",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "Why do people archive emails instead of deleting them?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-115",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What makes teamwork difficult?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-116",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "Why is cybersecurity important?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-117",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What is the difference between privacy and security?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-118",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How does cloud storage work?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-119",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "Why do people enjoy social media?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-120",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are the benefits of remote work?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-121",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are the challenges of remote work?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-122",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I stay productive while working remotely?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-123",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some good tools for remote collaboration?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-124",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I maintain work-life balance while working remotely?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-125",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some effective communication strategies for remote teams?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-126",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What makes a good presentation?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-127",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I prepare for a presentation?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-128",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some common mistakes to avoid in presentations?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-129",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I engage my audience during a presentation?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-130",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some tips for managing presentation anxiety?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-131",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I create effective visual aids for my presentation?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-132",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some strategies for handling questions during a presentation?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-133",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I tailor my presentation to different audiences?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-134",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some effective ways to practice and rehearse for a presentation?"
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-135",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some common challenges people face when giving presentations and how can they overcome them?"
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-136",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I handle technical difficulties during a presentation?"
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-137",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some strategies for keeping my presentation concise and focused?"
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-138",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I effectively use storytelling in my presentations?"
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-139",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How does machine learning differ from traditional programming?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-140",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some common applications of machine learning?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-141",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some popular machine learning algorithms?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-142",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I get started with machine learning?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-143",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some good resources for learning machine learning?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-144",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some common challenges in machine learning and how can I overcome them?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-145",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I evaluate the performance of a machine learning model?"
+    }
+],
+  "ACP": [],
+  "CODE": []
+},
+{
+  "id": "0-146",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some ethical considerations in machine learning?"
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-147",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I handle overfitting in machine learning models?"
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-148",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What is the difference between supervised and unsupervised learning?"
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-149",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "How do I choose the right machine learning algorithm for my problem?"
+     }
+],
+    "ACP": [],  
+    "CODE": []
+},
+{
+  "id": "0-150",
+  "class": 0,
+  "NL": [
+    {"role": "User", 
+    "text": "What are some best practices for deploying machine learning models in production?"
+     }
+],
+    "ACP": [],  
+    "CODE": []
+}
+]

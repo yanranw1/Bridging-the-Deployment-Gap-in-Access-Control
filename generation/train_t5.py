@@ -250,7 +250,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default="google/flan-t5-base",
                         help="HuggingFace model name or local path (default: flan-t5-base). "
                              "Use 't5-large' or 'google/flan-t5-base' for better quality.")
-    parser.add_argument("--output_dir", type=str, default="./nl_acp_model",
+    parser.add_argument("--output_dir", type=str, default="./nl_acp_model-flan-t5",
                         help="Directory to save the fine-tuned model")
 
     # Sequence lengths
@@ -260,7 +260,7 @@ if __name__ == "__main__":
                         help="Max tokens for target ACP JSON (default: 256)")
 
     # Training hyper-parameters
-    parser.add_argument("--epochs",     type=int,   default=10,    help="Training epochs")
+    parser.add_argument("--epochs",     type=int,   default=5,    help="Training epochs")
     parser.add_argument("--batch_size", type=int,   default=8,     help="Per-device batch size")
     parser.add_argument("--lr",         type=float, default=3e-4,  help="Learning rate")
     parser.add_argument("--patience",   type=int,   default=3,

@@ -148,7 +148,10 @@ def convert(input_path: str, output_path: str) -> list:
     rows = []
     for record in data:
         nl_text    = serialize_nl(record.get("NL", []))
-        acp_flag   = 1
+        if len(record.get("ACP", []))==0:
+            acp_flag   = 0
+        else:
+            acp_flag   = 1
         joined     = " | ".join(format_acp(a) for a in record.get("ACP", []))
         output_str = "{" + joined + "}"                  # ← single braces around all
         rows.append({"input": nl_text, "acp": acp_flag, "output": output_str})
@@ -166,7 +169,7 @@ if __name__ == "__main__":
     tagged_rows = []  # (source_class, row_dict, json_record)
 
     # --- Convert each file individually ---
-    for n in range(1, 8):
+    for n in range(0, 8):
         input_path = os.path.join(script_dir, f"class{n}.json")
         output_path = os.path.join(script_dir, f"class{n}_converted.csv")
 

@@ -90,7 +90,7 @@ class ModelGeneration:
                     **encoded,
                     num_beams=num_beams,
                     num_return_sequences=num_beams,
-                    max_new_tokens=256,
+                    max_new_tokens=512,
                     early_stopping=True,
                     no_repeat_ngram_size=3,
                 )
@@ -150,6 +150,8 @@ class ModelGeneration:
             labels  – 1 (correct / field-match) or 0 (incorrect)
         """
         ins, corrects, incorrects = self.generate(num_beams)
+        print(len(corrects))
+        print(len(incorrects))
 
         for input_str, cl, icl in zip(ins, corrects, incorrects):
             for c in cl:

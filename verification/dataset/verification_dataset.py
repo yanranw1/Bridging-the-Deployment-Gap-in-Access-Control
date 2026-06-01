@@ -81,7 +81,7 @@ def generate_dataset(
 )
 @click.option(
     "--model",
-    default="/home/ubuntu/agentv-main/generation/nl_acp_model",
+    default="/home/ubuntu/agentv-main/generation/nl_acp_model-flan-t5",
     required=True,
     show_default=True,
     help="Fine-tuned T5 model directory (saved by train_t5.py)",
