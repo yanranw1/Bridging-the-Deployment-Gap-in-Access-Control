@@ -1,0 +1,1640 @@
+{
+  "source": "generated_results.json",
+  "model": "gpt-4o",
+  "threshold": 0.75,
+  "summary": {
+    "records": 57,
+    "record_exact_match_rate": 0.6667,
+    "logic_match_rate": 0.7368,
+    "step_full_match_rate": 0.5918,
+    "decision_accuracy": 0.7551,
+    "action_accuracy": 0.6735,
+    "resource_accuracy": 0.7347
+  },
+  "results": [
+    {
+      "id": "6-019",
+      "class": 6,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 2,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 2,
+          "action": 2,
+          "resource": 2
+        },
+        "step_full_hits": 2,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "query": {
+                "type": "semantic",
+                "sim": 1.0,
+                "match": true
+              }
+            },
+            "full_match": true
+          },
+          {
+            "step": 2,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "4-024",
+      "class": 4,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 0,
+          "resource": 1
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": false,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "skipped",
+                "match": null,
+                "note": "no ground-truth value"
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-001",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "4-041",
+      "class": 4,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": false,
+            "resource_fields": {
+              "to": {
+                "type": "exact",
+                "match": true
+              },
+              "subject": {
+                "type": "semantic",
+                "sim": 0.301,
+                "match": false
+              },
+              "body": {
+                "type": "semantic",
+                "sim": 0.632,
+                "match": false
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "7-015",
+      "class": 7,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 1,
+          "action": 0,
+          "resource": 1
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": false,
+            "resource": true,
+            "resource_fields": {
+              "to": {
+                "type": "exact",
+                "match": true
+              },
+              "subject": {
+                "type": "semantic",
+                "sim": 1.0,
+                "match": true
+              },
+              "body": {
+                "type": "semantic",
+                "sim": 0.909,
+                "match": true
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-086",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "5-020",
+      "class": 5,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "2-042",
+      "class": 2,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": []
+      }
+    },
+    {
+      "id": "7-051",
+      "class": 7,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "5-030",
+      "class": 5,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-110",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "2-013",
+      "class": 2,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": false,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": false
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "2-040",
+      "class": 2,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "3-013",
+      "class": 3,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 1
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": false,
+            "action": false,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "skipped",
+                "match": null,
+                "note": "no ground-truth value"
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-131",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "3-021",
+      "class": 3,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "3-048",
+      "class": 3,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "6-024",
+      "class": 6,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 2,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 2,
+          "action": 2,
+          "resource": 2
+        },
+        "step_full_hits": 2,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          },
+          {
+            "step": 2,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "5-013",
+      "class": 5,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "2-019",
+      "class": 2,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 1
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": false,
+            "action": false,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "7-056",
+      "class": 7,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "6-008",
+      "class": 6,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 2,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 2,
+          "action": 2,
+          "resource": 2
+        },
+        "step_full_hits": 2,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          },
+          {
+            "step": 2,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "1-031",
+      "class": 1,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": []
+      }
+    },
+    {
+      "id": "0-039",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "2-049",
+      "class": 2,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": false,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": false
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "5-060",
+      "class": 5,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-076",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "4-002",
+      "class": 4,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": []
+      }
+    },
+    {
+      "id": "1-059",
+      "class": 1,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "to": {
+                "type": "exact",
+                "match": true
+              },
+              "subject": {
+                "type": "semantic",
+                "sim": 1.0,
+                "match": true
+              },
+              "body": {
+                "type": "semantic",
+                "sim": 1.0,
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "7-055",
+      "class": 7,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "3-012",
+      "class": 3,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 1
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": false,
+            "action": false,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "6-036",
+      "class": 6,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 2,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 2,
+          "action": 2,
+          "resource": 2
+        },
+        "step_full_hits": 2,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "query": {
+                "type": "semantic",
+                "sim": 1.0,
+                "match": true
+              }
+            },
+            "full_match": true
+          },
+          {
+            "step": 2,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-096",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "0-062",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "2-034",
+      "class": 2,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": []
+      }
+    },
+    {
+      "id": "4-060",
+      "class": 4,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-064",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "6-006",
+      "class": 6,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 2,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": []
+      }
+    },
+    {
+      "id": "1-023",
+      "class": 1,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-066",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "1-040",
+      "class": 1,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": []
+      }
+    },
+    {
+      "id": "4-011",
+      "class": 4,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "7-011",
+      "class": 7,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": false,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": false
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-134",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "0-040",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "3-050",
+      "class": 3,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "skipped",
+                "match": null,
+                "note": "no ground-truth value"
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "5-043",
+      "class": 5,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "7-002",
+      "class": 7,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "1-054",
+      "class": 1,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "title": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-041",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "4-048",
+      "class": 4,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": []
+      }
+    },
+    {
+      "id": "1-030",
+      "class": 1,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "0-142",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "0-135",
+      "class": 0,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 0,
+        "gen_steps": 0,
+        "field_hits": {
+          "decision": 0,
+          "action": 0,
+          "resource": 0
+        },
+        "step_full_hits": 0,
+        "record_exact_match": true,
+        "step_details": []
+      }
+    },
+    {
+      "id": "6-046",
+      "class": 6,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 3,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 2,
+          "action": 1,
+          "resource": 2
+        },
+        "step_full_hits": 1,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "query": {
+                "type": "semantic",
+                "sim": 1.0,
+                "match": true
+              }
+            },
+            "full_match": true
+          },
+          {
+            "step": 2,
+            "decision": true,
+            "action": false,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "3-040",
+      "class": 3,
+      "validation": {
+        "logic_ok": false,
+        "gt_steps": 1,
+        "gen_steps": 2,
+        "field_hits": {
+          "decision": 1,
+          "action": 0,
+          "resource": 1
+        },
+        "step_full_hits": 0,
+        "record_exact_match": false,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": false,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "5-058",
+      "class": 5,
+      "validation": {
+        "logic_ok": true,
+        "gt_steps": 1,
+        "gen_steps": 1,
+        "field_hits": {
+          "decision": 1,
+          "action": 1,
+          "resource": 1
+        },
+        "step_full_hits": 1,
+        "record_exact_match": true,
+        "step_details": [
+          {
+            "step": 1,
+            "decision": true,
+            "action": true,
+            "resource": true,
+            "resource_fields": {
+              "email_id": {
+                "type": "exact",
+                "match": true
+              },
+              "to": {
+                "type": "exact",
+                "match": true
+              }
+            },
+            "full_match": true
+          }
+        ]
+      }
+    }
+  ]
+}
