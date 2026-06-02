@@ -24,7 +24,7 @@ PATH_CKPT = "demo/"
 
 def load_models_tokenizers(device):
     logging.info("Loading checkpoints ...")
-    id_model_name = PATH_CKPT + "checkpoints/checkpoint_identification/"
+    id_model_name = "/home/ubuntu/agentv-main/checkpoints/identification/email"
 
     id_model = BertForSequenceClassification.from_pretrained(
         id_model_name, num_labels=2
@@ -32,6 +32,8 @@ def load_models_tokenizers(device):
     id_tokenizer = BertTokenizerFast.from_pretrained(id_model_name)
 
     id_model.eval()
+
+    #generation
 
     ex_model_name = "meta-llama/Meta-Llama-3-8B"
     peft_model_id = PATH_CKPT + "checkpoints/checkpoint_generation/"
@@ -52,8 +54,10 @@ def load_models_tokenizers(device):
     gen_tokenizer.pad_token = gen_tokenizer.eos_token
     gen_model.eval()
 
+    #verification model
+
     ver_model_name = "facebook/bart-large"
-    verification_ckpt = PATH_CKPT + "checkpoints/checkpoint_verification/"
+    verification_ckpt = "/home/ubuntu/agentv-main/checkpoints/verification/checkpoint"
 
     ver_tokenizer = AutoTokenizer.from_pretrained(ver_model_name)
     ver_model = AutoModelForSequenceClassification.from_pretrained(
@@ -68,17 +72,16 @@ def load_models_tokenizers(device):
 @click.option("--device", default="cuda:0", help="CUDA device", show_default=True)
 def main(device):
 
-    logging.info("Loading preprocessed sentences ...")
-    with open("sents.json", "r") as f:
-
-        sents = json.load(f)
+    logging.info("Loading test data")
+    with open("/home/ubuntu/agentv-main/email_agent/dataset/combined_test.csv", "r", encoding="utf-8") as f:
+        records = json.load(f)
     id_tokenizer, id_model, gen_tokenizer, gen_model, ver_tokenizer, ver_model = (
         load_models_tokenizers(device)
     )
     inputs, outputs, verifications = [], [], []
 
     logging.info("Generating and Verifying ...")
-    for s in tqdm(sents):
+    for s in tqdm(records):
         inputs.append(s)
         output, flag = generate_policy(
             s, id_tokenizer, id_model, gen_tokenizer, gen_model, device
