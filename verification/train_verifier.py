@@ -45,9 +45,22 @@ CORRECT_LABEL = 7   # positive class index
 def train_verifier(id2augs, ds_path, batch_size=16, learning_rate=2e-5,
                    train_epochs=10, ckpt_dir='checkpoints/bart'):
 
+    from sklearn.model_selection import StratifiedGroupKFold
+
     DF = pd.read_csv(ds_path)
-    TRAIN_DF, VAL_DF = train_test_split(DF, test_size=0.2, random_state=42)
-    VAL_DF,  TEST_DF = train_test_split(VAL_DF, test_size=0.5, random_state=42)
+    X, y, groups = DF.index, DF['labels'], DF['inputs']
+
+    # First fold: 80% train / 20% holdout
+    sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
+    train_idx, hold_idx = next(sgkf.split(X, y, groups))
+    TRAIN_DF = DF.iloc[train_idx].reset_index(drop=True)
+    HOLD_DF  = DF.iloc[hold_idx].reset_index(drop=True)
+
+    # Split holdout into val/test, again grouped+stratified
+    sgkf2 = StratifiedGroupKFold(n_splits=2, shuffle=True, random_state=42)
+    val_idx, test_idx = next(sgkf2.split(HOLD_DF.index, HOLD_DF['labels'], HOLD_DF['inputs']))
+    VAL_DF  = HOLD_DF.iloc[val_idx].reset_index(drop=True)
+    TEST_DF = HOLD_DF.iloc[test_idx].reset_index(drop=True)
 
     TEST_DF.to_csv('../data/verification/test_verification_dataset.csv', index=False)
 
@@ -75,13 +88,11 @@ def train_verifier(id2augs, ds_path, batch_size=16, learning_rate=2e-5,
         learning_rate=learning_rate,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
-        eval_steps=500,
-        evaluation_strategy='steps',
+        evaluation_strategy='epoch',
         num_train_epochs=train_epochs,
         weight_decay=0.01,
-        save_strategy='steps',
-        save_steps=500,
-        logging_steps=500,
+        save_strategy='epoch',
+        logging_strategy='epoch',
         report_to='none',
         load_best_model_at_end=True,
         save_total_limit=1,
@@ -111,7 +122,7 @@ def train_verifier(id2augs, ds_path, batch_size=16, learning_rate=2e-5,
 @click.option('--train_epochs',  default=10,   show_default=True, help='Training epochs')
 @click.option('--learning_rate', default=2e-5, show_default=True, help='Learning rate')
 @click.option('--batch_size',    default=8,    show_default=True, help='Batch size')
-@click.option('--out_dir', default='../checkpoints/verification/',
+@click.option('--out_dir', default='../checkpoints/verification/checkpoint-2484',
               show_default=True, help='Checkpoint output directory')
 def main(dataset_path, batch_size, learning_rate, train_epochs, out_dir):
     """Trains the access control policy verifier."""

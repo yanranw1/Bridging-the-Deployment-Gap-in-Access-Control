@@ -141,12 +141,12 @@
               },
               "subject": {
                 "type": "semantic",
-                "sim": 0.301,
+                "sim": 0.233,
                 "match": false
               },
               "body": {
                 "type": "semantic",
-                "sim": 0.632,
+                "sim": 0.381,
                 "match": false
               }
             },
@@ -187,7 +187,7 @@
               },
               "body": {
                 "type": "semantic",
-                "sim": 0.909,
+                "sim": 0.836,
                 "match": true
               }
             },

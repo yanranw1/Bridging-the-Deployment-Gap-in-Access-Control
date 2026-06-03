@@ -6,6 +6,8 @@ from transformers import EvalPrediction
 def compute_metrics(eval_pred: EvalPrediction):
    load_accuracy = load("accuracy")
    load_f1 = load("f1")
+
+   print("debug2",logits.shape)
    
    logits = eval_pred.predictions[0]
    

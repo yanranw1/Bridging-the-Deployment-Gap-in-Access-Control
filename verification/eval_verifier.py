@@ -22,25 +22,25 @@ from tqdm import tqdm
 # ---------------------------------------------------------------------------
 # ── Switch this block to match your checkpoint ──────────────────────────────
 #
-# OLD checkpoint (12-label, correct=11):
-ID2AUGS = {
-    0: 'allow_deny', 1: 'csub',   2: 'cact',  3: 'cres',
-    4: 'ccond',      5: 'cpur',   6: 'msub',  7: 'mres',
-    8: 'mcond',      9: 'mpur',  10: 'mrules', 11: 'correct',
-}
-CORRECT_LABEL = 11
+# # OLD checkpoint (12-label, correct=11):
+# ID2AUGS = {
+#     0: 'allow_deny', 1: 'csub',   2: 'cact',  3: 'cres',
+#     4: 'ccond',      5: 'cpur',   6: 'msub',  7: 'mres',
+#     8: 'mcond',      9: 'mpur',  10: 'mrules', 11: 'correct',
+# }
+# CORRECT_LABEL = 11
 
 # NEW checkpoint (8-label, correct=7) — uncomment after retraining:
-# ID2AUGS = {
-#     0: 'allow_deny', 1: 'csub', 2: 'cact', 3: 'cres',
-#     4: 'msub',       5: 'mres', 6: 'mrules', 7: 'correct',
-# }
-# CORRECT_LABEL = 7
-#
+ID2AUGS = {
+    0: 'allow_deny', 1: 'csub', 2: 'cact', 3: 'cres',
+    4: 'msub',       5: 'mres', 6: 'mrules', 7: 'correct',
+}
+CORRECT_LABEL = 7
+
 # ---------------------------------------------------------------------------
 
 VER_MODEL_NAME    = "facebook/bart-large"
-verification_ckpt = "../checkpoints/verification/checkpoint/"
+verification_ckpt = "../checkpoints/verification/checkpoint-2484/"
 ver_device        = "cuda:0"
 
 # Derived — do not edit
