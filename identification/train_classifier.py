@@ -44,7 +44,7 @@ def train_classifier(train_ds, val_ds, model, tokenizer, batch_size = 16, epochs
     
 
 @click.command()
-@click.option('--dataset_path', default="/home/ubuntu/agentv-main/email_agent/dataset/combined_train.csv", help='Location of the dataset to train the model', required=True)
+@click.option('--dataset_path', default="/home/ubuntu/agentv-main/email_agent/dataset/combined_with0_train.csv", help='Location of the dataset to train the model', required=True)
 @click.option('--batch_size', default=16, help='Batch size', required=True)
 @click.option('--epochs', default=10, help='Number of epochs', required=True)
 @click.option('--learning_rate', default=2e-5, help='Learning rate', required=True)
