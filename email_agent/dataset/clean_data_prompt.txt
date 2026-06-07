@@ -19,89 +19,76 @@ Rule 1. Required vs optional arguments must follow the dispatch contract.
 Each action/API has fixed required arguments and optional arguments. Required arguments must be present. Optional arguments can be included only when they are actually used. Do not use unsupported argument names.
 
 Use this full dispatch contract:
+search_emails
+  required: query
+  optional: max_results
+  output:   {"emails": [{"id": (str)}]}
 
-1. list_emails
-   Required arguments: none
-   Optional arguments: max_results, query
-   Default meaning: max_results defaults to 10, query defaults to empty string.
+list_emails
+  required: (none)
+  optional: label, max_results
+  output:   {"emails": [{"id": (str)}]}
 
-2. get_email
-   Required arguments: email_id
-   Optional arguments: none
+get_email
+  required: email_id
+  optional: (none)
+  output:   {"email": {"id": (str), "threadId": (str)}}
 
-3. search_emails
-   Required arguments: query
-   Optional arguments: max_results
-   Default meaning: max_results defaults to 10.
+analyze_email
+  required: email_id
+  optional: aspects
+  output:   {"analysis": {"email_id": (str), "aspects": (list), "threadId": (str)}}
 
-4. analyze_email
-   Required arguments: email_id
-   Optional arguments: none
+send_email  (destructive)
+  required: to, subject, body
+  optional: cc, bcc
+  output:   {"message": {"id": (str), "threadId": (str)}}
 
-5. draft_reply
-   Required arguments: email_id
-   Optional arguments: tone, instructions
-   Default meaning: tone defaults to professional, instructions defaults to empty string.
-   Use this API when replying to an existing email.
+draft_email
+  required: to, subject, body
+  optional: cc
+  output:   {"draft": {"id": (str)}}
 
-6. send_email
-   Required arguments: to, subject, body
-   Optional arguments: reply_to_id, thread_id
-   This sends an email immediately, so it is a sensitive action.
+draft_reply
+  required: email_id, body
+  optional: (none)
+  output:   {"draft": {"id": (str)}}
 
-7. send_draft
-   Required arguments: draft_id
-   Optional arguments: none
-   Even if the code uses args.get("draft_id"), it returns an error if draft_id is missing, so treat draft_id as required.
+send_draft  (destructive)
+  required: draft_id
+  optional: (none)
+  output:   {"message": {"id": (str), "threadId": (str)}}
 
-8. summarize_inbox
-   Required arguments: none
-   Optional arguments: focus, max_results
-   Default meaning: focus defaults to empty string, max_results defaults to 15.
+forward_email  (destructive)
+  required: email_id, to
+  optional: message
+  output:   {"message": {"id": (str), "threadId": (str)}}
 
-9. create_task
-   Required arguments: title
-   Optional arguments: description, deadline, email_id, email_subject, priority
-   Default meaning: description defaults to empty string, priority defaults to normal.
+star_email
+  required: email_id
+  optional: (none)
+  output:   {"message": {"id": (str)}}
 
-10. list_tasks
-    Required arguments: none
-    Optional arguments: status
-    Default meaning: status defaults to pending.
+delete_email  (destructive)
+  required: email_id
+  optional: (none)
+  output:   {"message": {"id": (str), "trashed": (bool)}}
 
-11. complete_task
-    Required arguments: task_id
-    Optional arguments: none
+create_task
+  required: title
+  optional: due, notes
+  output:   {"task": {"id": (str)}}
 
-12. forward_email
-    Required arguments: email_id, to
-    Optional arguments: message
-    Default meaning: message defaults to empty string.
+complete_task
+  required: task_id
+  optional: (none)
+  output:   {"task": {"id": (str)}}
 
-13. delete_email
-    Required arguments: email_id
-    Optional arguments: none
-    Use delete_email, not trash_email.
+list_tasks
+  required: (none)
+  optional: max_results
+  output:   {"tasks": [{"id": (str)}]}
 
-14. draft_email
-    Required arguments: body
-    Optional arguments: to, subject
-    Use this API to create a new email draft. Do not use draft_email for replying to an existing email.
-
-15. star_email
-    Required arguments: email_id
-    Optional arguments: star
-    Default meaning: star defaults to true. Use star false only when the user wants to unstar something.
-
-Important argument naming rules:
-
-Use email_id, not message_id.
-Use body, not content.
-Use to, not recipient.
-Use message, not note.
-Use delete_email, not trash_email.
-Use draft_reply for replies to existing emails, not draft_email with reply_to_id.
-Do not put reply_to_id or thread_id inside draft_email, because draft_email only supports body, to, and subject.
 
 Correct example for forward_email:
 
@@ -134,62 +121,6 @@ CODE args:
 
 This is wrong because the correct names are email_id and message, not message_id and note.
 
-Correct example for draft_email:
-
-ACP action should be draft_email.
-ACP resource should be:
-body: I will submit the report by Friday., to: [manager@company.com](mailto:manager@company.com), subject: Report Update
-
-CODE api should be draft_email.
-CODE args should be:
-{
-"body": "I will submit the report by Friday.",
-"to": "[manager@company.com](mailto:manager@company.com)",
-"subject": "Report Update"
-}
-
-Wrong example:
-
-ACP resource:
-content: I will submit the report by Friday., recipient: [manager@company.com](mailto:manager@company.com), subject: Report Update
-
-CODE args:
-{
-"content": "I will submit the report by Friday.",
-"recipient": "[manager@company.com](mailto:manager@company.com)",
-"subject": "Report Update"
-}
-
-This is wrong because draft_email requires body and optionally accepts to and subject. It does not support content or recipient.
-
-Correct example for replying to an existing email:
-
-ACP action should be draft_reply.
-ACP resource should be:
-email_id: msg_456, instructions: Draft a reply saying: I agree.
-
-CODE api should be draft_reply.
-CODE args should be:
-{
-"email_id": "msg_456",
-"instructions": "Draft a reply saying: I agree."
-}
-
-Wrong example:
-
-ACP action:
-draft_email
-
-ACP resource:
-body: I agree., reply_to_id: msg_456
-
-CODE args:
-{
-"body": "I agree.",
-"reply_to_id": "msg_456"
-}
-
-This is wrong because replies should use draft_reply, not draft_email with reply_to_id.
 
 Rule 2. ACP resource must use the exact string format "key: value, key2: value2".
 
@@ -285,7 +216,7 @@ Avoid unnecessary null optional values like:
 
 Rule 3. ACP and CODE must match each other exactly.
 
-For each ACP entry, find the CODE entry with the same acp_id. Then check the following things.
+For each ACP entry, find the CODE entry with the same id. Then check the following things.
 
 First, ACP action must match CODE api.
 
@@ -293,13 +224,13 @@ Correct:
 
 ACP:
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "action": "forward_email"
 }
 
 CODE:
 {
-"acp_id": "acp_1",
+"code_id": 0,
 "api": "forward_email"
 }
 
@@ -307,13 +238,13 @@ Wrong:
 
 ACP:
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "action": "trash_email"
 }
 
 CODE:
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "api": "delete_email"
 }
 
@@ -325,42 +256,42 @@ Correct:
 
 ACP:
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "action": "create_task",
-"resource": "title: Finish report, description: Submit final version by Friday"
+"resource": "title: Finish report, notes: Submit final version by Friday"
 }
 
 CODE:
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "api": "create_task",
 "args": {
 "title": "Finish report",
-"description": "Submit final version by Friday"
+"notes": "Submit final version by Friday"
 }
 }
 
-This is correct because ACP has title and description, and CODE also has title and description.
+This is correct because ACP has title and notes, and CODE also has title and notes.
 
 Wrong:
 
 ACP:
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "action": "create_task",
-"resource": "title: Finish report, description: Submit final version by Friday"
+"resource": "title: Finish report, notes: Submit final version by Friday"
 }
 
 CODE:
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "api": "create_task",
 "args": {
 "title": "Finish report"
 }
 }
 
-This is wrong because ACP resource has title and description, but CODE args only has title. They must match.
+This is wrong because ACP resource has title and notes, but CODE args only has title. They must match.
 
 Wrong:
 
@@ -437,12 +368,12 @@ Correct:
 ACP:
 [
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "action": "search_emails",
 "resource": "query: from:alex@company.com project update"
 },
 {
-"acp_id": "acp_2",
+"acp_id": 1,
 "action": "star_email",
 "resource": "email_id: msg_123, star: true"
 }
@@ -451,14 +382,14 @@ ACP:
 CODE:
 [
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "api": "search_emails",
 "args": {
 "query": "from:alex@company.com project update"
 }
 },
 {
-"acp_id": "acp_2",
+"acp_id": 1,
 "api": "star_email",
 "args": {
 "email_id": "msg_123",
@@ -472,12 +403,12 @@ Wrong:
 ACP:
 [
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "action": "search_emails",
 "resource": "query: from:alex@company.com project update"
 },
 {
-"acp_id": "acp_2",
+"acp_id": 1,
 "action": "star_email",
 "resource": "email_id: msg_123, star: true"
 }
@@ -486,7 +417,7 @@ ACP:
 CODE:
 [
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "api": "search_emails",
 "args": {
 "query": "from:alex@company.com project update"
@@ -494,7 +425,7 @@ CODE:
 }
 ]
 
-This is wrong because ACP has acp_2, but CODE does not have a matching acp_2 entry.
+This is wrong because ACP has 1, but CODE does not have a matching 1 entry.
 
 Deny examples still need to follow these rules.
 
@@ -510,7 +441,7 @@ A reasonable deny example is:
 
 ACP:
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "decision": "deny",
 "subject": "email_agent",
 "action": "forward_email",
@@ -521,7 +452,7 @@ ACP:
 
 CODE:
 {
-"acp_id": "acp_1",
+"acp_id": 0,
 "api": "forward_email",
 "args": {
 "email_id": "msg_123"
@@ -536,7 +467,7 @@ Do not use wrong placeholder names like message_id, note, content, recipient, or
 
 Final checklist for checking each dataset item:
 
-Check whether ACP action is one of the 15 supported API/action names.
+Check whether ACP action is one of the 14 supported API/action names.
 Check whether CODE api is the same as ACP action.
 Check whether all required arguments for that API are present, unless the decision is deny and the missing argument is exactly the reason for denial.
 Check whether unsupported or old argument names are used.
@@ -544,5 +475,6 @@ Check whether ACP resource is a string.
 Check whether ACP resource uses key: value, key2: value2 format.
 Check whether ACP resource keys exactly match CODE args keys.
 Check whether ACP resource values exactly match CODE args values.
-Check whether each ACP entry has a matching CODE entry with the same acp_id.
+Check whether each ACP entry has a matching CODE entry with the same acp_id/code_id.
 If an item has multiple problems, report all of them together instead of only reporting one.
+For all resources in NL you should add an 

@@ -1,96 +1,73 @@
 import json
-import csv
 import re
-import argparse
 from pathlib import Path
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 
 
 # ============================================================
-# Dispatch contract, in the same order as the code
+# Dispatch contract: allowed APIs and their arguments
 # ============================================================
 
-API_CONTRACT = OrderedDict([
-    ("list_emails", {
-        "required": [],
-        "optional": ["max_results", "query"],
-    }),
-    ("get_email", {
-        "required": ["email_id"],
-        "optional": [],
-    }),
-    ("search_emails", {
-        "required": ["query"],
-        "optional": ["max_results"],
-    }),
-    ("analyze_email", {
-        "required": ["email_id"],
-        "optional": [],
-    }),
-    ("draft_reply", {
-        "required": ["email_id"],
-        "optional": ["tone", "instructions"],
-    }),
-    ("send_email", {
-        "required": ["to", "subject", "body"],
-        "optional": ["reply_to_id", "thread_id"],
-    }),
-    ("send_draft", {
-        "required": ["draft_id"],
-        "optional": [],
-    }),
-    ("summarize_inbox", {
-        "required": [],
-        "optional": ["focus", "max_results"],
-    }),
-    ("create_task", {
-        "required": ["title"],
-        "optional": ["description", "deadline", "email_id", "email_subject", "priority"],
-    }),
-    ("list_tasks", {
-        "required": [],
-        "optional": ["status"],
-    }),
-    ("complete_task", {
-        "required": ["task_id"],
-        "optional": [],
-    }),
-    ("forward_email", {
-        "required": ["email_id", "to"],
-        "optional": ["message"],
-    }),
-    ("delete_email", {
-        "required": ["email_id"],
-        "optional": [],
-    }),
-    ("draft_email", {
-        "required": ["body"],
-        "optional": ["to", "subject"],
-    }),
-    ("star_email", {
-        "required": ["email_id"],
-        "optional": ["star"],
-    }),
-])
+
+API_CONTRACT = {
+    "search_emails": {"required": ["query"], "optional": ["max_results"],
+                      "method": "users.messages.list", "returns": "emails[]"},
+    "list_emails":   {"required": [], "optional": ["label", "max_results"],
+                      "method": "users.messages.list", "returns": "emails[]"},
+    "get_email":     {"required": ["email_id"], "optional": [],
+                      "method": "users.messages.get", "returns": "email"},
+    "analyze_email": {"required": ["email_id"], "optional": ["aspects"],
+                      "method": "(local LLM analysis)", "returns": "analysis"},
+    "send_email":    {"required": ["to", "subject", "body"], "optional": ["cc", "bcc"],
+                      "method": "users.messages.send", "returns": "message",
+                      "destructive": True},
+    "draft_email":   {"required": ["to", "subject", "body"], "optional": ["cc"],
+                      "method": "users.drafts.create", "returns": "draft"},
+    "draft_reply":   {"required": ["email_id", "body"], "optional": [],
+                      "method": "users.drafts.create", "returns": "draft"},
+    "forward_email": {"required": ["email_id", "to"], "optional": ["message"],
+                      "method": "users.messages.send", "returns": "message",
+                      "destructive": True},
+    "star_email":    {"required": ["email_id"], "optional": [],
+                      "method": "users.messages.modify", "returns": "message"},
+    "send_draft":    {"required": ["draft_id"], "optional": [],
+                      "method": "users.drafts.send", "returns": "message",
+                      "destructive": True},
+    "delete_email":  {"required": ["email_id"], "optional": [],
+                      "method": "users.messages.trash", "returns": "message",
+                      "destructive": True},
+    "create_task":   {"required": ["title"], "optional": ["due", "notes"],
+                      "method": "tasks.insert", "returns": "task"},
+    "complete_task": {"required": ["task_id"], "optional": [],
+                      "method": "tasks.patch", "returns": "task"},
+    "list_tasks":    {"required": [], "optional": ["max_results"],
+                      "method": "tasks.list", "returns": "tasks[]"},
+}
 
 
 # ============================================================
 # ACP resource parser
-# Required format:
-#   "title: Finish report"
-#   "title: Finish report, description: Submit by Friday"
-#
-# Bad:
-#   "Finish report"
-#   {"title": "Finish report"}
-#   "title: Finish report,description: Submit by Friday"
+#   "email_id: msg1, to: a@b.com" -> {"email_id": "msg1", "to": "a@b.com"}
 # ============================================================
 
-KEY_PATTERN = r"[A-Za-z_][A-Za-z0-9_]*"
-PAIR_PATTERN = re.compile(rf"^({KEY_PATTERN}): (.*)$")
+KEY = r"[A-Za-z_][A-Za-z0-9_]*"
+PAIR = re.compile(rf"^({KEY}): (.*)$")
 
 
-def normalize_value(value):
+def parse_resource(resource):
+    """Parse an ACP resource string into a dict of key -> value (str)."""
+    if not isinstance(resource, str) or resource.strip() == "":
+        return {}
+    parts = re.split(rf", (?={KEY}: )", resource)
+    parsed = {}
+    for part in parts:
+        m = PAIR.match(part.strip())
+        if m:
+            parsed[m.group(1)] = m.group(2)
+    return parsed
+
+
+def norm(value):
     if value is True:
         return "true"
     if value is False:
@@ -100,410 +77,163 @@ def normalize_value(value):
     return str(value)
 
 
-def split_resource_pairs(resource):
-    """
-    Split on comma + space only when it is followed by key:
-    Example:
-      "email_id: msg1, to: a@b.com, message: Hi, can you check this?"
-    becomes:
-      ["email_id: msg1", "to: a@b.com", "message: Hi, can you check this?"]
-    """
-    return re.split(rf", (?={KEY_PATTERN}: )", resource)
+def canon(value):
+    """Canonicalize a value for comparison so that equivalent ACP/CODE
+    forms compare equal: unify acp_N_return / code_N_return reference
+    placeholders, and strip wrapping quotes."""
+    v = value.strip()
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in ("'", '"'):
+        v = v[1:-1]
+    # <acp_0_return.id> and <code_0_return.id> refer to the same value
+    v = re.sub(r"\b(?:acp|code)(_\d+_return)", r"ref\1", v)
+    return v
 
 
-def parse_acp_resource(resource):
-    """
-    Returns:
-      parsed_args: dict
-      errors: list[str]
-    """
-    errors = []
+# ============================================================
+# Audit: does each ACP entry match its paired CODE entry?
+# Pairing is by acp_id (ACP) == code_id (CODE).
+# ============================================================
 
-    if resource is None:
-        return {}, []
+def audit_item(item, item_index, file_path):
+    rows = []
+    acp_list = item.get("ACP", [])
+    code_list = item.get("CODE", [])
+    code_by_id = {c.get("code_id"): c for c in code_list if isinstance(c, dict)}
 
-    if not isinstance(resource, str):
-        return {}, [f"ACP resource must be a string, but got {type(resource).__name__}"]
+    for acp in acp_list:
+        if not isinstance(acp, dict):
+            continue
+        problems = []
+        acp_id = acp.get("acp_id")
+        code = code_by_id.get(acp_id)
 
-    if resource.strip() == "":
-        return {}, []
-
-    # Detect wrong separator like ",description: x"
-    if re.search(rf",(?={KEY_PATTERN}: )", resource):
-        errors.append("ACP resource uses bad separator. Use comma + space: ', '")
-
-    parts = split_resource_pairs(resource)
-    parsed = {}
-
-    for part in parts:
-        part = part.strip()
-        match = PAIR_PATTERN.match(part)
-
-        if not match:
-            errors.append(f"Bad ACP resource pair: '{part}'. Expected format 'key: value'")
+        if code is None:
+            rows.append(_row(file_path, item_index, item, acp_id,
+                             [f"No CODE entry with code_id matching acp_id '{acp_id}'"]))
             continue
 
-        key, value = match.group(1), match.group(2)
+        # action vs api
+        action, api = acp.get("action"), code.get("api")
+        if action != api:
+            problems.append(f"action/api mismatch: ACP action='{action}', CODE api='{api}'")
 
-        if key in parsed:
-            errors.append(f"Duplicate key in ACP resource: '{key}'")
+        # decision
+        if acp.get("decision") != code.get("decision"):
+            problems.append(
+                f"decision mismatch: ACP='{acp.get('decision')}', CODE='{code.get('decision')}'"
+            )
 
-        parsed[key] = value
+        # resource args vs code args
+        acp_args = parse_resource(acp.get("resource"))
+        code_args = code.get("args", {})
+        if not isinstance(code_args, dict):
+            problems.append(f"CODE args must be an object, got {type(code_args).__name__}")
+            code_args = {}
 
-    return parsed, errors
+        # validate against the dispatch contract
+        api_name = api or action
+        if api_name not in API_CONTRACT:
+            problems.append(f"Unknown API/action '{api_name}' not in dispatch contract")
+        else:
+            contract = API_CONTRACT[api_name]
+            required = set(contract["required"])
+            allowed = required | set(contract["optional"])
 
+            for label, keys in (("ACP resource", set(acp_args)), ("CODE args", set(code_args))):
+                missing = required - keys
+                if missing:
+                    problems.append(f"Missing required arg(s) in {label}: {sorted(missing)}")
+                unsupported = keys - allowed
+                if unsupported:
+                    problems.append(
+                        f"Unsupported arg(s) in {label} for {api_name}: "
+                        f"{sorted(unsupported)}; allowed={sorted(allowed)}"
+                    )
 
-# ============================================================
-# JSON loading
-# ============================================================
+        if set(acp_args) != set(code_args):
+            problems.append(
+                f"arg keys differ: ACP={sorted(acp_args)}, CODE={sorted(code_args)}"
+            )
 
-def load_json_file(path):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        for key in set(acp_args) & set(code_args):
+            av, cv = acp_args[key], norm(code_args[key])
+            if {av.lower(), cv.lower()} <= {"true", "false"}:
+                ok = av.lower() == cv.lower()
+            else:
+                ok = canon(av) == canon(cv)
+            if not ok:
+                problems.append(f"value mismatch for '{key}': ACP='{av}', CODE='{cv}'")
 
+        if problems:
+            rows.append(_row(file_path, item_index, item, acp_id, problems))
 
-def find_dataset_items(data):
-    """
-    Supports:
-      [ {...}, {...} ]
-      { "data": [ ... ] }
-      { "examples": [ ... ] }
-      { "items": [ ... ] }
-    """
-    if isinstance(data, list):
-        return data
-
-    if isinstance(data, dict):
-        for key in ["data", "examples", "items"]:
-            if key in data and isinstance(data[key], list):
-                return data[key]
-
-    raise ValueError("Unsupported JSON shape. Expected list or dict with data/examples/items list.")
-
-
-def get_json_files(input_path):
-    path = Path(input_path)
-
-    if path.is_file():
-        return [path]
-
-    if path.is_dir():
-        return sorted(path.rglob("*.json"))
-
-    raise FileNotFoundError(f"Path not found: {input_path}")
-
-
-def get_code_by_acp_id(code_list):
-    result = {}
-
-    if not isinstance(code_list, list):
-        return result
-
-    for code in code_list:
-        if isinstance(code, dict):
-            acp_id = code.get("acp_id")
-            if acp_id:
-                result[acp_id] = code
-
-    return result
+    return rows
 
 
-# ============================================================
-# Audit logic
-# ============================================================
-
-def make_audit_row(file_path, item_index, item, acp_id, problems):
-    """
-    One row can include multiple problems together.
-    """
+def _row(file_path, item_index, item, acp_id, problems):
     return {
         "file": str(file_path),
         "item_index": item_index,
         "class": item.get("class"),
         "id": item.get("id"),
         "acp_id": acp_id,
-        "problem_count": len(problems),
-        "problems": " | ".join(problems),
+        "problems": problems,
     }
 
 
-def audit_item(item, item_index, file_path):
-    audit_rows = []
+# ============================================================
+# Loading
+# ============================================================
 
-    acp_list = item.get("ACP", [])
-    code_list = item.get("CODE", [])
-
-    if not isinstance(acp_list, list):
-        return [make_audit_row(
-            file_path,
-            item_index,
-            item,
-            None,
-            [f"ACP must be a list, but got {type(acp_list).__name__}"]
-        )]
-
-    if not isinstance(code_list, list):
-        return [make_audit_row(
-            file_path,
-            item_index,
-            item,
-            None,
-            [f"CODE must be a list, but got {type(code_list).__name__}"]
-        )]
-
-    code_by_acp_id = get_code_by_acp_id(code_list)
-
-    for acp in acp_list:
-        problems = []
-
-        if not isinstance(acp, dict):
-            audit_rows.append(make_audit_row(
-                file_path,
-                item_index,
-                item,
-                None,
-                [f"ACP entry must be an object, but got {type(acp).__name__}"]
-            ))
-            continue
-
-        acp_id = acp.get("acp_id")
-        action = acp.get("action")
-        resource = acp.get("resource")
-
-        if not acp_id:
-            audit_rows.append(make_audit_row(
-                file_path,
-                item_index,
-                item,
-                None,
-                ["Missing ACP acp_id"]
-            ))
-            continue
-
-        code = code_by_acp_id.get(acp_id)
-
-        if not code:
-            audit_rows.append(make_audit_row(
-                file_path,
-                item_index,
-                item,
-                acp_id,
-                [f"Missing matching CODE entry for acp_id '{acp_id}'"]
-            ))
-            continue
-
-        api = code.get("api")
-        args = code.get("args", {})
-
-        if not isinstance(args, dict):
-            problems.append(f"CODE args must be an object, but got {type(args).__name__}")
-            args = {}
-
-        # ----------------------------------------------------
-        # Rule 3: ACP action must match CODE api
-        # ----------------------------------------------------
-        if action != api:
-            problems.append(f"ACP action does not match CODE api: ACP action='{action}', CODE api='{api}'")
-
-        api_name = api or action
-
-        if api_name not in API_CONTRACT:
-            problems.append(f"Unknown API/action '{api_name}' not found in dispatch contract")
-            audit_rows.append(make_audit_row(
-                file_path,
-                item_index,
-                item,
-                acp_id,
-                problems
-            ))
-            continue
-
-        contract = API_CONTRACT[api_name]
-        required = set(contract["required"])
-        optional = set(contract["optional"])
-        allowed = required | optional
-
-        # ----------------------------------------------------
-        # Rule 2: ACP resource format
-        # ----------------------------------------------------
-        acp_resource_args, resource_format_errors = parse_acp_resource(resource)
-
-        for error in resource_format_errors:
-            problems.append(error)
-
-        acp_keys = set(acp_resource_args.keys())
-        code_keys = set(args.keys())
-
-        # ----------------------------------------------------
-        # Rule 1: Required arguments
-        # ----------------------------------------------------
-        missing_required_in_acp = required - acp_keys
-        if missing_required_in_acp:
-            problems.append(
-                f"Missing required argument(s) in ACP resource: {sorted(missing_required_in_acp)}"
-            )
-
-        missing_required_in_code = required - code_keys
-        if missing_required_in_code:
-            problems.append(
-                f"Missing required argument(s) in CODE args: {sorted(missing_required_in_code)}"
-            )
-
-        # ----------------------------------------------------
-        # Rule 1: Unsupported arguments
-        # ----------------------------------------------------
-        unsupported_acp_args = acp_keys - allowed
-        if unsupported_acp_args:
-            problems.append(
-                f"Unsupported argument(s) in ACP resource for {api_name}: {sorted(unsupported_acp_args)}; allowed={sorted(allowed)}"
-            )
-
-        unsupported_code_args = code_keys - allowed
-        if unsupported_code_args:
-            problems.append(
-                f"Unsupported argument(s) in CODE args for {api_name}: {sorted(unsupported_code_args)}; allowed={sorted(allowed)}"
-            )
-
-        # ----------------------------------------------------
-        # Rule 3: ACP resource keys must match CODE args keys
-        # ----------------------------------------------------
-        if acp_keys != code_keys:
-            problems.append(
-                f"ACP resource keys do not match CODE args keys: ACP keys={sorted(acp_keys)}, CODE keys={sorted(code_keys)}"
-            )
-
-        # ----------------------------------------------------
-        # Rule 3: ACP resource values must match CODE args values
-        # ----------------------------------------------------
-        shared_keys = acp_keys & code_keys
-
-        for key in sorted(shared_keys):
-            acp_value = acp_resource_args[key]
-            code_value = normalize_value(args[key])
-
-            if acp_value.lower() in ["true", "false"] and code_value.lower() in ["true", "false"]:
-                match = acp_value.lower() == code_value.lower()
-            else:
-                match = acp_value == code_value
-
-            if not match:
-                problems.append(
-                    f"Value mismatch for '{key}': ACP has '{acp_value}', CODE has '{code_value}'"
-                )
-
-        if problems:
-            audit_rows.append(make_audit_row(
-                file_path,
-                item_index,
-                item,
-                acp_id,
-                problems
-            ))
-
-    return audit_rows
+def find_items(data):
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict):
+        for key in ("data", "examples", "items"):
+            if isinstance(data.get(key), list):
+                return data[key]
+    raise ValueError("Expected a list or a dict with data/examples/items.")
 
 
 def audit_path(input_path):
-    all_rows = []
-    files = get_json_files(input_path)
-
+    path = Path(input_path)
+    files = [path] if path.is_file() else sorted(path.rglob("*.json"))
+    rows = []
     for file_path in files:
         try:
-            data = load_json_file(file_path)
-            items = find_dataset_items(data)
+            items = find_items(json.load(open(file_path, encoding="utf-8")))
         except Exception as e:
-            all_rows.append({
-                "file": str(file_path),
-                "item_index": None,
-                "class": None,
-                "id": None,
-                "acp_id": None,
-                "problem_count": 1,
-                "problems": f"Failed to load or parse JSON file: {e}",
-            })
+            rows.append(_row(file_path, None, {}, None, [f"Failed to load JSON: {e}"]))
             continue
-
         for i, item in enumerate(items):
-            if not isinstance(item, dict):
-                all_rows.append({
-                    "file": str(file_path),
-                    "item_index": i,
-                    "class": None,
-                    "id": None,
-                    "acp_id": None,
-                    "problem_count": 1,
-                    "problems": f"Dataset item must be object, but got {type(item).__name__}",
-                })
-                continue
-
-            all_rows.extend(audit_item(item, i, file_path))
-
-    return all_rows
+            if isinstance(item, dict):
+                rows.extend(audit_item(item, i, file_path))
+    return rows
 
 
 # ============================================================
 # Output
 # ============================================================
 
-def write_csv(rows, output_csv):
-    fieldnames = [
-        "file",
-        "item_index",
-        "class",
-        "id",
-        "acp_id",
-        "problem_count",
-        "problems",
-    ]
-
-    with open(output_csv, "w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def write_json(rows, output_json):
-    with open(output_json, "w", encoding="utf-8") as f:
-        json.dump(rows, f, indent=2, ensure_ascii=False)
-
-
 def print_summary(rows):
     if not rows:
         print("✅ No issues found.")
         return
-
-    print(f"❌ Found {len(rows)} problematic ACP item(s).\n")
-
+    print(f"❌ Found {len(rows)} mismatched ACP/CODE pair(s).\n")
     for row in rows:
-        print(
-            f"file={row['file']} | "
-            f"class={row['class']} | "
-            f"id={row['id']} | "
-            f"acp_id={row['acp_id']} | "
-            f"problem_count={row['problem_count']}"
-        )
-
-        problems = row["problems"].split(" | ")
-        for idx, problem in enumerate(problems, start=1):
-            print(f"  {idx}. {problem}")
-
-        print("-" * 100)
+        print(f"id={row['id']} | class={row['class']} | acp_id={row['acp_id']}")
+        for i, p in enumerate(row["problems"], 1):
+            print(f"  {i}. {p}")
+        print("-" * 80)
 
 
 def main():
-    input_path = "/Users/yanran/Downloads/cleaned/class6.json"
-    csv = "audit_report.csv"
-    json = "audit_report.json"
-
-
+    input_path = "combined.json"
     rows = audit_path(input_path)
-
     print_summary(rows)
-    write_csv(rows, csv)
-    write_json(rows, json)
-
-    print(f"\nCSV audit saved to: {csv}")
-    print(f"JSON audit saved to: {json}")
+    json.dump(rows, open("audit_report.json", "w", encoding="utf-8"),
+              indent=2, ensure_ascii=False)
+    print(f"\nJSON audit saved to: audit_report.json")
 
 
 if __name__ == "__main__":
