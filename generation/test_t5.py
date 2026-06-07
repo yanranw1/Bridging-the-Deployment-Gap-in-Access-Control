@@ -75,7 +75,7 @@ def extract_resource_ref(resource_val: str) -> tuple[str | None, str | None]:
     Returns (key_name, value) e.g. ("email_id", "msg_8c4f2e7b").
     Both are None if no id token is found.
     """
-    m = re.search(r'(email_id|message_id|msg_id|thread_id|id)\s*=\s*(\S+?)(?:,|;|$)', resource_val)
+    m = re.search(r'(email_id|message_id|msg_id|thread_id|id|subject|to|body|reply_to_id|draft_id|focus|max_results|description|title|deadline|email_id|email_subject|priority|status|task_id|message|star|query)\s*=\s*(\S+?)(?:,|;|$)', resource_val)
     if m:
         return m.group(1), m.group(2).rstrip(",;")
     return None, None

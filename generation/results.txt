@@ -1,8 +1,8 @@
 ======================================================================
 RESULTS (42 examples)
   ✓✓ Exact match          :   0  (0.0%)
-  ✓  Field match          :  32  (76.2%)
-  ~  Decision+Action only :   3  (7.1%)
-  ✗  Wrong                :   7  (16.7%)
-  ── Correct (≥field)     :  32  (76.2%)
+  ✓  Field match          :  28  (66.7%)
+  ~  Decision+Action only :   9  (21.4%)
+  ✗  Wrong                :   5  (11.9%)
+  ── Correct (≥field)     :  28  (66.7%)
 ======================================================================
