@@ -46,11 +46,28 @@ def serialize_nl(nl_turns):
         "fields: acp_id, api, args, decision, reason.\n\n"
         f"Conversation:\n{convo}\n\nCode:"
     )
-
-
-def serialize_code(code_list):
-    """Target = full CODE JSON (compact, deterministic key order)."""
+def serialize_code(code_list): 
+    """Target = full CODE JSON (compact, deterministic key order).""" 
     return json.dumps(code_list, ensure_ascii=False, separators=(",", ":"))
+
+# def serialize_code(code_list):
+#     """Serialize with deterministic field ordering:
+#     decision -> api -> args -> acp_id -> reason.
+#     """
+#     ordered = [
+#         {
+#             "decision": item.get("decision"),
+#             "api": item.get("api"),
+#             "args": item.get("args"),
+#         }
+#         for item in code_list
+#     ]
+
+#     return json.dumps(
+#         ordered,
+#         ensure_ascii=False,
+#         separators=(",", ":"),
+#     )
 
 
 def strip_policy_metadata(ex):
@@ -68,13 +85,14 @@ def load_examples(path):
         ex = strip_policy_metadata(ex)             # blind policy_metadata
         inputs.append(serialize_nl(ex["NL"]))      # ACP excluded
         targets.append(serialize_code(ex["CODE"])) # full CODE JSON
+        print(serialize_code(ex["CODE"]))
     return Dataset.from_dict({"input_text": inputs, "target_text": targets})
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--train_file", default="/home/ubuntu/agentv-main/email_agent/dataset/combined_train.json")
-    ap.add_argument("--val_file", default="/home/ubuntu/agentv-main/email_agent/dataset/combined_test.json")
+    ap.add_argument("--train_file", default="/home/ubuntu/agentv-main/email_agent/dataset/combined_with0_train.json")
+    ap.add_argument("--val_file", default="/home/ubuntu/agentv-main/email_agent/dataset/combined_with0_val.json")
     ap.add_argument("--output_dir", default="outputs/flan_t5_nl2code")
     ap.add_argument("--epochs", type=int, default=15)
     ap.add_argument("--lr", type=float, default=3e-4)

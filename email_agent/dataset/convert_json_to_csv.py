@@ -40,19 +40,36 @@ def serialize_resource(val) -> str:
     """
     Serialize a resource value cleanly - no curly braces.
       - None  -> "none"
-      - str   -> as-is
+      - str   -> converts all "key: value" or "key=value" fragments consistently
       - dict  -> "key=value, key=value"  (None values omitted)
     """
     if val is None:
         return "none"
-    if isinstance(val, str):
-        if ": " in val:
-            k, v = val.split(": ", 1)
-            return f"{k}={v}"
-        return val.strip()
+    
     if isinstance(val, dict):
         parts = [f"{k}={v}" for k, v in val.items() if v is not None]
         return ", ".join(parts) if parts else "none"
+        
+    if isinstance(val, str):
+        val = val.strip()
+        # If it looks like JSON/Dict format but passed as a string, clean it up
+        if val.startswith("{") and val.endswith("}"):
+            val = val[1:-1].strip()
+            
+        # Split by comma to catch individual key-value pairs
+        pairs = [p.strip() for p in val.split(",") if p.strip()]
+        parts = []
+        for pair in pairs:
+            if ": " in pair:
+                k, v = pair.split(": ", 1)
+                parts.append(f"{k.strip()}={v.strip()}")
+            elif "=" in pair:
+                k, v = pair.split("=", 1)
+                parts.append(f"{k.strip()}={v.strip()}")
+            else:
+                parts.append(pair)
+        return ", ".join(parts) if parts else "none"
+        
     return str(val).strip()
 
 

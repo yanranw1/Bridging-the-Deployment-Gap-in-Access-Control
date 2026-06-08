@@ -81,7 +81,7 @@ REQUIRED_ARGS = {
 # Everything else is scored by exact (normalized) equality.
 SEMANTIC_FIELDS = {
     "query", "tone", "instructions", "subject",
-    "body", "focus", "description", "message",
+    "body", "focus", "description", "message", 
 }
 
 SIM_THRESHOLD = 0.75

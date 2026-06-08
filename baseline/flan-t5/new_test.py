@@ -440,41 +440,21 @@ def save_results_json(results: list[dict], path: str) -> None:
         json.dump(results, f, ensure_ascii=False, indent=2)
     logger.info("JSON saved → %s", path)
 
+
 def print_summary(results: list[dict]) -> None:
-    total = len(results) or 1
-    exact = sum(1 for r in results if r["match"] == "exact")
-    field = sum(1 for r in results if r["match"] == "field")
-    dec_act = sum(1 for r in results if r["match"] == "decision_action")
-    wrong = sum(1 for r in results if r["match"] == "wrong")
-    decision_match = sum(1 for r in results
-                         if r["details"].get("decision_match"))
-    api_match      = sum(1 for r in results
-                         if r["details"].get("action_match"))
-    args_match     = sum(1 for r in results
-                         if r["details"].get("resource_match"))
+    total    = len(results)
+    exact    = sum(1 for r in results if r["match"] == "exact")
+    field    = sum(1 for r in results if r["match"] == "field")
+    dec_act  = sum(1 for r in results if r["match"] == "decision_action")
+    wrong    = sum(1 for r in results if r["match"] == "wrong")
 
     print(f"\n{'='*70}")
-    print(f"RESULTS ({len(results)} examples)")
-    print(f"  Exact match          : {exact:3d}  ({100*exact/total:.1f}%)")
-    print(f"  Field match          : {field:3d}  ({100*field/total:.1f}%)")
-    print(f"  Decision+API only    : {dec_act:3d}  ({100*dec_act/total:.1f}%)")
-    print(f"  Wrong                : {wrong:3d}  ({100*wrong/total:.1f}%)")
-    print(f"  decision_match       : {decision_match:3d}  ({100*decision_match/total:.1f}%)")
-    print(f"  api_match            : {api_match:3d}  ({100*api_match/total:.1f}%)")
-    print(f"  args_match           : {args_match:3d}  ({100*args_match/total:.1f}%)")
-    print(f"  Correct (>=field)    : {exact+field:3d}  ({100*(exact+field)/total:.1f}%)")
-    print(f"{'='*70}\n")
-
-    print(f"\n{'='*70}")
-    print(f"RESULTS ({len(results)} examples)")
-    print(f"  Exact match          : {exact:3d}  ({100*exact/total:.1f}%)")
-    print(f"  Field match          : {field:3d}  ({100*field/total:.1f}%)")
-    print(f"  Decision+API only    : {dec_act:3d}  ({100*dec_act/total:.1f}%)")
-    print(f"  Wrong                : {wrong:3d}  ({100*wrong/total:.1f}%)")
-    print(f"  decision_match       : {decision_match:3d}  ({100*decision_match/total:.1f}%)")
-    print(f"  api_match            : {api_match:3d}  ({100*api_match/total:.1f}%)")
-    print(f"  args_match           : {args_match:3d}  ({100*args_match/total:.1f}%)")
-    print(f"  Correct (>=field)    : {exact+field:3d}  ({100*(exact+field)/total:.1f}%)")
+    print(f"RESULTS ({total} examples)")
+    print(f"  ✓✓ Exact match          : {exact:3d}  ({100*exact/total:.1f}%)")
+    print(f"  ✓  Field match          : {field:3d}  ({100*field/total:.1f}%)")
+    print(f"  ~  Decision+Action only : {dec_act:3d}  ({100*dec_act/total:.1f}%)")
+    print(f"  ✗  Wrong                : {wrong:3d}  ({100*wrong/total:.1f}%)")
+    print(f"  ── Correct (≥field)     : {exact+field:3d}  ({100*(exact+field)/total:.1f}%)")
     print(f"{'='*70}\n")
 
 
@@ -497,9 +477,9 @@ def main(args: argparse.Namespace) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test a trained NL → ACP model.")
 
-    parser.add_argument("--model_dir",   type=str, default="./nl_acp_model",
+    parser.add_argument("--model_dir",   type=str, default="./outputs/flan_t5_nl2code",
                         help="Path to the saved model directory")
-    parser.add_argument("--test_path",   type=str, default="/home/ubuntu/agentv-main/email_agent/dataset/combined_no0_test.csv",
+    parser.add_argument("--test_path",   type=str, default="/home/ubuntu/agentv-main/email_agent/dataset/combined_no0_test.json",
                         help="Test CSV with 'input' and 'output' columns")
     parser.add_argument("--output_path", type=str, default="results.csv",
                         help="Where to save results (CSV + JSON written alongside)")

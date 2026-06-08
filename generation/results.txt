@@ -1,8 +1,13 @@
+
+
 ======================================================================
 RESULTS (42 examples)
-  ✓✓ Exact match          :   0  (0.0%)
-  ✓  Field match          :  28  (66.7%)
-  ~  Decision+Action only :   9  (21.4%)
-  ✗  Wrong                :   5  (11.9%)
-  ── Correct (≥field)     :  28  (66.7%)
+  Exact match          :   0  (0.0%)
+  Field match          :  24  (57.1%)
+  Decision+API only    :  10  (23.8%)
+  Wrong                :   8  (19.0%)
+  decision_match       :  37  (88.1%)
+  api_match            :  37  (88.1%)
+  args_match           :  28  (66.7%)
+  Correct (>=field)    :  24  (57.1%)
 ======================================================================

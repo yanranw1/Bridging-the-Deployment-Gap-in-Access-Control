@@ -1,358 +1,579 @@
-#!/usr/bin/env python3
 """
-Evaluate a fine-tuned NL -> CODE seq2seq model (FLAN-T5).
+NL → CODE Test Script
+=====================
+Loads a test JSON file (same schema as training: each example has NL / CODE /
+ACP), runs the trained FLAN-T5 model on the serialized NL conversation, then
+scores the generated CODE against the gold CODE.
 
-Mirrors train.py exactly:
-  - Input  = serialized NL conversation ONLY (ACP is NEVER passed to the model)
-  - Target = full CODE JSON list, each object having fields:
-             acp_id, api, args, decision, reason
+Consistent with train.py:
+    * input  = serialize_nl(ex["NL"])         (ACP is never fed to the model)
+    * target = ex["CODE"]  -> JSON list of objects, each with fields
+               {acp_id, api, args, decision, reason}
 
-Computes accuracy on:
-  - api        : predicted API call name matches gold
-  - args       : predicted argument dict matches gold (order-insensitive)
-  - decision   : predicted decision matches gold
-  - all_three  : api AND args AND decision all correct (strict "logic" metric)
-
-Because both NL->CODE may contain multiple actions, evaluation is done by
-aligning predicted code objects to gold code objects by acp_id (falling back
-to positional alignment when acp_id is absent).
+Matching strategy (best -> worst), per CODE object, then aggregated:
+    exact            - generated CODE JSON == gold CODE JSON (normalized)
+    field            - decision + api + required args all match
+    decision_action  - decision + api match, args differ
+    wrong            - decision or api differs / unparseable
 
 Usage:
-  python test.py \
-      --model_dir ./outputs/flan_t5_nl2code \
-      --data /home/ubuntu/agentv-main/email_agent/dataset/combined_test.json
-
-Optional:
-  --max_in 1024 --max_out 512 --num_beams 4 --batch 8 --dump preds.jsonl
+    python new_test.py \
+        --model_dir ./outputs/flan_t5_nl2code \
+        --test_path combined_no0_test.json \
+        --output_path results.csv
 """
 
 import argparse
+import csv
 import json
+import logging
 import re
 
 import torch
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+# Reuse the EXACT serialization used at training time so inputs match.
+from train import serialize_nl, serialize_code, MAX_INPUT_LEN, MAX_TARGET_LEN
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 
-# --------------------------------------------------------------------------- #
-# Reuse the EXACT serialization from training so inputs line up.               #
-# ACP is NEVER passed to the model (neither input nor target).                 #
-# --------------------------------------------------------------------------- #
-def serialize_nl(nl_turns):
-    """Flatten the NL conversation into a single prompt string.
-    Includes retrieved 'resource' blocks but NEVER the ACP. Identical to
-    train.py's serialize_nl."""
-    lines = []
-    for turn in nl_turns:
-        role = turn.get("role", "")
-        text = turn.get("text", "")
-        lines.append(f"{role}: {text}")
-        if "resource" in turn and turn["resource"] is not None:
-            res = json.dumps(turn["resource"], ensure_ascii=False)
-            lines.append(f"  [retrieved]: {res}")
-    convo = "\n".join(lines)
-    return (
-        "Generate the code action(s) for the following request. "
-        "Respond ONLY with a JSON list of code objects, each having "
-        "fields: acp_id, api, args, decision, reason.\n\n"
-        f"Conversation:\n{convo}\n\nCode:"
-    )
+# Required args keyed by api name (mirrors the CODE "args" object).
+REQUIRED_ARGS: dict[str, list[str]] = {
+    "list_emails": [],
+    "get_email": ["email_id"],
+    "search_emails": ["query"],
+    "analyze_email": ["email_id"],
+    "draft_reply": ["email_id"],
+    "send_email": ["to", "subject", "body"],
+    "reply_email": ["to", "body"],
+    "send_draft": ["draft_id"],
+    "draft_email": ["to", "subject", "body"],
+    "forward_email": ["email_id", "to"],
+    "delete_email": ["email_id"],
+    "star_email": ["email_id"],
+    "summarize_inbox": [],
+    "create_task": ["title"],
+    "list_tasks": [],
+    "complete_task": ["task_id"],
+}
+
+# Free-text args scored by SEMANTIC similarity (>= threshold = match).
+# Everything else is scored by exact (normalized) equality.
+SEMANTIC_FIELDS = {
+    "query", "tone", "instructions", "subject",
+    "body", "focus", "description", "message",
+}
+
+SIM_THRESHOLD = 0.75
+
+# api aliases: apis acceptable as substitutes for a ground-truth api.
+# Keyed by the GROUND-TRUTH api; every api implicitly matches itself.
+# Asymmetric by design (send_email can stand in for reply/forward).
+_API_ALIASES: dict[str, set[str]] = {
+    "reply_email":   {"reply_email",   "send_email"},
+    "forward_email": {"forward_email", "send_email"},
+    "send_email":    {"send_email",    "forward_email"},
+}
 
 
-def build_input(record):
-    """Input is the NL serialization ONLY — ACP is excluded, matching train.py."""
-    return serialize_nl(record.get("NL", []))
+# ---------------------------------------------------------------------------
+# Data loading (matches train.py schema, but keeps raw NL/CODE for scoring)
+# ---------------------------------------------------------------------------
 
+def load_test_examples(path: str) -> list[dict]:
+    """Load test examples in the training schema.
 
-def gold_code_list(record):
-    """Gold = full CODE list, normalized to the evaluated fields."""
-    out = []
-    for code in record.get("CODE", []):
-        out.append({
-            "acp_id": code.get("acp_id"),
-            "api": code.get("api"),
-            "args": code.get("args", {}) or {},
-            "decision": code.get("decision"),
+    Returns a list of dicts with:
+        input_text : serialized NL prompt (same as training input)
+        nl_turns   : raw NL turns (for re-serialization / debugging)
+        code_gold  : the gold CODE list (target)
+    ACP is intentionally ignored.
+    """
+    from pathlib import Path
+    data = json.loads(Path(path).read_text())
+    examples = []
+    for ex in data:
+        examples.append({
+            "input_text": serialize_nl(ex["NL"]),
+            "nl_turns":   ex["NL"],
+            "code_gold":  ex["CODE"],
         })
+    return examples
+
+
+# ---------------------------------------------------------------------------
+# Inference
+# ---------------------------------------------------------------------------
+
+_MODEL_CACHE: dict = {}
+
+
+def _load_model(model_dir: str):
+    if model_dir not in _MODEL_CACHE:
+        tok = AutoTokenizer.from_pretrained(model_dir)
+        mdl = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
+        mdl.eval()
+        if torch.cuda.is_available():
+            mdl = mdl.cuda()
+        _MODEL_CACHE[model_dir] = (tok, mdl)
+    return _MODEL_CACHE[model_dir]
+
+
+def predict(model_dir: str, input_text: str) -> str:
+    """Run the trained model on a single serialized NL prompt.
+    Returns the raw decoded string (expected to be a CODE JSON list)."""
+    tok, mdl = _load_model(model_dir)
+    enc = tok(input_text, max_length=MAX_INPUT_LEN, truncation=True,
+              return_tensors="pt")
+    enc = {k: v.to(mdl.device) for k, v in enc.items()}
+    with torch.no_grad():
+        out = mdl.generate(**enc, max_length=MAX_TARGET_LEN)
+    return tok.decode(out[0], skip_special_tokens=True)
+
+
+# ---------------------------------------------------------------------------
+# CODE parsing / normalization
+# ---------------------------------------------------------------------------
+
+_CODE_KEYS = ["acp_id", "api", "args", "decision", "reason"]
+
+
+def repair_code_json(s: str) -> str:
+    """Repair the common seq2seq 'debrace' failure where the model emits
+    valid-ish CODE but drops the '{' '}' around (a) each list element and
+    (b) the args object, e.g.:
+
+        ["acp_id":"a1","api":"get_email","args":"email_id":"x", ...]
+
+    Conservative by design: only called after a normal json.loads fails, and
+    only re-wraps using the known CODE keys, so it won't corrupt valid output.
+    """
+    s = s.strip()
+
+    # 1. Wrap a bare args value in braces: "args": <pairs> ,"<next known key>"
+    next_key = "|".join(k for k in _CODE_KEYS if k != "args")
+
+    def _wrap_args(m):
+        inner = m.group(1).strip()
+        if inner.startswith("{") or not inner:
+            return m.group(0)
+        return f'"args":{{{inner}}}'
+
+    s = re.sub(r'"args":\s*(.*?)(?=,\s*"(?:%s)"\s*:)' % next_key,
+               _wrap_args, s, flags=re.DOTALL)
+
+    # 2. Wrap top-level list elements in braces (elements start at "acp_id").
+    if s.startswith("[") and not re.match(r'\[\s*\{', s):
+        body = s[1:-1] if s.endswith("]") else s[1:]
+        elems = re.split(r'(?<=")\s*,\s*(?="acp_id"\s*:)', body)
+        s = "[" + ",".join("{" + e.strip().strip(",") + "}" for e in elems) + "]"
+
+    return s
+
+
+def parse_code(text) -> list[dict]:
+    """Parse a CODE payload into a list of code-object dicts.
+    Accepts an already-parsed list, a JSON string, or a JSON object.
+    Returns [] if it can't be parsed into a list of dicts."""
+    if isinstance(text, list):
+        return [c for c in text if isinstance(c, dict)]
+    if isinstance(text, dict):
+        return [text]
+    s = (text or "").strip()
+    if not s:
+        return []
+    try:
+        obj = json.loads(s)
+    except json.JSONDecodeError:
+        # Repair the common debrace failure (missing { } on elements / args).
+        try:
+            obj = json.loads(repair_code_json(s))
+        except json.JSONDecodeError:
+            # Best-effort: pull the first {...} or [...] block out of noisy output.
+            m = re.search(r'(\[.*\]|\{.*\})', s, re.DOTALL)
+            if not m:
+                return []
+            try:
+                obj = json.loads(m.group(1))
+            except json.JSONDecodeError:
+                return []
+    if isinstance(obj, dict):
+        return [obj]
+    if isinstance(obj, list):
+        return [c for c in obj if isinstance(c, dict)]
+    return []
+
+
+def norm_value(val) -> object:
+    """Normalize a scalar value for exact comparison.
+    Strings: lower-cased + whitespace-collapsed. Numbers: compared by value."""
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, (int, float)):
+        return float(val)
+    s = re.sub(r"\s+", " ", str(val).strip().lower())
+    if re.fullmatch(r"-?\d+(\.\d+)?", s):
+        return float(s)
+    return s
+
+
+def _api_normalize(api: str) -> str:
+    """Strip underscores/spaces and lowercase for loose comparison."""
+    return re.sub(r"[\s_]", "", api or "").lower()
+
+
+def api_matches(exp_api: str, pred_api: str) -> bool:
+    """True if pred_api is an acceptable match for exp_api (exact or alias)."""
+    exp_norm = _api_normalize(exp_api)
+    pred_norm = _api_normalize(pred_api)
+    if exp_norm == pred_norm:
+        return True
+    for canonical, aliases in _API_ALIASES.items():
+        if exp_norm == _api_normalize(canonical):
+            return pred_norm in {_api_normalize(a) for a in aliases}
+    return False
+
+
+def _api_to_canon(api: str) -> str:
+    """Map a (possibly spaced/cased) api name to a REQUIRED_ARGS key."""
+    raw = (api or "").strip().lower()
+    snake = re.sub(r"\s+", "_", raw)
+    if snake in REQUIRED_ARGS:
+        return snake
+    if raw in REQUIRED_ARGS:
+        return raw
+    return snake
+
+
+# ---------------------------------------------------------------------------
+# Semantic similarity (for free-text args)
+# ---------------------------------------------------------------------------
+
+_EMBED_CACHE: dict[str, list[float]] = {}
+
+
+def _difflib_sim(a: str, b: str) -> float:
+    import difflib
+    return difflib.SequenceMatcher(None, a, b).ratio()
+
+
+def _cosine(u: list[float], v: list[float]) -> float:
+    import math
+    dot = sum(x * y for x, y in zip(u, v))
+    nu = math.sqrt(sum(x * x for x in u))
+    nv = math.sqrt(sum(y * y for y in v))
+    return dot / (nu * nv) if nu and nv else 0.0
+
+
+def semantic_similarity(client, embed_model: str, a: str, b: str) -> float:
+    """Cosine similarity of embeddings; difflib fallback. Returns [0, 1]."""
+    a, b = (a or "").strip(), (b or "").strip()
+    if a == b:
+        return 1.0
+    if not a or not b:
+        return 0.0
+    if client is None:
+        return _difflib_sim(a.lower(), b.lower())
+    try:
+        to_fetch = [t for t in (a, b) if t not in _EMBED_CACHE]
+        if to_fetch:
+            resp = client.embeddings.create(model=embed_model, input=to_fetch)
+            for text, item in zip(to_fetch, resp.data):
+                _EMBED_CACHE[text] = item.embedding
+        return max(0.0, min(1.0, _cosine(_EMBED_CACHE[a], _EMBED_CACHE[b])))
+    except Exception:  # noqa: BLE001
+        return _difflib_sim(a.lower(), b.lower())
+
+
+# ---------------------------------------------------------------------------
+# Match scoring (operates on CODE args dicts)
+# ---------------------------------------------------------------------------
+
+def compare_args(client, embed_model: str, gen_api: str, gt_api: str,
+                 gen_args: dict, gt_args: dict) -> dict:
+    """Compare the REQUIRED args of the GENERATED api.
+
+    Schema is driven by the generated api (important when an alias was used).
+    We validate every required key of gen_api for which ground truth provides
+    a value. Free-text fields use semantic similarity; others use exact
+    normalized equality. Optional args are ignored.
+    """
+    gen_args = gen_args or {}
+    gt_args = gt_args or {}
+
+    if gen_api in REQUIRED_ARGS:
+        required = REQUIRED_ARGS[gen_api]
+    elif gt_api in REQUIRED_ARGS:
+        required = REQUIRED_ARGS[gt_api]
+    else:
+        required = list(gt_args.keys())
+
+    field_results = {}
+    all_ok = True
+    checked_any = False
+    for key in required:
+        if key not in gt_args:
+            field_results[key] = {"type": "skipped", "match": None,
+                                  "note": "no ground-truth value"}
+            continue
+        checked_any = True
+        gen_val = gen_args.get(key)
+        gt_val = gt_args.get(key)
+
+        if key in SEMANTIC_FIELDS:
+            sim = semantic_similarity(
+                client, embed_model, str(gen_val or ""), str(gt_val or ""))
+            ok = sim >= SIM_THRESHOLD
+            field_results[key] = {"type": "semantic", "sim": round(sim, 3),
+                                  "match": ok}
+        else:
+            ok = norm_value(gen_val) == norm_value(gt_val)
+            field_results[key] = {"type": "exact", "match": ok}
+        all_ok = all_ok and ok
+
+    return {"match": all_ok, "fields": field_results, "checked": checked_any}
+
+
+def _score_single(client, embed_model, exp_obj: dict, pred_obj: dict) -> tuple[str, dict]:
+    """Score one gold CODE object against one predicted CODE object."""
+    details = {}
+
+    exp_decision = str(exp_obj.get("decision", "")).strip().lower()
+    pred_decision = str(pred_obj.get("decision", "")).strip().lower()
+    exp_api = str(exp_obj.get("api", "")).strip()
+    pred_api = str(pred_obj.get("api", "")).strip()
+
+    exp_args = exp_obj.get("args", {}) or {}
+    pred_args = pred_obj.get("args", {}) or {}
+
+    res = compare_args(client, embed_model,
+                       _api_to_canon(pred_api), _api_to_canon(exp_api),
+                       pred_args, exp_args)
+
+    details["decision_match"] = exp_decision == pred_decision
+    details["api_match"] = api_matches(pred_api, exp_api)
+    details["api_alias"] = (details["api_match"]
+                            and _api_normalize(pred_api) != _api_normalize(exp_api))
+    details["args_match"] = res["match"]
+    details["arg_fields"] = res["fields"]
+    details["args_checked"] = res["checked"]
+
+    if all([details["decision_match"], details["api_match"], details["args_match"]]):
+        return "field", details
+    if details["decision_match"] and details["api_match"]:
+        return "decision_action", details
+    return "wrong", details
+
+
+_LEVEL_RANK = {"exact": 0, "field": 1, "decision_action": 2, "wrong": 3}
+
+
+def _sorted(obj: dict) -> dict:
+    """Normalize a CODE object for exact comparison: lowercase keys,
+    normalize scalar values, normalize args."""
+    out = {}
+    for k, v in (obj or {}).items():
+        if isinstance(v, dict):
+            out[k.lower()] = {kk.lower(): norm_value(vv) for kk, vv in v.items()}
+        else:
+            out[k.lower()] = norm_value(v)
     return out
 
 
-# --------------------------------------------------------------------------- #
-# Parsing / comparison helpers                                                 #
-# --------------------------------------------------------------------------- #
-def parse_prediction(text):
+def score_match(client, embed_model, expected, predicted) -> tuple[str, dict]:
     """
-    Parse the model output into a list of code objects.
+    Score the predicted CODE list against the gold CODE list.
 
-    The target is a JSON list, so we try, in order:
-      1. direct json.loads (expect a list, or a single dict -> wrap)
-      2. extract outermost [...] and json.loads
-      3. extract outermost {...} (single object) and wrap in a list
-      4. brace-repair fallback: the T5 tokenizer drops '{' '}', so the model
-         emits a flat key:value stream (with args flattened inline). Split on
-         '"acp_id"' boundaries and regex-extract fields per object.
-    Returns a list of dicts with keys acp_id/api/args/decision (missing -> None/{}).
+    Levels (best -> worst):
+        'exact'           - normalized CODE JSON identical
+        'field'           - decision + api + required args match (per object)
+        'decision_action' - decision + api match, args differ
+        'wrong'           - decision or api differs / unparseable / count mismatch
+
+    Multi-object CODE: each gold object is matched positionally to the
+    predicted object; the OVERALL level is the WORST per-object level.
     """
-    def normalize_obj(obj):
-        return {
-            "acp_id": obj.get("acp_id"),
-            "api": obj.get("api"),
-            "args": obj.get("args", {}) or {},
-            "decision": obj.get("decision"),
-        }
+    exp_list = parse_code(expected)
+    pred_list = parse_code(predicted)
 
-    def to_list(obj):
-        if isinstance(obj, list):
-            return [normalize_obj(o) for o in obj if isinstance(o, dict)]
-        if isinstance(obj, dict):
-            return [normalize_obj(obj)]
-        return []
+    details = {"expected_parsed": exp_list, "predicted_parsed": pred_list}
 
-    candidates = [text]
-
-    ls, le = text.find("["), text.rfind("]")
-    if ls != -1 and le > ls:
-        candidates.append(text[ls:le + 1])
-
-    bs, be = text.find("{"), text.rfind("}")
-    if bs != -1 and be > bs:
-        # wrap the run of objects in a list as a last resort
-        candidates.append("[" + text[bs:be + 1] + "]")
-        candidates.append(text[bs:be + 1])
-
-    for cand in candidates:
-        try:
-            obj = json.loads(cand)
-            parsed = to_list(obj)
-            if parsed:
-                return parsed
-        except Exception:
-            pass
-
-    # --- brace-repair fallback for the flattened, brace-less output -------- #
-    return repair_flattened(text)
-
-
-def _grab_scalar(segment, key):
-    """Pull a string/number/bool/null value for `key` from a flat segment."""
-    m = re.search(
-        rf'"{key}"\s*:\s*("(?:[^"\\]|\\.)*"|null|true|false|-?\d+\.?\d*)',
-        segment,
-    )
-    if not m:
-        return None
-    raw = m.group(1)
+    # 1. Exact (normalized re-serialization, key-order independent)
     try:
-        return json.loads(raw)
-    except Exception:
-        return raw.strip('"')
+        exp_norm = json.dumps([_sorted(o) for o in exp_list], sort_keys=True)
+        pred_norm = json.dumps([_sorted(o) for o in pred_list], sort_keys=True)
+        if exp_list and exp_norm == pred_norm:
+            return "exact", details
+    except (TypeError, ValueError):
+        pass
+
+    # if not pred_list:
+    #     print(1)
+    #     details[""] = "could not parse predicted CODE"
+    #     return "wrong", details
+
+    if len(exp_list) != len(pred_list):
+        details["count_mismatch"] = {"expected": len(exp_list),
+                                     "predicted": len(pred_list)}
+
+    # 2/3/4. Per-object scoring; overall = worst level across the gold objects.
+    per_object = []
+    worst = "field"
+    n = max(len(exp_list), len(pred_list))
+    for i in range(n):
+        exp_obj = exp_list[i] if i < len(exp_list) else {}
+        pred_obj = pred_list[i] if i < len(pred_list) else {}
+        lvl, d = _score_single(client, embed_model, exp_obj, pred_obj)
+        per_object.append({"index": i, "level": lvl, **d})
+        if _LEVEL_RANK[lvl] > _LEVEL_RANK[worst]:
+            worst = lvl
+
+    # A count mismatch can never be better than decision_action.
+    if "count_mismatch" in details and _LEVEL_RANK[worst] < _LEVEL_RANK["decision_action"]:
+        worst = "decision_action"
+
+    details["per_object"] = per_object
+    return worst, details
 
 
-def _grab_args(segment):
-    """Args are flattened inline between '"args":' and the next top-level key
-    ("decision" or "reason"). Parse the inner key:value pairs into a dict."""
-    m = re.search(
-        r'"args"\s*:\s*(.*?)\s*,?\s*"(?:decision|reason)"\s*:',
-        segment,
-        flags=re.DOTALL,
-    )
-    if not m:
-        return {}
-    inner = m.group(1).strip().strip("{}").strip()
-    args = {}
-    for pair in re.finditer(
-        r'"([^"]+)"\s*:\s*("(?:[^"\\]|\\.)*"|null|true|false|-?\d+\.?\d*)',
-        inner,
-    ):
-        k, v = pair.group(1), pair.group(2)
-        try:
-            args[k] = json.loads(v)
-        except Exception:
-            args[k] = v.strip('"')
-    return args
+MATCH_ICON = {
+    "exact":           "OK OK",
+    "field":           "OK ",
+    "decision_action": "~  ",
+    "wrong":           "X  ",
+}
 
 
-def repair_flattened(text):
-    """Split a brace-less, flattened multi-object stream on '"acp_id"'
-    boundaries and reconstruct each code object."""
-    starts = [m.start() for m in re.finditer(r'"acp_id"\s*:', text)]
-    if not starts:
-        segments = [text]          # single object without acp_id
-    else:
-        segments = []
-        for idx, s in enumerate(starts):
-            e = starts[idx + 1] if idx + 1 < len(starts) else len(text)
-            segments.append(text[s:e])
+# ---------------------------------------------------------------------------
+# Core test loop
+# ---------------------------------------------------------------------------
 
-    objs = []
-    for seg in segments:
-        obj = {
-            "acp_id": _grab_scalar(seg, "acp_id"),
-            "api": _grab_scalar(seg, "api"),
-            "args": _grab_args(seg),
-            "decision": _grab_scalar(seg, "decision"),
+def run_tests(model_dir: str, test_path: str, client, embed_model: str) -> list[dict]:
+    examples = load_test_examples(test_path)
+    results = []
+
+    for i, ex in enumerate(examples):
+        input_text = ex["input_text"]
+        expected = ex["code_gold"]
+
+        logger.info("Running example %d / %d ...", i + 1, len(examples))
+
+        predicted_str = predict(model_dir, input_text)
+        expected_str = serialize_code(expected)
+
+        level, details = score_match(client, embed_model, expected, predicted_str)
+        icon = MATCH_ICON[level]
+
+        result = {
+            "index":      i,
+            "input":      input_text,
+            "expected":   expected_str,
+            "predicted":  predicted_str,
+            "match":      level,          # exact / field / decision_action / wrong
+            "exact":      level == "exact",
+            "field_match": level in ("exact", "field"),
+            "decision_action_match": level in ("exact", "field", "decision_action"),
+            "details":    details,
         }
-        if obj["api"] is not None or obj["decision"] is not None:
-            objs.append(obj)
-    return objs
+        results.append(result)
+
+        print(f"\n{'='*70}")
+        print(f"[{i}] INPUT:\n{input_text}")
+        print(f"\n  EXPECTED : {expected_str}")
+        print(f"  PREDICTED: {predicted_str}")
+        print(f"  MATCH    : {icon} ({level})")
+        if level not in ("exact", "field") and details.get("per_object"):
+            for po in details["per_object"]:
+                flags = {k: v for k, v in po.items() if k.endswith("_match")}
+                print(f"  OBJ[{po['index']}] {po['level']}: {flags}")
+
+    return results
 
 
-def norm(v):
-    """Normalize a value for robust comparison (string compare, trimmed)."""
-    if v is None:
-        return None
-    if isinstance(v, str):
-        return v.strip()
-    return v
+# ---------------------------------------------------------------------------
+# Output helpers
+# ---------------------------------------------------------------------------
+
+def save_results_csv(results: list[dict], path: str) -> None:
+    fieldnames = ["index", "input", "expected", "predicted", "match",
+                  "exact", "field_match"]
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(results)
+    logger.info("CSV saved -> %s", path)
 
 
-def args_equal(a, b):
-    """Order-insensitive dict comparison via canonical JSON."""
-    try:
-        ca = json.dumps(a, sort_keys=True, ensure_ascii=False)
-        cb = json.dumps(b, sort_keys=True, ensure_ascii=False)
-        return ca == cb
-    except Exception:
-        return a == b
+def save_results_json(results: list[dict], path: str) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+    logger.info("JSON saved -> %s", path)
 
 
-def align(pred_list, gold_list):
-    """
-    Align predicted objects to gold objects.
-    Prefer matching by acp_id; fall back to positional alignment.
-    Returns a list of (pred_or_None, gold) pairs, one per gold object.
-    """
-    pairs = []
-    pred_by_id = {}
-    for p in pred_list:
-        if p.get("acp_id") is not None:
-            pred_by_id.setdefault(p["acp_id"], []).append(p)
 
-    used = [False] * len(pred_list)
-    for idx, g in enumerate(gold_list):
-        gid = g.get("acp_id")
-        matched = None
-        if gid is not None and pred_by_id.get(gid):
-            matched = pred_by_id[gid].pop(0)
-            # mark as used
-            for j, p in enumerate(pred_list):
-                if p is matched and not used[j]:
-                    used[j] = True
-                    break
-        else:
-            # positional fallback: next unused prediction
-            for j, p in enumerate(pred_list):
-                if not used[j]:
-                    matched = p
-                    used[j] = True
-                    break
-        pairs.append((matched, g))
-    return pairs
+def print_summary(results: list[dict]) -> None:
+    total = len(results) or 1
+    exact = sum(1 for r in results if r["match"] == "exact")
+    field = sum(1 for r in results if r["match"] == "field")
+    dec_act = sum(1 for r in results if r["match"] == "decision_action")
+    wrong = sum(1 for r in results if r["match"] == "wrong")
+        
+    def _example_flag(r, flag):
+        if r["match"] == "exact":
+            return True
+        return all(po.get(flag) for po in r["details"].get("per_object", []))
+
+    api_match      = sum(1 for r in results if _example_flag(r, "api_match"))
+    decision_match = sum(1 for r in results if _example_flag(r, "decision_match"))
+    args_match     = sum(1 for r in results if _example_flag(r, "args_match"))
+    for r in results:
+        if r["match"] in ("exact","field") and not _example_flag(r, "api_match"):
+            print(r["index"], r["match"], r["details"].get("per_object"))
+    print(f"\n{'='*70}")
+    print(f"RESULTS ({len(results)} examples)")
+    print(f"  Exact match          : {exact:3d}  ({100*exact/total:.1f}%)")
+    print(f"  Field match          : {field:3d}  ({100*field/total:.1f}%)")
+    print(f"  Decision+API only    : {dec_act:3d}  ({100*dec_act/total:.1f}%)")
+    print(f"  Wrong                : {wrong:3d}  ({100*wrong/total:.1f}%)")
+    print(f"  decision_match       : {decision_match:3d}  ({100*decision_match/total:.1f}%)")
+    print(f"  api_match            : {api_match:3d}  ({100*api_match/total:.1f}%)")
+    print(f"  args_match           : {args_match:3d}  ({100*args_match/total:.1f}%)")
+    print(f"  Correct (>=field)    : {exact+field:3d}  ({100*(exact+field)/total:.1f}%)")
+    print(f"{'='*70}\n")
 
 
-# --------------------------------------------------------------------------- #
-# Evaluation                                                                   #
-# --------------------------------------------------------------------------- #
-def evaluate(args):
-    tokenizer = AutoTokenizer.from_pretrained(args.model_dir)
-    model = AutoModelForSeq2SeqLM.from_pretrained(args.model_dir)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device)
-    model.eval()
+# ---------------------------------------------------------------------------
+# Main / CLI
+# ---------------------------------------------------------------------------
 
-    with open(args.data, "r", encoding="utf-8") as f:
-        records = json.load(f)
-    if args.limit:
-        records = records[: args.limit]
+def main(args: argparse.Namespace) -> None:
+    client = None  # plug in an OpenAI client here for embedding-based matching
+    results = run_tests(args.model_dir, args.test_path, client, args.embed_model)
+    print_summary(results)
 
-    total = len(records)
-    correct = {"api": 0, "args": 0, "decision": 0, "all_three": 0}
-    dump_rows = []
+    save_results_csv(results, args.output_path)
 
-    for i in range(0, len(records), args.batch):
-        chunk = records[i : i + args.batch]
-        inputs = [build_input(r) for r in chunk]
-        enc = tokenizer(
-            inputs,
-            return_tensors="pt",
-            truncation=True,
-            padding=True,
-            max_length=args.max_in,
-        ).to(device)
-
-        with torch.no_grad():
-            out = model.generate(
-                **enc,
-                max_length=args.max_out,
-                num_beams=args.num_beams,
-            )
-        preds = tokenizer.batch_decode(out, skip_special_tokens=True)
-
-        for rec, pred_text in zip(chunk, preds):
-            gold_list = gold_code_list(rec)
-            pred_list = parse_prediction(pred_text)
-
-            # Per-record scoring. A field is correct for the record only if the
-            # predicted action list matches the gold action list on that field
-            # for EVERY action (position-aligned). The empty case is handled
-            # naturally: empty gold + empty pred -> all fields correct;
-            # a length mismatch -> automatic fail on every field.
-            if len(pred_list) != len(gold_list):
-                rec_api = rec_args = rec_dec = False
-            else:
-                rec_api = rec_args = rec_dec = True
-                for pred, gold in zip(pred_list, gold_list):
-                    if norm(pred.get("api")) != norm(gold["api"]):
-                        rec_api = False
-                    if not args_equal(pred.get("args", {}) or {}, gold["args"]):
-                        rec_args = False
-                    if norm(pred.get("decision")) != norm(gold["decision"]):
-                        rec_dec = False
-
-            rec_all = rec_api and rec_args and rec_dec
-
-            correct["api"] += rec_api
-            correct["args"] += rec_args
-            correct["decision"] += rec_dec
-            correct["all_three"] += rec_all
-
-            if args.dump:
-                dump_rows.append({
-                    "input": build_input(rec)[:300],
-                    "gold": gold_list,
-                    "pred": pred_list,
-                    "raw_pred": pred_text,
-                    "api_ok": bool(rec_api),
-                    "args_ok": bool(rec_args),
-                    "decision_ok": bool(rec_dec),
-                    "all_three_ok": bool(rec_all),
-                })
-
-    print(f"\nEvaluated {total} examples\n" + "-" * 40)
-    for k in ["api", "args", "decision", "all_three"]:
-        acc = correct[k] / total if total else 0.0
-        print(f"{k:<12}: {correct[k]:>4}/{total}  =  {acc:.4f}")
-
-    if args.dump:
-        with open(args.dump, "w", encoding="utf-8") as f:
-            for row in dump_rows:
-                f.write(json.dumps(row, ensure_ascii=False) + "\n")
-        print(f"\nWrote per-example predictions to {args.dump}")
-
-
-def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("--model_dir", default="./outputs/flan_t5_nl2code")
-    p.add_argument("--data", default="/home/ubuntu/agentv-main/email_agent/dataset/combined_test.json")
-    p.add_argument("--max_in", type=int, default=1024)
-    p.add_argument("--max_out", type=int, default=512)
-    p.add_argument("--num_beams", type=int, default=4)
-    p.add_argument("--batch", type=int, default=8)
-    p.add_argument("--limit", type=int, default=0, help="evaluate only first N (0 = all)")
-    p.add_argument("--dump", default="", help="optional path to write per-example results jsonl")
-    args = p.parse_args()
-    evaluate(args)
+    json_path = args.output_path.replace(".csv", ".json")
+    if json_path == args.output_path:
+        json_path += ".json"
+    save_results_json(results, json_path)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Test a trained NL -> CODE model.")
+
+    parser.add_argument("--model_dir",   type=str, default="./outputs/flan_t5_nl2code",
+                        help="Path to the saved model directory")
+    parser.add_argument("--test_path",   type=str,
+                        default="/home/ubuntu/agentv-main/email_agent/dataset/combined_with0_test.json",
+                        help="Test JSON file (same schema as training data)")
+    parser.add_argument("--output_path", type=str, default="results.csv",
+                        help="Where to save results (CSV + JSON written alongside)")
+    parser.add_argument("--embed-model", dest="embed_model", type=str,
+                        default="text-embedding-3-small",
+                        help="Embedding model for semantic field matching")
+
+    args = parser.parse_args()
+    main(args)
