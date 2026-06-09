@@ -53,8 +53,7 @@
               "type": "exact",
               "match": false
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -111,8 +110,7 @@
               "type": "exact",
               "match": false
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -162,8 +160,7 @@
               "type": "exact",
               "match": false
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -218,8 +215,7 @@
               "type": "exact",
               "match": false
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -277,8 +273,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -336,8 +331,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -389,8 +383,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -491,8 +484,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -542,8 +534,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -599,8 +590,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -658,8 +648,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -729,8 +718,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         },
         {
           "index": 1,
@@ -744,8 +732,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -842,8 +829,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -905,8 +891,7 @@
               "sim": 1.0,
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -971,8 +956,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -1037,8 +1021,7 @@
               "match": null,
               "note": "no ground-truth value"
             }
-          },
-          "args_checked": false
+          }
         },
         {
           "index": 1,
@@ -1053,8 +1036,7 @@
               "match": null,
               "note": "no ground-truth value"
             }
-          },
-          "args_checked": false
+          }
         }
       ]
     }
@@ -1112,8 +1094,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -1213,8 +1194,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         },
         {
           "index": 1,
@@ -1228,8 +1208,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -1279,8 +1258,7 @@
               "type": "exact",
               "match": false
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -1335,8 +1313,7 @@
               "match": null,
               "note": "no ground-truth value"
             }
-          },
-          "args_checked": false
+          }
         }
       ]
     }
@@ -1394,8 +1371,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -1459,8 +1435,7 @@
               "sim": 0.699,
               "match": false
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -1545,8 +1520,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         },
         {
           "index": 1,
@@ -1560,8 +1534,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -1619,8 +1592,7 @@
               "match": null,
               "note": "no ground-truth value"
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -1701,8 +1673,7 @@
               "type": "exact",
               "match": false
             }
-          },
-          "args_checked": true
+          }
         },
         {
           "index": 1,
@@ -1717,8 +1688,7 @@
               "match": null,
               "note": "no ground-truth value"
             }
-          },
-          "args_checked": false
+          }
         }
       ]
     }
@@ -1793,8 +1763,7 @@
               "sim": 1.0,
               "match": true
             }
-          },
-          "args_checked": true
+          }
         },
         {
           "index": 1,
@@ -1812,8 +1781,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -1872,8 +1840,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -1940,8 +1907,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -2013,8 +1979,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         },
         {
           "index": 1,
@@ -2028,8 +1993,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -2109,8 +2073,7 @@
               "type": "exact",
               "match": false
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -2206,8 +2169,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -2251,8 +2213,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -2302,8 +2263,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -2363,8 +2323,7 @@
           "api_match": true,
           "api_alias": false,
           "args_match": true,
-          "arg_fields": {},
-          "args_checked": false
+          "arg_fields": {}
         },
         {
           "index": 1,
@@ -2379,8 +2338,7 @@
               "match": null,
               "note": "no ground-truth value"
             }
-          },
-          "args_checked": false
+          }
         }
       ]
     }
@@ -2434,8 +2392,7 @@
               "type": "exact",
               "match": false
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -2493,8 +2450,7 @@
               "type": "exact",
               "match": false
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -2544,8 +2500,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -2605,8 +2560,7 @@
           "api_match": true,
           "api_alias": false,
           "args_match": true,
-          "arg_fields": {},
-          "args_checked": false
+          "arg_fields": {}
         },
         {
           "index": 1,
@@ -2621,8 +2575,7 @@
               "match": null,
               "note": "no ground-truth value"
             }
-          },
-          "args_checked": false
+          }
         }
       ]
     }
@@ -2694,8 +2647,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         },
         {
           "index": 1,
@@ -2709,8 +2661,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }
@@ -2788,8 +2739,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         },
         {
           "index": 1,
@@ -2804,8 +2754,7 @@
               "match": null,
               "note": "no ground-truth value"
             }
-          },
-          "args_checked": false
+          }
         }
       ]
     }
@@ -2863,8 +2812,7 @@
               "type": "exact",
               "match": true
             }
-          },
-          "args_checked": true
+          }
         }
       ]
     }

@@ -302,6 +302,9 @@ def compare_args(client, embed_model: str, gen_api: str, gt_api: str,
     """
     gen_args = gen_args or {}
     gt_args = gt_args or {}
+    print("gen_api",gen_api)
+    print("gt_api",gt_api)
+
 
     if gen_api in REQUIRED_ARGS:
         required = REQUIRED_ARGS[gen_api]
@@ -312,13 +315,13 @@ def compare_args(client, embed_model: str, gen_api: str, gt_api: str,
 
     field_results = {}
     all_ok = True
-    checked_any = False
+    # checked_any = False
     for key in required:
         if key not in gt_args:
             field_results[key] = {"type": "skipped", "match": None,
                                   "note": "no ground-truth value"}
             continue
-        checked_any = True
+        #checked_any = True
         gen_val = gen_args.get(key)
         gt_val = gt_args.get(key)
 
@@ -333,7 +336,7 @@ def compare_args(client, embed_model: str, gen_api: str, gt_api: str,
             field_results[key] = {"type": "exact", "match": ok}
         all_ok = all_ok and ok
 
-    return {"match": all_ok, "fields": field_results, "checked": checked_any}
+    return {"match": all_ok, "fields": field_results}#"checked": checked_any}
 
 
 def _score_single(client, embed_model, exp_obj: dict, pred_obj: dict) -> tuple[str, dict]:
@@ -354,11 +357,9 @@ def _score_single(client, embed_model, exp_obj: dict, pred_obj: dict) -> tuple[s
 
     details["decision_match"] = exp_decision == pred_decision
     details["api_match"] = api_matches(pred_api, exp_api)
-    details["api_alias"] = (details["api_match"]
-                            and _api_normalize(pred_api) != _api_normalize(exp_api))
     details["args_match"] = res["match"]
     details["arg_fields"] = res["fields"]
-    details["args_checked"] = res["checked"]
+    # details["args_checked"] = res["checked"]
 
     if all([details["decision_match"], details["api_match"], details["args_match"]]):
         return "field", details
@@ -528,6 +529,7 @@ def print_summary(results: list[dict]) -> None:
     api_match      = sum(1 for r in results if _example_flag(r, "api_match"))
     decision_match = sum(1 for r in results if _example_flag(r, "decision_match"))
     args_match     = sum(1 for r in results if _example_flag(r, "args_match"))
+    new_exact = sum(1 for r in results if _example_flag(r, "api_match") and _example_flag(r, "decision_match") and _example_flag(r, "args_match"))
     for r in results:
         if r["match"] in ("exact","field") and not _example_flag(r, "api_match"):
             print(r["index"], r["match"], r["details"].get("per_object"))
@@ -540,6 +542,8 @@ def print_summary(results: list[dict]) -> None:
     print(f"  decision_match       : {decision_match:3d}  ({100*decision_match/total:.1f}%)")
     print(f"  api_match            : {api_match:3d}  ({100*api_match/total:.1f}%)")
     print(f"  args_match           : {args_match:3d}  ({100*args_match/total:.1f}%)")
+    print(f"  new_exact           : {new_exact:3d}  ({100*new_exact/total:.1f}%)")
+
     print(f"  Correct (>=field)    : {exact+field:3d}  ({100*(exact+field)/total:.1f}%)")
     print(f"{'='*70}\n")
 
