@@ -267,6 +267,7 @@ def compare_resource(client, embed_model, gen_api: str, gt_api: str,
     """
     gen_args = gen_args or {}
     gt_args = gt_args or {}
+    print(gen_args,gt_args)
 
     # Schema is driven by the GENERATED action (fallback: gt action, then keys).
     if gen_api in REQUIRED_ARGS:
@@ -289,7 +290,6 @@ def compare_resource(client, embed_model, gen_api: str, gt_api: str,
         checked_any = True
         gen_val = gen_args.get(key)
         gt_val = gt_args.get(key)
-
         if key in SEMANTIC_FIELDS:
             sim = semantic_similarity(
                 client, embed_model, str(gen_val or ""), str(gt_val or ""))
