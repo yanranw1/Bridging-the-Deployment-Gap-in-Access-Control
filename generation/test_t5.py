@@ -23,7 +23,7 @@ import json
 import logging
 import re
 
-from train_t5 import predict, load_examples
+from train_t5 import predict, load_examples, predict_base_model
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -383,7 +383,7 @@ def run_tests(model_dir: str, test_path: str, client, embed_model: str) -> list[
         logger.info("Running example %d / %d …", i + 1, len(examples))
 
         nl_turns      = [{"role": "User", "text": raw_input}]
-        predicted_obj = predict(model_dir, nl_turns)
+        predicted_obj = predict_base_model(model_dir, nl_turns)
         predicted_str = (
             json.dumps(predicted_obj, ensure_ascii=False)
             if not isinstance(predicted_obj, str)

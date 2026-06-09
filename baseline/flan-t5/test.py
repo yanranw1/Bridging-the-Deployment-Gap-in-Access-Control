@@ -133,6 +133,26 @@ def predict(model_dir: str, input_text: str) -> str:
     return tok.decode(out[0], skip_special_tokens=True)
 
 
+def predict_base_model(model_dir: str | None, nl_turns: list[dict]) -> str:
+    model_name = "google/flan-t5-base"
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    model.eval()
+
+    prompt = "translate to ACP: " + format_nl_conversation(nl_turns)
+    inputs = tokenizer(
+        prompt,
+        return_tensors="pt",
+        truncation=True,
+        max_length=512,
+    )
+
+    with torch.no_grad():
+        output_ids = model.generate(**inputs, max_new_tokens=512)
+
+    return tokenizer.decode(output_ids[0], skip_special_tokens=True)
+
 # ---------------------------------------------------------------------------
 # CODE parsing / normalization
 # ---------------------------------------------------------------------------
@@ -461,7 +481,7 @@ def run_tests(model_dir: str, test_path: str, client, embed_model: str) -> list[
 
         logger.info("Running example %d / %d ...", i + 1, len(examples))
 
-        predicted_str = predict(model_dir, input_text)
+        predicted_str = predict_base_model(model_dir, input_text)
         expected_str = serialize_code(expected)
 
         level, details = score_match(client, embed_model, expected, predicted_str)

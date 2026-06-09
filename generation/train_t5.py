@@ -232,6 +232,25 @@ def predict(model_dir: str, nl_turns: list[dict]) -> list[dict]:
     print("$$:",result)
     return result
 
+def predict_base_model(model_dir: str | None, nl_turns: list[dict]) -> str:
+    model_name = "google/flan-t5-base"
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    model.eval()
+
+    prompt = "translate to ACP: " + format_nl_conversation(nl_turns)
+    inputs = tokenizer(
+        prompt,
+        return_tensors="pt",
+        truncation=True,
+        max_length=512,
+    )
+
+    with torch.no_grad():
+        output_ids = model.generate(**inputs, max_new_tokens=512)
+
+    return tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
 # ---------------------------------------------------------------------------
 # CLI
